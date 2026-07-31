@@ -1,0 +1,174 @@
+// Rolfe Legends 2 — card data. Pure data; js/combat.js interprets.
+// Every card notes its Slay the Spire original (design mirrors StS per DESIGN.md).
+// Effect ops: dmg, times, allEnemies, block, draw, energy, loseHp, selfStr, selfDex,
+// tempStr, status:{k,n,target:'target'|'self'|'all'}, addCard:{id,n,to}, power:'id',
+// special:'key' (implemented in combat.js SPECIALS).
+
+export const HEROES = {
+  aaron: {
+    id: 'aaron', name: 'Aaron the Strong', emoji: '🌪️', hp: 80,
+    relic: 'big_breakfast',
+    tagline: 'The Lil Tornado. Hits like a hay wagon.',
+    starter: ['shove', 'shove', 'shove', 'shove', 'shove', 'brace', 'brace', 'brace', 'brace', 'tornado_slam'],
+  },
+  wyatt: {
+    id: 'wyatt', name: 'Wyatt the Speedy', emoji: '⚡', hp: 70,
+    relic: 'head_start',
+    tagline: 'Fastest feet in Rolfe. Blink and you miss him.',
+    starter: ['kick', 'kick', 'kick', 'kick', 'kick', 'dodge', 'dodge', 'dodge', 'dodge', 'dodge', 'nutmeg', 'quick_feet'],
+  },
+};
+
+export const CARDS = {
+  // ---------- Aaron the Strong (Ironclad spine) ----------
+  shove:        { hero: 'aaron', name: 'Shove', emoji: '🫸', type: 'attack', cost: 1, rarity: 'starter', sts: 'Strike',
+                  text: 'Deal {d} damage.', fx: [{ dmg: 6 }], up: { fx: [{ dmg: 9 }] } },
+  brace:        { hero: 'aaron', name: 'Brace', emoji: '🛡️', type: 'skill', cost: 1, rarity: 'starter', sts: 'Defend',
+                  text: 'Gain {b} Block.', fx: [{ block: 5 }], up: { fx: [{ block: 8 }] } },
+  tornado_slam: { hero: 'aaron', name: 'Tornado Slam', emoji: '💥', type: 'attack', cost: 2, rarity: 'starter', sts: 'Bash',
+                  text: 'Deal {d} damage. Apply {n} Vulnerable.', fx: [{ dmg: 8 }, { status: { k: 'vulnerable', n: 2, target: 'target' } }],
+                  up: { fx: [{ dmg: 10 }, { status: { k: 'vulnerable', n: 3, target: 'target' } }] } },
+  quick_jab:    { hero: 'aaron', name: 'Quick Jab', emoji: '🥊', type: 'attack', cost: 1, rarity: 'common', sts: 'Pommel Strike',
+                  text: 'Deal {d} damage. Draw 1 card.', fx: [{ dmg: 9 }, { draw: 1 }], up: { fx: [{ dmg: 10 }, { draw: 2 }] } },
+  hay_swing:    { hero: 'aaron', name: 'Hay Swing', emoji: '🌾', type: 'attack', cost: 1, rarity: 'common', sts: 'Cleave',
+                  text: 'Deal {d} damage to ALL enemies.', fx: [{ dmg: 8, allEnemies: true }], up: { fx: [{ dmg: 11, allEnemies: true }] } },
+  one_two:      { hero: 'aaron', name: 'One-Two Punch', emoji: '👊', type: 'attack', cost: 1, rarity: 'common', sts: 'Twin Strike',
+                  text: 'Deal {d} damage twice.', fx: [{ dmg: 5, times: 2 }], up: { fx: [{ dmg: 7, times: 2 }] } },
+  heavy_haul:   { hero: 'aaron', name: 'Heavy Haul', emoji: '🏋️', type: 'attack', cost: 2, rarity: 'common', sts: 'Heavy Blade',
+                  text: 'Deal {d} damage. Strength counts 3 times.', special: 'heavy_haul', base: 14, strMult: 3,
+                  up: { base: 14, strMult: 5 } },
+  iron_wave:    { hero: 'aaron', name: 'Wheelbarrow Rush', emoji: '🛞', type: 'attack', cost: 1, rarity: 'common', sts: 'Iron Wave',
+                  text: 'Deal {d} damage. Gain {b} Block.', fx: [{ dmg: 5 }, { block: 5 }], up: { fx: [{ dmg: 7 }, { block: 7 }] } },
+  shake_it_off: { hero: 'aaron', name: 'Shake It Off', emoji: '🐕', type: 'skill', cost: 1, rarity: 'common', sts: 'Shrug It Off',
+                  text: 'Gain {b} Block. Draw 1 card.', fx: [{ block: 8 }, { draw: 1 }], up: { fx: [{ block: 11 }, { draw: 1 }] } },
+  grit:         { hero: 'aaron', name: 'Grit', emoji: '🧱', type: 'skill', cost: 1, rarity: 'common', sts: 'True Grit',
+                  text: 'Gain {b} Block.', fx: [{ block: 7 }], up: { fx: [{ block: 9 }] } },
+  flex:         { hero: 'aaron', name: 'Flex', emoji: '💪', type: 'skill', cost: 0, rarity: 'common', sts: 'Flex',
+                  text: 'Gain {n} Strength this turn.', fx: [{ tempStr: 2 }], up: { fx: [{ tempStr: 4 }] } },
+  uppercut:     { hero: 'aaron', name: 'Uppercut', emoji: '🚜', type: 'attack', cost: 2, rarity: 'uncommon', sts: 'Uppercut',
+                  text: 'Deal {d} damage. Apply 1 Weak and 1 Vulnerable.',
+                  fx: [{ dmg: 13 }, { status: { k: 'weak', n: 1, target: 'target' } }, { status: { k: 'vulnerable', n: 1, target: 'target' } }],
+                  up: { fx: [{ dmg: 13 }, { status: { k: 'weak', n: 2, target: 'target' } }, { status: { k: 'vulnerable', n: 2, target: 'target' } }] } },
+  game_face:    { hero: 'aaron', name: 'Game Face', emoji: '😤', type: 'skill', cost: 0, rarity: 'uncommon', sts: 'Battle Trance',
+                  text: 'Draw 3 cards.', fx: [{ draw: 3 }], up: { fx: [{ draw: 4 }] } },
+  all_out:      { hero: 'aaron', name: 'All-Out Effort', emoji: '😮‍💨', type: 'skill', cost: 0, rarity: 'rare', sts: 'Offering',
+                  text: 'Wear yourself out: lose 6 HP. Gain 2 ⚡. Draw 3 cards. Exhaust.',
+                  fx: [{ loseHp: 6 }, { energy: 2 }, { draw: 3 }], exhausts: true,
+                  up: { fx: [{ loseHp: 6 }, { energy: 2 }, { draw: 5 }] } },
+  back_off:     { hero: 'aaron', name: 'Back Off!', emoji: '🚧', type: 'skill', cost: 1, rarity: 'uncommon', sts: 'Disarm',
+                  text: 'Enemy loses {n} Strength. Exhaust.', fx: [{ status: { k: 'strength', n: -2, target: 'target' } }], exhausts: true,
+                  up: { fx: [{ status: { k: 'strength', n: -3, target: 'target' } }] } },
+  tornado_spin: { hero: 'aaron', name: 'Tornado Spin', emoji: '🌪️', type: 'attack', cost: 'X', rarity: 'uncommon', sts: 'Whirlwind',
+                  text: 'Deal {d} damage to ALL enemies X times.', special: 'tornado_spin', base: 5, up: { base: 8 } },
+  pumped_up:    { hero: 'aaron', name: 'Pumped Up', emoji: '🔥', type: 'power', cost: 1, rarity: 'uncommon', sts: 'Inflame',
+                  text: 'Gain {n} Strength.', fx: [{ selfStr: 2 }], up: { fx: [{ selfStr: 3 }] } },
+  tough_skin:   { hero: 'aaron', name: 'Tough Skin', emoji: '🦬', type: 'power', cost: 1, rarity: 'uncommon', sts: 'Metallicize',
+                  text: 'At the end of your turn, gain {b} Block.', power: 'tough_skin', pn: 3, up: { pn: 4 } },
+  tornado_form: { hero: 'aaron', name: 'TORNADO FORM', emoji: '🌪️', type: 'power', cost: 3, rarity: 'rare', sts: 'Demon Form',
+                  text: 'At the start of each turn, gain {n} Strength.', power: 'tornado_form', pn: 2, up: { pn: 3 } },
+  stone_wall:   { hero: 'aaron', name: 'Stone Wall', emoji: '🪨', type: 'skill', cost: 2, rarity: 'rare', sts: 'Impervious',
+                  text: 'Gain {b} Block. Exhaust.', fx: [{ block: 30 }], exhausts: true, up: { fx: [{ block: 40 }] } },
+  fortify:      { hero: 'aaron', name: 'Fortify the Barn', emoji: '🏚️', type: 'power', cost: 3, rarity: 'rare', sts: 'Barricade',
+                  text: 'Block no longer wears off between turns.', power: 'fortify', up: { cost: 2 } },
+
+  // ---------- Wyatt the Speedy (Silent spine) ----------
+  kick:         { hero: 'wyatt', name: 'Kick', emoji: '🦵', type: 'attack', cost: 1, rarity: 'starter', sts: 'Strike',
+                  text: 'Deal {d} damage.', fx: [{ dmg: 6 }], up: { fx: [{ dmg: 9 }] } },
+  dodge:        { hero: 'wyatt', name: 'Dodge', emoji: '💨', type: 'skill', cost: 1, rarity: 'starter', sts: 'Defend',
+                  text: 'Gain {b} Block.', fx: [{ block: 5 }], up: { fx: [{ block: 8 }] } },
+  nutmeg:       { hero: 'wyatt', name: 'Nutmeg', emoji: '⚽', type: 'attack', cost: 0, rarity: 'starter', sts: 'Neutralize',
+                  text: 'Deal {d} damage. Apply {n} Weak.', fx: [{ dmg: 3 }, { status: { k: 'weak', n: 1, target: 'target' } }],
+                  up: { fx: [{ dmg: 4 }, { status: { k: 'weak', n: 2, target: 'target' } }] } },
+  quick_feet:   { hero: 'wyatt', name: 'Quick Feet', emoji: '👟', type: 'skill', cost: 1, rarity: 'starter', sts: 'Survivor',
+                  text: 'Gain {b} Block. Discard 1 card.', fx: [{ block: 8 }, { discard: 1 }], up: { fx: [{ block: 11 }, { discard: 1 }] } },
+  soccer_ball:  { hero: 'wyatt', name: 'Soccer Ball', emoji: '⚽', type: 'attack', cost: 0, rarity: 'token', sts: 'Shiv',
+                  text: 'Deal {d} damage. Exhaust.', fx: [{ dmg: 4 }], exhausts: true, up: { fx: [{ dmg: 6 }] } },
+  juggling_show:{ hero: 'wyatt', name: 'Juggling Show', emoji: '🤹', type: 'skill', cost: 1, rarity: 'common', sts: 'Blade Dance',
+                  text: 'Add {n} Soccer Balls to your hand.', fx: [{ addCard: { id: 'soccer_ball', n: 3, to: 'hand' } }],
+                  up: { fx: [{ addCard: { id: 'soccer_ball', n: 4, to: 'hand' } }] } },
+  long_pass:    { hero: 'wyatt', name: 'Long Pass', emoji: '🎯', type: 'attack', cost: 1, rarity: 'common', sts: 'Dagger Throw',
+                  text: 'Deal {d} damage. Draw 1 card. Discard 1 card.', fx: [{ dmg: 9 }, { draw: 1 }, { discard: 1 }],
+                  up: { fx: [{ dmg: 12 }, { draw: 1 }, { discard: 1 }] } },
+  sting_shot:   { hero: 'wyatt', name: 'Sting Shot', emoji: '🎯', type: 'attack', cost: 1, rarity: 'common', sts: 'Poisoned Stab',
+                  text: 'Deal {d} damage. Apply {n} Poison.', fx: [{ dmg: 6 }, { status: { k: 'poison', n: 3, target: 'target' } }],
+                  up: { fx: [{ dmg: 8 }, { status: { k: 'poison', n: 4, target: 'target' } }] } },
+  sidestep:     { hero: 'wyatt', name: 'Sidestep', emoji: '🩰', type: 'skill', cost: 0, rarity: 'common', sts: 'Deflect',
+                  text: 'Gain {b} Block.', fx: [{ block: 4 }], up: { fx: [{ block: 7 }] } },
+  backflip:     { hero: 'wyatt', name: 'Backflip', emoji: '🤸', type: 'skill', cost: 1, rarity: 'common', sts: 'Backflip',
+                  text: 'Gain {b} Block. Draw 2 cards.', fx: [{ block: 5 }, { draw: 2 }], up: { fx: [{ block: 8 }, { draw: 2 }] } },
+  warm_up:      { hero: 'wyatt', name: 'Warm-Up', emoji: '🔄', type: 'skill', cost: 0, rarity: 'common', sts: 'Prepared',
+                  text: 'Draw {n} card(s). Discard 1 card.', fx: [{ draw: 1 }, { discard: 1 }], up: { fx: [{ draw: 2 }, { discard: 1 }] } },
+  slide_tackle: { hero: 'wyatt', name: 'Slide Tackle', emoji: '🛝', type: 'attack', cost: 2, rarity: 'common', sts: 'Dash',
+                  text: 'Deal {d} damage. Gain {b} Block.', fx: [{ dmg: 10 }, { block: 10 }], up: { fx: [{ dmg: 13 }, { block: 13 }] } },
+  sneak_attack: { hero: 'wyatt', name: 'Sneak Attack', emoji: '🥷', type: 'attack', cost: 0, rarity: 'uncommon', sts: 'Backstab',
+                  text: 'Deal {d} damage. Innate. Exhaust.', fx: [{ dmg: 11 }], exhausts: true, innate: true, up: { fx: [{ dmg: 15 }] } },
+  itching_powder:{ hero: 'wyatt', name: 'Itching Powder', emoji: '🧂', type: 'skill', cost: 1, rarity: 'uncommon', sts: 'Deadly Poison',
+                  text: 'Apply {n} Poison.', fx: [{ status: { k: 'poison', n: 5, target: 'target' } }],
+                  up: { fx: [{ status: { k: 'poison', n: 7, target: 'target' } }] } },
+  leg_sweep:    { hero: 'wyatt', name: 'Leg Sweep', emoji: '🧹', type: 'skill', cost: 2, rarity: 'uncommon', sts: 'Leg Sweep',
+                  text: 'Apply {n} Weak. Gain {b} Block.', fx: [{ status: { k: 'weak', n: 2, target: 'target' } }, { block: 11 }],
+                  up: { fx: [{ status: { k: 'weak', n: 3, target: 'target' } }, { block: 14 }] } },
+  prank_cloud:  { hero: 'wyatt', name: 'Prank Cloud', emoji: '💨', type: 'skill', cost: 2, rarity: 'uncommon', sts: 'Crippling Cloud',
+                  text: 'Apply {n} Poison and 2 Weak to ALL enemies. Exhaust.',
+                  fx: [{ status: { k: 'poison', n: 4, target: 'all' } }, { status: { k: 'weak', n: 2, target: 'all' } }], exhausts: true,
+                  up: { fx: [{ status: { k: 'poison', n: 7, target: 'all' } }, { status: { k: 'weak', n: 2, target: 'all' } }] } },
+  bicycle_kick: { hero: 'wyatt', name: 'Bicycle Kick', emoji: '🚴', type: 'attack', cost: 1, rarity: 'uncommon', sts: 'Finisher',
+                  text: 'Deal {d} damage for each Attack played this turn.', special: 'bicycle_kick', base: 6, up: { base: 8 } },
+  sleight_of_hand:{ hero: 'wyatt', name: 'Sleight of Hand', emoji: '🎩', type: 'power', cost: 1, rarity: 'uncommon', sts: 'Tools of the Trade',
+                  text: 'At the start of each turn, draw 1 card, then discard 1 card.', power: 'sleight_of_hand', up: { cost: 0 } },
+  footwork:     { hero: 'wyatt', name: 'Footwork', emoji: '🪄', type: 'power', cost: 1, rarity: 'uncommon', sts: 'Footwork',
+                  text: 'Gain {n} Dexterity.', fx: [{ selfDex: 2 }], up: { fx: [{ selfDex: 3 }] } },
+  sugar_rush:   { hero: 'wyatt', name: 'Sugar Rush', emoji: '🧃', type: 'skill', cost: 0, rarity: 'rare', sts: 'Adrenaline',
+                  text: 'Gain {n} ⚡. Draw 2 cards. Exhaust.', fx: [{ energy: 1 }, { draw: 2 }], exhausts: true,
+                  up: { fx: [{ energy: 2 }, { draw: 2 }] } },
+  hat_trick:    { hero: 'wyatt', name: 'Hat Trick', emoji: '🎩', type: 'attack', cost: 1, rarity: 'rare', sts: 'Die Die Die',
+                  text: 'Deal {d} damage to ALL enemies. Exhaust.', fx: [{ dmg: 13, allEnemies: true }], exhausts: true,
+                  up: { fx: [{ dmg: 17, allEnemies: true }] } },
+  ball_machine: { hero: 'wyatt', name: 'Ball Machine', emoji: '🎾', type: 'power', cost: 1, rarity: 'rare', sts: 'Infinite Blades',
+                  text: 'At the start of each turn, add a Soccer Ball to your hand.', power: 'ball_machine' },
+  afterimage:   { hero: 'wyatt', name: 'Afterimage', emoji: '👥', type: 'power', cost: 1, rarity: 'rare', sts: 'After Image',
+                  text: 'Whenever you play a card, gain 1 Block.', power: 'afterimage' },
+
+  // ---------- Special / ally ----------
+  duck:         { hero: 'any', name: 'Duck Friend', emoji: '🦆', type: 'attack', cost: 1, rarity: 'special', sts: '(original)',
+                  text: 'QUACK! Deal {d} damage. Draw 1 card.', fx: [{ dmg: 5 }, { draw: 1 }], up: { fx: [{ dmg: 8 }, { draw: 1 }] } },
+
+  // ---------- Statuses (combat junk) ----------
+  scraped_knee: { hero: 'none', name: 'Scraped Knee', emoji: '🩹', type: 'status', cost: null, rarity: 'status', sts: 'Wound',
+                  text: 'Unplayable.', unplayable: true },
+  straw:        { hero: 'none', name: 'Straw', emoji: '🌾', type: 'status', cost: null, rarity: 'status', sts: 'Dazed',
+                  text: 'Unplayable.', unplayable: true },
+  hailstone:    { hero: 'none', name: 'Hailstone', emoji: '🧊', type: 'status', cost: null, rarity: 'status', sts: 'Burn',
+                  text: 'Unplayable. If in your hand at end of turn, take 2 damage.', unplayable: true, endTurnDmg: 2 },
+
+  // ---------- Curses (deck junk — NEVER "Chores") ----------
+  homework:     { hero: 'none', name: 'Homework', emoji: '📚', type: 'curse', cost: null, rarity: 'curse', sts: 'Curse',
+                  text: 'Unplayable. Ugh, it\'s due Monday.', unplayable: true },
+  poison_ivy:   { hero: 'none', name: 'Poison Ivy', emoji: '🌿', type: 'curse', cost: null, rarity: 'curse', sts: 'Regret',
+                  text: 'Unplayable. When drawn, take 1 damage.', unplayable: true, onDrawDmg: 1 },
+};
+
+// Draftable pool for a hero (excludes starters, tokens, statuses, curses, specials).
+export function draftPool(heroId) {
+  return Object.entries(CARDS)
+    .filter(([, c]) => c.hero === heroId && ['common', 'uncommon', 'rare'].includes(c.rarity))
+    .map(([id]) => id);
+}
+
+export const RARITY_WEIGHTS = { common: 60, uncommon: 33, rare: 7 };
+
+// A card instance in a deck: { id, up: bool, uid }
+let uidCounter = 1;
+export function makeCard(id, up = false) {
+  return { id, up: !!up, uid: uidCounter++ };
+}
+
+// Resolved view of a card instance (applies upgrade overrides).
+export function cardInfo(inst) {
+  const base = CARDS[inst.id];
+  if (!base) return null;
+  const info = { ...base, id: inst.id, uid: inst.uid, upgraded: inst.up };
+  if (inst.up && base.up) Object.assign(info, base.up);
+  if (inst.up) info.name = `${info.name}+`;
+  return info;
+}

@@ -1,0 +1,290 @@
+// Rolfe Legends 2 — run layer (pure, no DOM): run creation, Coach James's boon,
+// act maps (floor-by-floor choices), encounters, rewards, shop, rest, treasure, save.
+
+import { HEROES, CARDS, makeCard, draftPool, RARITY_WEIGHTS } from './cards.js';
+import { RELICS, relicPool } from './relics.js';
+import { EVENTS, EVENT_KEYS } from './events.js';
+import { makeRng } from './rng.js';
+
+export const FLOORS_PER_ACT = 12;
+export const ACTS = 3;
+
+export const ACT_INFO = {
+  1: { name: 'The Far Fields', emoji: '🌅', time: 'morning' },
+  2: { name: 'The Barnyard', emoji: '🌇', time: 'dusk' },
+  3: { name: 'The Storm', emoji: '🌩️', time: 'night' },
+};
+
+export const ENCOUNTERS = {
+  1: {
+    easy: [['gopher'], ['roly_poly', 'roly_poly'], ['crow'], ['mud_blob_m', 'mud_blob_s']],
+    hard: [['barn_spider'], ['magpie'], ['mouse_scrappy', 'mouse_zippy', 'mouse_pudge', 'mouse_whiskers'], ['puffball', 'puffball'], ['crow', 'roly_poly']],
+    elite: [['old_scarecrow'], ['ornery_ram'], ['scarecrow_post', 'scarecrow_post', 'scarecrow_post']],
+    boss: [['rogue_combine']],
+  },
+  2: {
+    easy: [['raccoon_bandit'], ['snapping_turtle'], ['thorny_bramble']],
+    hard: [['waltzing_weasel'], ['possum_defender', 'possum_healer'], ['raccoon_bandit', 'raccoon_bandit'], ['snapping_turtle', 'thorny_bramble']],
+    elite: [['porcupine'], ['fox', 'fox'], ['raccoon_ringleader']],
+    boss: [['raccoon_king']],
+  },
+  3: {
+    easy: [['ball_lightning', 'ball_lightning', 'ball_lightning'], ['hail_cloud'], ['debris_tangle']],
+    hard: [['flooding_creek'], ['passing_squall'], ['hail_cloud', 'ball_lightning'], ['debris_tangle', 'hail_cloud']],
+    elite: [['thunderhead'], ['ghost_wind'], ['wind_funnel']],
+    boss: [['big_twister']],
+  },
+};
+
+// ---------- run creation ----------
+
+export function newRun(heroId, seed) {
+  const hero = HEROES[heroId];
+  const run = {
+    v: 1, seed, rngCalls: 0,
+    hero: heroId, hp: hero.hp, maxHp: hero.hp,
+    gold: 99,
+    deck: hero.starter.map((id) => makeCard(id)),
+    relics: [hero.relic],
+    snacks: [], snackSlots: 1,
+    counters: {}, // cross-fight counters (slingshot, sunflower resets per fight in combat state? sunflower is per-fight in StS; keep per-fight by clearing at combat start)
+    act: 1, floor: 0,
+    skipNextFloor: false,
+    pendingRemove: false,
+    quotas: actQuotas(),
+    stats: { fights: 0, elites: 0, damageTaken: 0 },
+  };
+  return run;
+}
+
+function actQuotas() {
+  return { shop: 1, treasure: 1, rest: 1, elite: 2, event: 3 };
+}
+
+export function runRng(run) {
+  // Deterministic-enough stream: seed + a counter bump per request site.
+  run.rngCalls += 1;
+  return makeRng((run.seed ^ (run.act * 7919) ^ (run.floor * 104729) ^ run.rngCalls) >>> 0);
+}
+
+// ---------- Coach James's boon (Neow) ----------
+
+export function coachBoons(run, rng) {
+  const all = [
+    { id: 'maxhp', label: '❤️ "Eat your vegetables." (+8 Max HP)', apply: (r) => { r.maxHp += 8; r.hp += 8; } },
+    { id: 'gold', label: '💰 "Buy something at Dad\'s." (+100 gold)', apply: (r) => { r.gold += 100; } },
+    { id: 'snack', label: '🧺 "Packed you a snack." (gain a Snack)', apply: (r, g) => { r.snacks.push(g.pick(Object.keys(SNACK_IDS))); } },
+    { id: 'upgrade', label: '⭐ "Let\'s drill that one move." (upgrade a random card)', apply: (r, g) => { const c = g.pick(r.deck.filter((x) => !x.up)); if (c) c.up = true; } },
+    { id: 'relic', label: '🎁 "Found this in the shed." (random Farm Treasure)', apply: (r, g) => { const p = relicPool(r.relics); if (p.length) r.relics.push(g.pick(p)); } },
+  ];
+  return rng.shuffle(all).slice(0, 3);
+}
+const SNACK_IDS = { lemonade: 1, juice_box: 1, jerky: 1, trail_mix: 1, band_aid: 1 };
+
+// ---------- floor options (the map) ----------
+
+// Each floor the player picks 1 of 2–3 stops. Quotas keep acts StS-shaped:
+// 1 shop, 1 treasure, 1 mid rest, ≤2 elites, ~3 events per act; floor 11 rest; 12 boss.
+export function floorOptions(run) {
+  const rng = runRng(run);
+  const f = run.floor + 1; // the floor being offered
+  if (f >= FLOORS_PER_ACT) return [{ type: 'boss' }];
+  if (f === FLOORS_PER_ACT - 1) return [{ type: 'rest' }];
+  if (f === 1) return [{ type: 'fight' }];
+  const q = run.quotas;
+  const opts = new Set(['fight']);
+  const candidates = [];
+  if (q.elite > 0 && f >= 4) candidates.push('elite');
+  if (q.shop > 0 && f >= 3) candidates.push('shop');
+  if (q.treasure > 0 && f >= 3) candidates.push('treasure');
+  if (q.rest > 0 && f >= 5) candidates.push('rest');
+  if (q.event > 0) candidates.push('event');
+  for (const c of rng.shuffle(candidates).slice(0, 2)) opts.add(c);
+  return [...opts].map((type) => ({ type }));
+}
+
+export function chooseFloor(run, opt) {
+  run.floor += 1;
+  const q = run.quotas;
+  if (q[opt.type] != null) q[opt.type] = Math.max(0, q[opt.type] - 1);
+  if (run.skipNextFloor && opt.type !== 'boss') {
+    // Poppa Flaj's tractor: this floor resolves as a free pass
+    run.skipNextFloor = false;
+    return { type: 'skipped' };
+  }
+  return resolveNode(run, opt.type);
+}
+
+function resolveNode(run, type) {
+  const rng = runRng(run);
+  const act = ENCOUNTERS[run.act];
+  switch (type) {
+    case 'fight': {
+      const pool = run.floor <= 3 ? act.easy : (rng.chance(0.35) ? act.easy : act.hard);
+      return { type: 'fight', enemies: rng.pick(pool) };
+    }
+    case 'elite': return { type: 'elite', enemies: rng.pick(act.elite) };
+    case 'boss': return { type: 'boss', enemies: rng.pick(act.boss) };
+    case 'shop': return { type: 'shop', shop: makeShop(run, rng) };
+    case 'treasure': {
+      const p = relicPool(run.relics);
+      const relic = p.length ? rng.pick(p) : null;
+      if (relic) run.relics.push(relic);
+      return { type: 'treasure', relic };
+    }
+    case 'rest': return { type: 'rest' };
+    case 'event': {
+      const seen = run.seenEvents || (run.seenEvents = []);
+      const fresh = EVENT_KEYS.filter((k) => !seen.includes(k));
+      const key = rng.pick(fresh.length ? fresh : EVENT_KEYS);
+      seen.push(key);
+      return { type: 'event', event: key };
+    }
+    default: return { type };
+  }
+}
+
+// ---------- combat rewards ----------
+
+const RARITY_GOLD = { common: 50, uncommon: 75, rare: 145 };
+
+export function pickRarity(rng) {
+  const total = RARITY_WEIGHTS.common + RARITY_WEIGHTS.uncommon + RARITY_WEIGHTS.rare;
+  let r = rng.int(total);
+  if ((r -= RARITY_WEIGHTS.common) < 0) return 'common';
+  if ((r -= RARITY_WEIGHTS.uncommon) < 0) return 'uncommon';
+  return 'rare';
+}
+
+export function cardDraft(run, rng, n = 3) {
+  const pool = draftPool(run.hero);
+  const picks = [];
+  const used = new Set();
+  for (let i = 0; i < n; i++) {
+    const rarity = pickRarity(rng);
+    let candidates = pool.filter((id) => CARDS[id].rarity === rarity && !used.has(id));
+    if (!candidates.length) candidates = pool.filter((id) => !used.has(id));
+    if (!candidates.length) break;
+    const id = rng.pick(candidates);
+    used.add(id);
+    picks.push(id);
+  }
+  return picks;
+}
+
+export function fightRewards(run, kind, rng) {
+  const rewards = { gold: 0, cards: [], relic: null, snack: null };
+  if (kind === 'fight') rewards.gold = rng.range(10, 20);
+  if (kind === 'elite') {
+    rewards.gold = rng.range(25, 35);
+    const p = relicPool(run.relics);
+    rewards.relic = p.length ? rng.pick(p) : null;
+  }
+  if (kind === 'boss') rewards.gold = rng.range(95, 105);
+  rewards.cards = cardDraft(run, rng, 3);
+  if (rng.chance(0.25) && run.snacks.length < run.snackSlots) rewards.snack = rng.pick(Object.keys(SNACK_IDS));
+  return rewards;
+}
+
+export function applyCombatResult(run, combatState) {
+  run.hp = combatState.hero.hp;
+  // fled thieves keep what they stole
+  let lost = 0;
+  for (const e of combatState.enemies) if (e.fled && e.stolen) lost += e.stolen;
+  run.gold = Math.max(0, run.gold - lost);
+  if (run.relics.includes('big_breakfast')) run.hp = Math.min(run.maxHp, run.hp + 6);
+  run.stats.fights += 1;
+  return { goldLost: lost };
+}
+
+// ---------- shop (Jacob's Farm Supply) ----------
+
+export function makeShop(run, rng) {
+  const cards = cardDraft(run, rng, 5).map((id) => ({
+    id, price: Math.round(RARITY_GOLD[CARDS[id].rarity] * (0.9 + rng.random() * 0.2)),
+  }));
+  const rp = relicPool(run.relics);
+  const relic = rp.length ? { id: rng.pick(rp), price: rng.range(143, 157) } : null;
+  const snack = { id: rng.pick(Object.keys(SNACK_IDS)), price: rng.range(48, 52) };
+  return { cards, relic, snack, removePrice: 75, removed: false };
+}
+
+export function shopBuyCard(run, shop, i) {
+  const item = shop.cards[i];
+  if (!item || run.gold < item.price) return false;
+  run.gold -= item.price;
+  run.deck.push(makeCard(item.id));
+  shop.cards.splice(i, 1);
+  return true;
+}
+export function shopBuyRelic(run, shop) {
+  if (!shop.relic || run.gold < shop.relic.price) return false;
+  run.gold -= shop.relic.price;
+  run.relics.push(shop.relic.id);
+  if (shop.relic.id === 'lunchbox') run.snackSlots += 1;
+  shop.relic = null;
+  return true;
+}
+export function shopBuySnack(run, shop) {
+  if (!shop.snack || run.gold < shop.snack.price || run.snacks.length >= run.snackSlots) return false;
+  run.gold -= shop.snack.price;
+  run.snacks.push(shop.snack.id);
+  shop.snack = null;
+  return true;
+}
+export function shopRemoveCard(run, shop, cardUid) {
+  if (shop.removed || run.gold < shop.removePrice) return false;
+  const i = run.deck.findIndex((c) => c.uid === cardUid);
+  if (i < 0) return false;
+  run.gold -= shop.removePrice;
+  run.deck.splice(i, 1);
+  shop.removed = true;
+  return true;
+}
+
+// treasure/lunchbox side effects for relics gained outside the shop
+export function onRelicGained(run, id) {
+  if (id === 'lunchbox') run.snackSlots += 1;
+}
+
+// ---------- rest (Granny Rockie's porch) ----------
+
+export function restCookies(run) {
+  const heal = Math.floor(run.maxHp * 0.3);
+  run.hp = Math.min(run.maxHp, run.hp + heal);
+  return heal;
+}
+export function restPractice(run, cardUid) {
+  const c = run.deck.find((x) => x.uid === cardUid && !x.up);
+  if (!c) return false;
+  c.up = true;
+  return true;
+}
+
+// ---------- act / run progression ----------
+
+export function advanceAct(run) {
+  if (run.act >= ACTS) return false;
+  run.act += 1;
+  run.floor = 0;
+  run.quotas = actQuotas();
+  run.seenEvents = [];
+  // "Catch your breath" — heal 25% between acts. Kid-kindness deviation from StS
+  // (documented in DESIGN.md); the harness validates overall difficulty with it.
+  run.hp = Math.min(run.maxHp, run.hp + Math.floor(run.maxHp * 0.25));
+  return true;
+}
+
+// ---------- save / load (localStorage-friendly JSON) ----------
+
+export function serializeRun(run) {
+  return JSON.stringify(run);
+}
+export function deserializeRun(json) {
+  try {
+    const run = JSON.parse(json);
+    if (!run || run.v !== 1 || !HEROES[run.hero]) return null;
+    if (!Array.isArray(run.deck) || !run.deck.every((c) => CARDS[c.id])) return null;
+    return run;
+  } catch { return null; }
+}
