@@ -115,7 +115,7 @@ function coachTip(key, text) {
   seen[key] = 1;
   localStorage.setItem(TIPS_KEY, JSON.stringify(seen));
   const b = el('div', 'coach-bubble');
-  b.appendChild(artImg('assets/ui/portrait_coach.png', '🧢', 'coach-face'));
+  b.appendChild(artImg('assets/ui/portrait_coach.jpg', '🧢', 'coach-face'));
   b.appendChild(el('span', 'coach-text', `<b>Coach James:</b> ${text}`));
   document.body.appendChild(b);
   setTimeout(() => b.classList.add('gone'), 4600);
@@ -126,7 +126,7 @@ function coachTip(key, text) {
 function showTitle() {
   music.play('title');
   const s = screen('act-1 title-screen');
-  const art = bgLayer('assets/ui/title.png', 'title-art');
+  const art = bgLayer('assets/ui/title.jpg', 'title-art');
   s.appendChild(art);
   const inner = el('div', 'title-inner');
   inner.appendChild(el('h1', 'title-logo', '🌪️ ROLFE LEGENDS 2 🦆'));
@@ -270,7 +270,7 @@ function showHeroSelect() {
   for (const id of roster) {
     const h = HEROES[id];
     const c = el('div', 'hero-card');
-    c.appendChild(artImg(`assets/ui/portrait_${id}.png`, h.emoji, 'hero-face'));
+    c.appendChild(artImg(`assets/ui/portrait_${id}.jpg`, h.emoji, 'hero-face'));
     c.appendChild(el('h3', '', h.name));
     c.appendChild(el('p', '', h.tagline));
     c.appendChild(el('p', '', `❤️ ${h.hp} HP · ${RELICS[h.relic].emoji} ${RELICS[h.relic].name}`));
@@ -289,7 +289,7 @@ function startRun(heroId) {
 }
 
 function showBoon() {
-  const s = sceneScreen('assets/ui/portrait_coach.png', '🧢', 'Coach James');
+  const s = sceneScreen('assets/ui/portrait_coach.jpg', '🧢', 'Coach James');
   s.appendChild(el('div', 'speaker-line', '"Big day, kid. The farm\'s counting on you. Take one of these before you head out."'));
   const rng = makeRng(run.seed ^ 777);
   for (const boon of R.coachBoons(run, rng)) {
@@ -356,7 +356,7 @@ function showMap() {
   const canvas = el('div', 'map-canvas');
   const H = MAP_PAD * 2 + MAP_FLOORS * ROW_H + 40;
   canvas.style.height = `${H}px`;
-  wrap.appendChild(bgLayer(`assets/backgrounds/map${run.act}.png`, 'map-bg'));
+  wrap.appendChild(bgLayer(`assets/backgrounds/map${run.act}.jpg`, 'map-bg'));
   s.appendChild(wrap);
   wrap.appendChild(canvas);
   $app.appendChild(s); // ensure laid out for width
@@ -448,7 +448,7 @@ function enterNode(node) {
 }
 
 function showSkipped() {
-  const s = sceneScreen('assets/events/tractor_ride.png', '🚜', 'The tractor rumbles past it all.');
+  const s = sceneScreen('assets/events/tractor_ride.jpg', '🚜', 'The tractor rumbles past it all.');
   s.appendChild(el('div', 'speaker-line', '"Told ya I was headed this way." — Poppa Flaj'));
   const b = el('button', 'btn', 'Onward! →');
   b.onclick = showMap;
@@ -597,7 +597,7 @@ function renderCombat(actedEnemy = null) {
   s.classList.add('combat');
   s.classList.remove('screen-enter'); // combat re-renders constantly; no re-entry flash
   const st = combat;
-  s.appendChild(bgLayer(`assets/backgrounds/battle${run.act}.png`, 'battle-bg'));
+  s.appendChild(bgLayer(`assets/backgrounds/battle${run.act}.jpg`, 'battle-bg'));
   const inner = el('div', 'combat-inner');
   s.appendChild(inner);
 
@@ -608,7 +608,7 @@ function renderCombat(actedEnemy = null) {
     if (e.gone || e.fled) { enemyEls[i] = null; return; }
     const dead = e.hp <= 0;
     const d = el('div', `enemy${dead ? ' dead' : ''}${e.isBoss ? ' boss-foe' : ''}${e.isElite && !e.isBoss ? ' elite-foe' : ''}`);
-    const face = artImg(`assets/enemies/${e.artKey}.png`, e.emoji, 'face');
+    const face = artImg(`assets/enemies/${e.artKey}.jpg`, e.emoji, 'face');
     d.appendChild(face);
     d.insertAdjacentHTML('beforeend', `<div class="nm">${e.name}</div>
       <div class="hpbar"><div style="width:${Math.max(0, e.hp / e.maxHp * 100)}%"></div></div>
@@ -644,7 +644,7 @@ function renderCombat(actedEnemy = null) {
   const h = st.hero;
   const hero = HEROES[run.hero];
   const strip = el('div', 'hero-strip');
-  strip.appendChild(artImg(`assets/ui/portrait_${run.hero}.png`, hero.emoji, 'face hero-face-combat'));
+  strip.appendChild(artImg(`assets/ui/portrait_${run.hero}.jpg`, hero.emoji, 'face hero-face-combat'));
   const stats = el('div', 'stats');
   stats.innerHTML = `<b>${hero.name}</b>
       <div class="hpbar"><div style="width:${h.hp / h.maxHp * 100}%"></div></div>
@@ -902,7 +902,7 @@ function finishReward(kind) {
 
 // ---------- shop / rest / event / treasure ----------
 function showShop(shop) {
-  const s = sceneScreen('assets/events/shop_jacob.png', '🛒', "Dad's Farm Supply");
+  const s = sceneScreen('assets/events/shop_jacob.jpg', '🛒', "Dad's Farm Supply");
   s.appendChild(el('div', 'speaker-line', '"Hey bud. Take a look around — everything a farm defender needs."'));
   s.appendChild(el('p', 'subtitle gold-line', `Your gold: 💰 <b>${run.gold}</b>`));
   if (shop.cards.length) {
@@ -943,7 +943,7 @@ function showShop(shop) {
 }
 
 function showRest() {
-  const s = sceneScreen('assets/events/rest_granny.png', '🍪', "Granny Rockie's Porch");
+  const s = sceneScreen('assets/events/rest_granny.jpg', '🍪', "Granny Rockie's Porch");
   s.appendChild(el('div', 'speaker-line', '"There\'s my little legend. Cookies, or shall we practice that one move?"'));
   const cookies = el('button', 'btn', `🍪 Cookies (heal ${Math.floor(run.maxHp * 0.3)} HP)`);
   cookies.onclick = () => { sfx.heal(); const h = R.restCookies(run); toast(`❤️ +${h} HP. Granny hugs you.`); saveRun(); showMap(); };
@@ -959,7 +959,7 @@ function showRest() {
 
 function showEvent(key) {
   const ev = EVENTS[key];
-  const s = sceneScreen(`assets/events/${key}.png`, ev.emoji, ev.name);
+  const s = sceneScreen(`assets/events/${key}.jpg`, ev.emoji, ev.name);
   s.appendChild(el('div', 'speaker-line', ev.line));
   const rng = makeRng(run.seed ^ run.floor * 991 ^ 0xE1E);
   for (const choice of ev.choices) {
@@ -986,7 +986,7 @@ function showEvent(key) {
 }
 
 function showTreasure(relicId) {
-  const s = sceneScreen('assets/events/treasure_rusty.png', '🐕', 'Here comes Rusty!');
+  const s = sceneScreen('assets/events/treasure_rusty.jpg', '🐕', 'Here comes Rusty!');
   if (relicId) {
     const rl = RELICS[relicId];
     R.onRelicGained(run, relicId);

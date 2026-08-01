@@ -11,23 +11,23 @@ import * as music from './music.js';
 
 // name triggers → the painted cast (art is drop-in, emoji fallback)
 const CAST = [
-  { re: /^(rusty)/i, art: 'assets/events/treasure_rusty.png', emoji: '🐕', name: 'Rusty', title: 'The Goodest Boy' },
-  { re: /^(granny|rockie)/i, art: 'assets/events/rest_granny.png', emoji: '🍪', name: 'Granny Rockie', title: 'Cookies & Practice' },
-  { re: /^(poppa|flaj)/i, art: 'assets/events/tractor_ride.png', emoji: '🚜', name: 'Poppa Flaj', title: 'Headed That Way Anyhow' },
-  { re: /^(coach)/i, art: 'assets/ui/portrait_coach.png', emoji: '🧢', name: 'Coach James', title: 'Believed in you all along' },
-  { re: /^(goldie)/i, art: 'assets/events/goldie_gate.png', emoji: '🦙', name: 'Goldie', title: 'Goldie knows.' },
-  { re: /^(mom)/i, art: 'assets/events/care_package.png', emoji: '📦', name: 'Mom', title: 'The Care Package' },
-  { re: /^(dad)/i, art: 'assets/events/shop_jacob.png', emoji: '🛒', name: 'Dad', title: 'The Farm Supply' },
-  { re: /^(brody)/i, art: 'assets/events/brody_garage.png', emoji: '🔧', name: 'Uncle Brody', title: 'REAL TALK' },
-  { re: /^(chelsea)/i, art: 'assets/events/chelsea_kitchen.png', emoji: '🍲', name: 'Aunt Chelsea', title: 'The Warm Kitchen' },
-  { re: /^(duck)/i, art: 'assets/events/duck_pond.png', emoji: '🦆', name: 'The Ducks', title: 'The Victory Beat' },
-  { re: /^(twister|storm)/i, art: 'assets/enemies/big_twister.png', emoji: '🌪️', name: 'The Big Twister', title: 'Sent packing' },
+  { re: /^(rusty)/i, art: 'assets/events/treasure_rusty.jpg', emoji: '🐕', name: 'Rusty', title: 'The Goodest Boy' },
+  { re: /^(granny|rockie)/i, art: 'assets/events/rest_granny.jpg', emoji: '🍪', name: 'Granny Rockie', title: 'Cookies & Practice' },
+  { re: /^(poppa|flaj)/i, art: 'assets/events/tractor_ride.jpg', emoji: '🚜', name: 'Poppa Flaj', title: 'Headed That Way Anyhow' },
+  { re: /^(coach)/i, art: 'assets/ui/portrait_coach.jpg', emoji: '🧢', name: 'Coach James', title: 'Believed in you all along' },
+  { re: /^(goldie)/i, art: 'assets/events/goldie_gate.jpg', emoji: '🦙', name: 'Goldie', title: 'Goldie knows.' },
+  { re: /^(mom)/i, art: 'assets/events/care_package.jpg', emoji: '📦', name: 'Mom', title: 'The Care Package' },
+  { re: /^(dad)/i, art: 'assets/events/shop_jacob.jpg', emoji: '🛒', name: 'Dad', title: 'The Farm Supply' },
+  { re: /^(brody)/i, art: 'assets/events/brody_garage.jpg', emoji: '🔧', name: 'Uncle Brody', title: 'REAL TALK' },
+  { re: /^(chelsea)/i, art: 'assets/events/chelsea_kitchen.jpg', emoji: '🍲', name: 'Aunt Chelsea', title: 'The Warm Kitchen' },
+  { re: /^(duck)/i, art: 'assets/events/duck_pond.jpg', emoji: '🦆', name: 'The Ducks', title: 'The Victory Beat' },
+  { re: /^(twister|storm)/i, art: 'assets/enemies/big_twister.jpg', emoji: '🌪️', name: 'The Big Twister', title: 'Sent packing' },
 ];
 
 const HERO_SCENES = {
-  wyatt: { re: /^wyatt/i, art: 'assets/ui/portrait_wyatt.png', emoji: '⚡', name: 'WYATT', title: 'The Speedy' },
-  aaron: { re: /^aaron/i, art: 'assets/ui/portrait_aaron.png', emoji: '🌪️', name: 'AARON', title: 'The Strong · The Lil Tornado' },
-  liam: { re: /^liam/i, art: 'assets/ui/portrait_liam.png', emoji: '🍼', name: 'LIAM', title: 'The Little' },
+  wyatt: { re: /^wyatt/i, art: 'assets/ui/portrait_wyatt.jpg', emoji: '⚡', name: 'WYATT', title: 'The Speedy' },
+  aaron: { re: /^aaron/i, art: 'assets/ui/portrait_aaron.jpg', emoji: '🌪️', name: 'AARON', title: 'The Strong · The Lil Tornado' },
+  liam: { re: /^liam/i, art: 'assets/ui/portrait_liam.jpg', emoji: '🍼', name: 'LIAM', title: 'The Little' },
 };
 
 const FINALES = {
@@ -196,7 +196,7 @@ export function creditsRoll(heroId, deps, onDone) {
   }
 
   function introSlide() {
-    setBg('assets/ui/title.png');
+    setBg('assets/ui/title.jpg');
     showSlide((s) => {
       s.append(el('div', 'credits-crown', '👑'));
       s.append(el('div', 'credits-big', FINALES[heroId].big));
@@ -208,7 +208,7 @@ export function creditsRoll(heroId, deps, onDone) {
   }
 
   function sceneSlide(scene) {
-    setBg(scene.kind === 'cast' ? 'assets/backgrounds/battle1.png' : 'assets/ui/title.png');
+    setBg(scene.kind === 'cast' ? 'assets/backgrounds/battle1.jpg' : 'assets/ui/title.jpg');
     showSlide((s) => {
       if (scene.kind !== 'cast') s.append(el('div', 'credits-crown small', '👑'));
       if (scene.kind === 'duo') {
@@ -229,7 +229,7 @@ export function creditsRoll(heroId, deps, onDone) {
   function finaleSlide() {
     if (continued) return;
     continued = true;
-    setBg('assets/ui/title.png');
+    setBg('assets/ui/title.jpg');
     showSlide((s) => {
       s.append(el('div', 'credits-crown', '👑'));
       s.append(el('div', 'credits-big', FINALES[heroId].big));
