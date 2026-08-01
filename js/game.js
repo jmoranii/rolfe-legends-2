@@ -13,6 +13,8 @@ import { sfx, setEnabled as setSfx, isEnabled as sfxOn } from './sfx.js';
 import * as music from './music.js';
 import { creditsRoll } from './credits.js';
 import { encodeFarmCode, decodeFarmCode } from './farmcode.js';
+import { prefetch } from './prefetch.js';
+import { EVENT_KEYS } from './events.js';
 
 const $app = document.getElementById('app');
 const SAVE_KEY = 'rl2_run';
@@ -122,6 +124,22 @@ function coachTip(key, text) {
   setTimeout(() => b.remove(), 5400);
 }
 
+// ---------- predictive prefetch bundles ----------
+function actArtUrls(act) {
+  const keys = new Set();
+  const enc = R.ENCOUNTERS[act];
+  for (const pool of [enc.easy, enc.hard, enc.elite, enc.boss]) {
+    for (const group of pool) for (const k of group) keys.add(k);
+  }
+  if (act === 3) keys.add('big_twister_p2');
+  const urls = [...keys].map((k) => `assets/enemies/${k}.jpg`);
+  urls.push(`assets/backgrounds/battle${act}.jpg`, `assets/backgrounds/map${act}.jpg`);
+  return urls;
+}
+function prefetchActBundle(act) {
+  prefetch([...actArtUrls(act), `assets/audio/map${act}.mp3`, 'assets/audio/battle.mp3']);
+}
+
 // ---------- title ----------
 function showTitle() {
   music.play('title');
@@ -188,6 +206,14 @@ function showTitle() {
     }
   };
   s.appendChild(goldie);
+
+  // warm what a fresh run touches first: act 1, the heroes, the event banners
+  prefetchActBundle(1);
+  prefetch([
+    'assets/ui/portrait_wyatt.jpg', 'assets/ui/portrait_aaron.jpg', 'assets/ui/portrait_coach.jpg',
+    ...EVENT_KEYS.map((k) => `assets/events/${k}.jpg`),
+    'assets/events/shop_jacob.jpg', 'assets/events/rest_granny.jpg', 'assets/events/treasure_rusty.jpg',
+  ]);
 }
 
 function showSettings() {
@@ -432,6 +458,11 @@ function showMap() {
 
   coachTip('map', 'Pick your path — you can see the whole climb.');
   if (eliteReachable) coachTip('elite', '💀 is BIG trouble… and big treasure. Your call.');
+
+  prefetchActBundle(run.act);
+  if (eliteReachable) prefetch(['assets/audio/elite.mp3']);
+  if (run.floor >= 8) prefetch(['assets/audio/boss.mp3']);
+  if (run.floor >= 10 && run.act < R.ACTS) prefetchActBundle(run.act + 1);
 }
 
 function enterNode(node) {
@@ -466,6 +497,16 @@ function startCombatUI(enemyKeys, kind) {
   prevSnap = null;
   renderCombat();
   coachTip('intent', "Those bubbles show each enemy's next move!");
+  if (kind === 'boss' && run.act === R.ACTS) {
+    // a win is likely — have the ending ready the instant it happens
+    const p = loadProfile();
+    const wants = [`assets/audio/anthem_${run.hero}.mp3`, `assets/audio/anthem_${run.hero}.lrc`, 'assets/ui/title.jpg'];
+    const other = run.hero === 'wyatt' ? 'aaron' : 'wyatt';
+    if (['wyatt', 'aaron'].includes(run.hero) && p.wins[other] > 0 && !p.bonusSeen) {
+      wants.push('assets/audio/anthem_both.mp3', 'assets/audio/anthem_both.lrc');
+    }
+    prefetch(wants);
+  }
 }
 
 // Every status is tap-to-explain (kids can't hover) — see the delegated

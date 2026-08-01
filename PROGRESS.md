@@ -2,6 +2,14 @@
 
 Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 300`.
 
+## 2026-08-01 · Loading strategy: predictive prefetch + 128kbps audio
+
+James asked how content growth affects load time. Decision (his sign-off): **no loading screen — lazy foundation + predictive prefetch**.
+- js/prefetch.js: once-only idle fetch queue (concurrency 1, never competes with urgent loads); every byte lands in the sw cache, so prefetch doubles as offline install.
+- Smart moments: title → act-1 bundle (enemies, backdrops, map1+battle tracks, heroes, all event banners; measured: 39 assets warmed from the title alone) · map → current act bundle, elite/boss tracks as floors climb, next-act bundle at floor 10 · final boss → your anthem + lrc + credits backdrop (+ anthem_both when it would unlock).
+- Audio re-encoded 180→128kbps CBR (assets/optimize-audio.sh; originals gitignored in assets/originals/audio/): 23.7MB → **16.3MB**, inaudible on tablet speakers.
+- Full-game transfer is now ~23MB total (was ~170MB pre-optimization); first paint still ~350KB. sw cache bumped v3.
+
 ## 2026-08-01 · UI legibility pass (James's feedback) + GitHub backup
 
 James's post-playtest asks: costs invisible on card choices/shop, relic effects unclear, statuses/intents unexplained, multi-hits animate as one lump, scene screens should feature the family art big, bosses should read BIG. Response: a full **StS legibility audit** — the list of everything Slay the Spire does to keep the player informed, with our version of each:
