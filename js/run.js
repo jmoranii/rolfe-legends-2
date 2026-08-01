@@ -22,7 +22,7 @@ export const ENCOUNTERS = {
     easy: [['gopher'], ['roly_poly', 'roly_poly'], ['crow'], ['mud_blob_m', 'mud_blob_s']],
     hard: [['barn_spider'], ['magpie'], ['mouse_scrappy', 'mouse_zippy', 'mouse_pudge', 'mouse_whiskers'], ['puffball', 'puffball'], ['crow', 'roly_poly']],
     elite: [['old_scarecrow'], ['ornery_ram'], ['scarecrow_post', 'scarecrow_post', 'scarecrow_post']],
-    boss: [['rogue_combine']],
+    boss: [['rogue_combine'], ['mud_king']],
   },
   2: {
     easy: [['raccoon_bandit'], ['snapping_turtle'], ['thorny_bramble']],
@@ -34,7 +34,7 @@ export const ENCOUNTERS = {
     easy: [['ball_lightning', 'ball_lightning', 'ball_lightning'], ['hail_cloud'], ['debris_tangle']],
     hard: [['flooding_creek'], ['passing_squall'], ['hail_cloud', 'ball_lightning'], ['debris_tangle', 'hail_cloud']],
     elite: [['thunderhead'], ['ghost_wind'], ['wind_funnel']],
-    boss: [['big_twister']],
+    boss: [['big_twister'], ['thunder', 'lightning']],
   },
 };
 
@@ -180,7 +180,7 @@ export function applyCombatResult(run, combatState) {
   let lost = 0;
   for (const e of combatState.enemies) if (e.fled && e.stolen) lost += e.stolen;
   run.gold = Math.max(0, run.gold - lost);
-  if (run.relics.includes('big_breakfast')) run.hp = Math.min(run.maxHp, run.hp + 8);
+  if (run.relics.includes('big_breakfast')) run.hp = Math.min(run.maxHp, run.hp + 10);
   run.stats.fights += 1;
   return { goldLost: lost };
 }

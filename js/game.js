@@ -381,8 +381,10 @@ function showSkipped() {
 }
 
 // ---------- combat ----------
+let lastBossKeys = [];
 function startCombatUI(enemyKeys, kind) {
   combatKind = kind;
+  if (kind === 'boss') lastBossKeys = enemyKeys;
   combat = C.startCombat(run, enemyKeys, makeRng(randomSeed()), { kind });
   music.play(kind === 'boss' ? 'boss' : kind === 'elite' ? 'elite' : 'battle');
   selectedCard = null;
@@ -906,10 +908,15 @@ function showVictory() {
   const s = screen('act-1');
   s.appendChild(el('div', 'crown', '👑'));
   s.appendChild(el('h1', '', 'THE FARM IS SAFE!'));
-  const VICTORY_LINES = {
+  const twisterFinale = !lastBossKeys.includes('thunder');
+  const VICTORY_LINES = twisterFinale ? {
     wyatt: '"The Big Twister itself couldn\'t catch him. WYATT THE SPEEDY — Legend of Rolfe!" 🌪️⚡',
     aaron: '"He looked the Big Twister dead in the eye — and the twister blinked. AARON THE STRONG — the Lil Tornado himself!" 🌪️💪',
     liam: '"The Big Twister took one whiff of THE BLOWOUT and surrendered on the spot. LIAM THE LITTLE — the tiniest Legend of Rolfe!" 🌪️🍼',
+  } : {
+    wyatt: '"Thunder AND Lightning — and neither one could touch him. WYATT THE SPEEDY — Legend of Rolfe!" ⛈️⚡',
+    aaron: '"Thunder boomed. Lightning cracked. Aaron flexed. The storm apologized. AARON THE STRONG!" ⛈️💪',
+    liam: '"Thunder and Lightning met THE BLOWOUT. The storm has not stopped running. LIAM THE LITTLE!" ⛈️🍼',
   };
   s.appendChild(el('div', 'speaker-line', VICTORY_LINES[heroId]));
   const both = p.wins.aaron > 0 && p.wins.wyatt > 0;

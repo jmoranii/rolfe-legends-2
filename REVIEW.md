@@ -1,0 +1,54 @@
+# REVIEW.md — everything awaiting James
+
+Per GOAL.md rule 3: best calls were made and shipped; nothing here blocks play.
+Sections grow as phases land. ✍️ = wants your words. 🎨 = wants your eye. ⚖️ = a judgment call I made.
+
+## Gaps & Personalization report
+
+Every place the result improves with a reference photo or a personal detail. For each: what shipped, what's wanted, what gets regenerated when it arrives.
+
+| # | Gap | What shipped instead | What's wanted | What regenerates |
+|---|-----|---------------------|---------------|------------------|
+| 1 | **Liam reference photo** (the big one) | Portrait generated from his **7-month-old baby photo** (`drive-legacy/Family/Liam_20240702-183731.png` — found via his vault person file; GOAL said none existed) aged up to a ~3-year-old by prompt: same dark-brown eyes, light wispy hair, round cheeks | Any recent photo of Liam (~2.5yo) | `assets/ui/portrait_liam.png` + the Liam credits sequence art |
+| 2 | Family-cameo event art is **reused RL1 portraits** (Tory, Flaj, Brody, Chelsea, Jacob, Coach, Rocky, Rusty, Goldie) | RL1's finished sig art dropped into the event/rest/shop/treasure screens — continuity with RL1, zero style drift | Your call: fresh RL2 *scene* art per event (e.g. Chelsea's actual kitchen, Brody's actual garage)? A phone photo of the real porch/garage/kitchen would anchor scenes | any of `assets/events/*.png` on request |
+| 3 | Farm specifics I couldn't know | Generic Iowa farm in backgrounds/title (red barn, windmill, ducks) | Photos of the *actual* Rolfe farm (barn color, layout, the real Goldie), names of real fields/landmarks for map-node flavor | `assets/backgrounds/*`, `assets/ui/title.png`, event copy |
+| 4 | Phrases the boys actually say | My best-guess kid dialogue (see cameo lines below) | Real catchphrases: what Wyatt yells in soccer, Aaron-isms, what Liam actually calls things ("uppies"? "uh-oh"?), what the boys call Jacob/Tory (Dad/Mom assumed) | any event/tip/victory line |
+| 5 | Boys' interests beyond soccer (Wyatt) / strength (Aaron) | RL1 canon (Wyatt=speedy/soccer, Aaron=Lil Tornado) | Current obsessions (games, shows, animals) for card names + anthem lyrics | card flavor, anthem lyrics |
+
+## ⚖️ Balance deviations from pure StS mirrors (Phase 2)
+
+Tuned by the harness into the 35–55% band (500 runs/hero: **Aaron 49.8 · Wyatt 54.8 · Liam 49.4**). DESIGN.md sanctions harness-driven drift; flagging anything now above/below its StS original:
+
+- Between-act heal 25% → **33%** (kid-kindness lever; maps are committed paths now, harder than the old pick-1-of-3).
+- Aaron: Big Breakfast heal 6 → **10** (Burning Blood is 6) · Pumped Up **3** Str (Inflame 2) · Tough Skin **4** (Metallicize 3).
+- Liam: Fresh Diaper passive/evoke **3/6** (Frost 2/5) · Blanket Fort **9** block (Glacier 7) · Nap Time **14** · Giggle Fit **2** Focus (Defragment 1) · HP 75 → **78**.
+- Wyatt (was overshooting): Sting Shot poison 3 → **2** (Poisoned Stab 3) · Itching Powder 5 → **4** (Deadly Poison 5) · Prank Cloud poison 4 → **3** (Crippling Cloud 4).
+- Bosses sized for floor-12 kid decks (StS bosses meet floor-16 decks): Combine 175→**150** HP, MOW 24→**20** · Raccoon King 290→**250** · Twister 220/240→**190/200**, Monster Gust 28→**24** · Snapping Turtle plating 8+4→**6+3**.
+
+## ✍️ New dialogue for your approval pass (Phase 2)
+
+**The Pie Contest** (event, =Big Fish): "A folding table groans under a dozen pies. The blue ribbon gleams. Nobody is watching the judging sheet…" — choices: sneak a slice / enter your own pie ("The judges are moved to tears. You grow as a person.") / swipe the prize jar ("…There was homework taped under the lid.")
+
+**The Beehive** (event, =Golden Idol risk): "The hive hums like a tiny engine. The honeycomb drips gold. The bees are… watching." — greedy grab: "WORTH IT. Mostly. Ow."
+
+**The Burn Barrel** (event, =Bonfire Spirits): "Dusk. The burn barrel crackles, sparks climbing like fireflies. Room for one more thing — if you want to let something go." — warm hands: "The fire pops approvingly."
+
+**Thunder & Lightning victory lines** (alt act-3 boss):
+- Wyatt: "Thunder AND Lightning — and neither one could touch him. WYATT THE SPEEDY — Legend of Rolfe!"
+- Aaron: "Thunder boomed. Lightning cracked. Aaron flexed. The storm apologized. AARON THE STRONG!"
+- Liam: "Thunder and Lightning met THE BLOWOUT. The storm has not stopped running. LIAM THE LITTLE!"
+
+**Coach James onboarding tips** (Phase 1, ≤12 words each): "Pick your path — you can see the whole climb." · "💀 is BIG trouble… and big treasure. Your call." · "Farm Treasures work the whole run. Collect them!" · "Snacks are one-time saves — spend them when it counts." · Defeat screen: "Runs end — that's the game. You keep everything you learned. 💪"
+
+## 🎨 Art calls to eyeball (Phase 3, running)
+
+- Style anchor: RL1 Storybook Gouache block verbatim; test gopher approved the lane (assets/enemies/gopher.png).
+- Liam portrait from the baby photo (gap #1) — recognizability is your call.
+- Title art must contain Goldie lower-right (the tap-3× secret hotspot sits on her). Verify her placement when it lands.
+
+## Publish checklist (yours — Phase 6)
+
+- [ ] Public repo y/n (RL1 precedent: public + Pages, but the go is per-project)
+- [ ] GitHub Pages deploy under jmoranii.github.io (same parental-controls origin as RL1)
+- [ ] README polish
+- [ ] Delivery plan (when/how the boys get it)

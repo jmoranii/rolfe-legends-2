@@ -145,7 +145,7 @@ export const ENEMIES = {
     },
   },
   rogue_combine: { // sts: The Guardian — mode shift on damage threshold
-    name: 'The Rogue Combine', emoji: '🚜', hp: [175, 175], boss: true,
+    name: 'The Rogue Combine', emoji: '🚜', hp: [150, 150], boss: true,
     init(self) { self.state.mode = 'mow'; self.state.taken = 0; self.state.i = 0; self.state.defTurns = 0; },
     nextMove(self, state) {
       if (self.state.mode === 'hunker') {
@@ -156,15 +156,40 @@ export const ENEMIES = {
         return { name: 'Hunker Down', kind: 'defend', block: 15 };
       }
       // Guardian-true pacing: a setup turn before the haymaker
-      const seq = [{ name: 'Rattle & Sputter', kind: 'debuff', block: 9, fn: (st) => applyStatus(st, st.hero, 'weak', 2) }, A('MOW', 24), A('Thresher Whirl', 4, 4)];
+      const seq = [{ name: 'Rattle & Sputter', kind: 'debuff', block: 9, fn: (st) => applyStatus(st, st.hero, 'weak', 2) }, A('MOW', 20), A('Thresher Whirl', 4, 4)];
       return seq[self.state.i++ % seq.length];
     },
     onDamaged(self, state, dmg) {
       if (self.state.mode !== 'mow') return;
       self.state.taken += dmg;
-      if (self.state.taken >= 30 && self.hp > 0) {
+      if (self.state.taken >= 35 && self.hp > 0) {
         self.state.taken = 0; self.state.mode = 'hunker'; self.state.defTurns = 2; self.thorns = 3;
         self.intent = { name: 'CLANK — Defensive Mode', kind: 'defend', block: 15 };
+      }
+    },
+  },
+
+  mud_king: { // sts: Slime Boss — splits into two mediums at half (alt act-1 boss)
+    name: 'THE MUD KING', emoji: '👑', hp: [155, 155], boss: true,
+    init(self) { self.state.i = 0; },
+    nextMove(self) {
+      const seq = [
+        { name: 'Royal Goop', kind: 'debuff', fn: (st) => addCardToCombat(st, 'straw', 2, 'discard') },
+        { name: 'Gathers Himself…', kind: 'buff', block: 8 },
+        A('MUD SLAM', 26),
+      ];
+      return seq[self.state.i++ % seq.length];
+    },
+    onDamaged(self, state) {
+      if (!self.state.split && self.hp > 0 && self.hp <= Math.floor(self.maxHp / 2)) {
+        self.state.split = true;
+        self.gone = true;
+        const hp = Math.max(1, self.hp);
+        for (let i = 0; i < 2; i++) {
+          const blob = spawnEnemy(state, 'mud_blob_m', { hp });
+          blob.state.split = false;
+          blob.intent = { name: 'Squelches into place', kind: 'buff' };
+        }
       }
     },
   },
@@ -250,7 +275,7 @@ export const ENEMIES = {
     nextMove(self, state, rng) { return rng.chance(0.7) ? A('Swipe', 6) : { name: 'Hiss', kind: 'defend', block: 5 }; },
   },
   raccoon_king: { // sts: The Champ — taunts, enrages at half
-    name: 'THE RACCOON KING', emoji: '👑', hp: [290, 290], boss: true,
+    name: 'THE RACCOON KING', emoji: '👑', hp: [250, 250], boss: true,
     init(self) { self.state.i = 0; },
     nextMove(self, state, rng) {
       if (!self.state.enraged && self.hp <= self.maxHp / 2) {
@@ -357,15 +382,35 @@ export const ENEMIES = {
       return { name: 'Dissipate', kind: 'flee', fn: (st, e) => { e.fled = true; } };
     },
   },
+  thunder: { // sts: Donu — alternates empowering the pair / attacking (alt act-3 pair boss)
+    name: 'THUNDER', emoji: '⛈️', hp: [125, 125], boss: true,
+    init(self) { self.state.i = 0; },
+    nextMove(self) {
+      if (self.state.i++ % 2 === 0) {
+        return { name: 'BOOM! (both grow stronger)', kind: 'buff', fn: (st) => { for (const f of livingEnemies(st)) applyStatus(st, f, 'strength', 2); } };
+      }
+      return A('Thunderclap', 11, 2);
+    },
+  },
+  lightning: { // sts: Deca — alternates shielding the pair / attacking (alt act-3 pair boss)
+    name: 'LIGHTNING', emoji: '🌩️', hp: [130, 130], boss: true,
+    init(self) { self.state.i = 0; },
+    nextMove(self) {
+      if (self.state.i++ % 2 === 1) {
+        return { name: 'Static Shield (both)', kind: 'defend', fn: (st) => { for (const f of livingEnemies(st)) f.block += 11; } };
+      }
+      return A('Zap Volley', 5, 3);
+    },
+  },
   big_twister: { // sts: Awakened One — "dies," then RE-FORMS bigger (phase 2)
-    name: 'THE BIG TWISTER', emoji: '🌪️', hp: [220, 220], boss: true,
+    name: 'THE BIG TWISTER', emoji: '🌪️', hp: [190, 190], boss: true,
     init(self) { self.state.phase = 1; self.state.i = 0; },
     nextMove(self, state, rng) {
       if (self.state.phase === 1) {
         const seq = [A('Gust Punch', 17), A('Twin Vortex', 9, 2), { name: 'Inhale', kind: 'buff', block: 12, fn: (st, e) => applyStatus(st, e, 'strength', 2) }];
         return seq[self.state.i++ % seq.length];
       }
-      const seq2 = [A('MONSTER GUST', 28), A('Triple Funnel', 9, 3), { name: 'Roar of the Plains', kind: 'debuff', fn: (st) => { applyStatus(st, st.hero, 'weak', 2); applyStatus(st, st.hero, 'vulnerable', 2); } }];
+      const seq2 = [A('MONSTER GUST', 24), A('Triple Funnel', 9, 3), { name: 'Roar of the Plains', kind: 'debuff', fn: (st) => { applyStatus(st, st.hero, 'weak', 2); applyStatus(st, st.hero, 'vulnerable', 2); } }];
       return seq2[self.state.i++ % seq2.length];
     },
     onHeroCard(self, state, info) {
@@ -374,7 +419,7 @@ export const ENEMIES = {
     onDeath(self, state) {
       if (self.state.phase === 1) {
         self.state.phase = 2; self.deathHandled = false;
-        self.maxHp = 240; self.hp = 240; self.block = 0;
+        self.maxHp = 200; self.hp = 200; self.block = 0;
         self.name = 'THE BIG TWISTER — REFORMED'; self.emoji = '🌪️'; self.artKey = 'big_twister_p2';
         self.strength = (self.strength || 0) + 2;
         self.state.i = 0;

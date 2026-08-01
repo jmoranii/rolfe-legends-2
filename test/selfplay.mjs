@@ -103,11 +103,20 @@ function playTurn(state) {
   if (!state.over) C.endTurn(state);
 }
 
+const fightStats = { fight: [], elite: [], boss: [] };   // {turns, hpLost}
 function runCombat(run, enemies, rng, kind) {
   const state = C.startCombat(run, enemies, rng, { kind });
+  const hp0 = state.hero.hp;
+  // a real kid chugs the juice box at the boss: use combat snacks up front
+  if (kind === 'boss' || kind === 'elite') {
+    for (let i = state.snacks.length - 1; i >= 0; i--) {
+      if (['jerky', 'juice_box', 'trail_mix'].includes(state.snacks[i])) C.useSnack(state, i);
+    }
+  }
   let turns = 0;
   while (!state.over && turns++ < 60) playTurn(state);
   if (!state.over) { state.over = true; state.won = false; state.stall = true; }
+  if (state.won) fightStats[kind].push({ turns: state.turn, hpLost: hp0 - state.hero.hp });
   return state;
 }
 
@@ -166,7 +175,7 @@ function simulateRun(heroId, seed) {
       if (rewards.relic) { run.relics.push(rewards.relic); R.onRelicGained(run, rewards.relic); }
       if (rewards.snack && run.snacks.length < run.snackSlots) run.snacks.push(rewards.snack);
       if (node.type === 'boss') {
-        if (run.act >= R.ACTS) return { won: true, act: 3, floor: run.floor };
+        if (run.act >= R.ACTS) return { won: true, act: 3, floor: run.floor, deckIds: run.deck.map((c) => c.id) };
         if (!run.relics.includes('keys_tractor')) run.relics.push('keys_tractor');
         R.advanceAct(run);
       }
@@ -199,11 +208,15 @@ function simulateRun(heroId, seed) {
 const report = {};
 let stalls = 0;
 for (const hero of ['aaron', 'wyatt', 'liam']) {
-  const res = { wins: 0, deaths: [], actReached: [0, 0, 0] };
+  const res = { wins: 0, deaths: [], actReached: [0, 0, 0], winDecks: {} };
   for (let i = 0; i < RUNS; i++) {
     const out = simulateRun(hero, 1000 + i * 17 + (hero === 'wyatt' ? 7 : 0));
-    if (out.won) res.wins++;
-    else { res.deaths.push(out); res.actReached[out.act - 1]++; if (out.stall) stalls++; }
+    if (out.won) {
+      res.wins++;
+      for (const id of out.deckIds || []) {
+        if (CARDS[id].rarity !== 'starter') res.winDecks[id] = (res.winDecks[id] || 0) + 1;
+      }
+    } else { res.deaths.push(out); res.actReached[out.act - 1]++; if (out.stall) stalls++; }
   }
   report[hero] = res;
 }
@@ -220,13 +233,38 @@ for (const hero of Object.keys(report)) {
 }
 console.log(`\nstalled fights: ${stalls}`);
 
-// ---------- verdict rails (wide for v1; tighten during tuning) ----------
+// fight pacing (rubric: normals ~3–6 turns, elites ~6–10, bosses ~8–14)
+const avg = (arr, k) => arr.length ? (arr.reduce((t, x) => t + x[k], 0) / arr.length) : 0;
+const pacing = {};
+for (const kind of ['fight', 'elite', 'boss']) {
+  const fs = fightStats[kind];
+  pacing[kind] = avg(fs, 'turns');
+  console.log(`${kind.padEnd(6)} avg turns ${pacing[kind].toFixed(1)} · avg HP lost ${avg(fs, 'hpLost').toFixed(1)} · n=${fs.length}`);
+}
+
+// deck identity (rubric: decks should bend toward an archetype by the end)
+console.log('\nwinning-deck signatures (avg copies per win):');
+for (const hero of Object.keys(report)) {
+  const r = report[hero];
+  if (!r.wins) { console.log(`  ${hero}: (no wins)`); continue; }
+  const top = Object.entries(r.winDecks).sort((a, b) => b[1] - a[1]).slice(0, 6)
+    .map(([id, n]) => `${id}×${(n / r.wins).toFixed(1)}`);
+  console.log(`  ${hero}: ${top.join(' · ')}`);
+}
+
+// ---------- verdict rails (tightened to the 35–55% design band) ----------
+// At n≥300 sampling noise is ~±3%, so the hard rail is band ±2%. Smaller n
+// (quick local runs) gets a looser guard so it stays useful without flaking.
 let bad = false;
+const [lo, hi] = RUNS >= 300 ? [0.33, 0.57] : [0.28, 0.62];
 for (const hero of ['aaron', 'wyatt', 'liam']) {
   const wr = report[hero].wins / RUNS;
-  if (wr < 0.05) { console.log(`RAIL FAIL: ${hero} winrate ${(wr * 100).toFixed(1)}% < 5% — too brutal`); bad = true; }
-  if (wr > 0.95) { console.log(`RAIL FAIL: ${hero} winrate ${(wr * 100).toFixed(1)}% > 95% — too easy`); bad = true; }
+  if (wr < lo) { console.log(`RAIL FAIL: ${hero} winrate ${(wr * 100).toFixed(1)}% < ${lo * 100}% — below the 35–55 band`); bad = true; }
+  if (wr > hi) { console.log(`RAIL FAIL: ${hero} winrate ${(wr * 100).toFixed(1)}% > ${hi * 100}% — above the 35–55 band`); bad = true; }
 }
 if (stalls > RUNS * 0.1) { console.log(`RAIL FAIL: ${stalls} stalled fights`); bad = true; }
-console.log(bad ? '\nVERDICT: NEEDS TUNING' : '\nVERDICT: ALL CLEAR (v1 rails)');
+if (pacing.fight > 7) { console.log(`RAIL FAIL: normal fights average ${pacing.fight.toFixed(1)} turns (bore threshold 7)`); bad = true; }
+if (pacing.elite > 11) { console.log(`RAIL FAIL: elites average ${pacing.elite.toFixed(1)} turns (bore threshold 11)`); bad = true; }
+if (pacing.boss > 16) { console.log(`RAIL FAIL: bosses average ${pacing.boss.toFixed(1)} turns (bore threshold 16)`); bad = true; }
+console.log(bad ? '\nVERDICT: NEEDS TUNING' : '\nVERDICT: ALL CLEAR (35–55 band rails)');
 process.exit(bad ? 1 : 0);

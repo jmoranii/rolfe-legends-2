@@ -87,6 +87,41 @@ export const EVENTS = {
       { label: '💰 Pocket money (+50 gold)', apply: (run) => { run.gold += 50; return 'For Jacob\'s shop.'; } },
     ],
   },
+  pie_contest: { // sts: Big Fish (heal / +max HP / relic with a curse)
+    name: 'The Pie Contest', emoji: '🥧', speaker: null,
+    line: 'A folding table groans under a dozen pies. The blue ribbon gleams. Nobody is watching the judging sheet…',
+    choices: [
+      { label: '🍰 Sneak a slice (heal 1/3 of your HP)', apply: (run) => `Heavenly. Healed ${heal(run, Math.floor(run.maxHp / 3))} HP.` },
+      { label: '🥧 Enter your own pie (+5 Max HP)', apply: (run) => { run.maxHp += 5; run.hp += 5; return 'The judges are moved to tears. You grow as a person.'; } },
+      { label: '🫙 Swipe the prize jar (a Farm Treasure… and Homework)', apply: (run, rng) => {
+        const id = gainRelic(run, rng);
+        run.deck.push(makeCard('homework'));
+        return id ? `You got ${id}! …There was homework taped under the lid.` : 'The jar was empty. The homework was real.';
+      } },
+    ],
+  },
+  beehive: { // sts: Golden Idol-flavored risk/reward
+    name: 'The Beehive', emoji: '🐝', speaker: null,
+    line: 'The hive hums like a tiny engine. The honeycomb drips gold. The bees are… watching.',
+    choices: [
+      { label: '🍯 Careful harvest (+45 gold)', apply: (run) => { run.gold += 45; return 'Slow hands, calm bees, sweet profit.'; } },
+      { label: '🫳 Grab it ALL (+90 gold, the bees object: lose 10% HP)', apply: (run) => {
+        run.gold += 90;
+        run.hp = Math.max(1, run.hp - Math.max(1, Math.floor(run.maxHp * 0.1)));
+        return 'WORTH IT. Mostly. Ow.';
+      } },
+      { label: '🚶 Leave the bees be', apply: () => 'The hive hums approvingly.' },
+    ],
+  },
+  burn_barrel: { // sts: Bonfire Spirits (let a card go, feel better)
+    name: 'The Burn Barrel', emoji: '🔥', speaker: null,
+    line: 'Dusk. The burn barrel crackles, sparks climbing like fireflies. Room for one more thing — if you want to let something go.',
+    choices: [
+      { label: '🔥 Toss a card into the fire (remove it; heal 10)', can: (run) => removableCards(run).length > 1, apply: (run) => { heal(run, 10); run.pendingRemove = true; return 'PICK_CARD'; } },
+      { label: '🧤 Just warm your hands (heal 6)', apply: (run) => `Healed ${heal(run, 6)} HP. The fire pops approvingly.` },
+      { label: '🚶 Head on', apply: () => 'The sparks wave goodbye.' },
+    ],
+  },
   old_well: {
     name: 'The Old Well', emoji: '🪙', speaker: null,
     line: 'An old wishing well. The water glimmers. Toss a coin?',

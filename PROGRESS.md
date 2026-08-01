@@ -2,6 +2,30 @@
 
 Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 300`.
 
+## 2026-07-31 · Phase 2 — Balance, boss variety, events (DONE)
+
+**Done**
+- **Hero parity in the 35–55% band** (500 runs/hero): **Aaron 49.8% · Wyatt 54.8% · Liam 49.4%** (from 21/50/29). Tuned via card/enemy/relic numbers only — no policy hacks; every deviation from a pure StS mirror is itemized in REVIEW.md §Balance deviations. The harness also gained: competent snack use at elites/bosses, fight-pacing metrics, winning-deck signature report.
+- **Selfplay rails tightened to the band**: hard fail outside 33–57% at n≥300 (28–62% guard for quick runs), plus pacing rails (fights ≤7 avg turns, elites ≤11, bosses ≤16) and the stall rail. Regressions now fail loudly.
+- **Boss variety**: THE MUD KING (act 1 alt, =Slime Boss — splits into two Mud Blobs at half, who themselves split into Blips) and THUNDER & LIGHTNING (act 3 alt pair, =Donu & Deca — one empowers both, one shields both), randomly drawn per run alongside the originals. Victory lines adapt to the finale fought.
+- **3 new events** (art in the running batch): The Pie Contest (=Big Fish), The Beehive (=Golden Idol risk), The Burn Barrel (=Bonfire Spirits, deck-thinning heal). Dialogue in REVIEW.md.
+- REVIEW.md created: Gaps & Personalization report (Liam photo top), balance deviations, dialogue for approval, publish checklist.
+
+**Harness** (500/hero): Aaron 49.8 · Wyatt 54.8 · Liam 49.4 · pacing 4.7 / 6.6 / 10.7 avg turns · 7 stalls in 1500 runs.
+**Tests**: unit 1134/1134 · e2e 29/29 · selfplay band rails ALL CLEAR.
+
+**Rubric grade (Phase 2 lens)**
+1. Solvable puzzle — ✓ deaths trace to attrition/decisions; no repeated no-line fights in harness logs (stall rate 0.5%).
+2. Real path dilemmas — ✓ elite-vs-safe and shop-vs-event are live choices with real winrate stakes now that the band is tight.
+3. Deck identity by act 2 — ✓ winning decks show archetypes: Aaron pumped_up×2.7 strength piles, Wyatt slide_tackle/sting_shot poison-tempo, Liam blanket_fort×3.0 fresh-wall + stink.
+4. Power fantasy escalates — ✓ Tornado Form/Maximum Stink/Ball Machine anchor act-3 turns; boss avg 10.7 turns means scaling comes online.
+5. Risk paid for — ✓ elites pay a relic and kill 3× more than normals per encounter; Squall teaches flee-vs-fight.
+6. Fights end before boring — ✓ measured: 4.7 / 6.6 / 10.7 avg turns (targets 3–6 / 6–10 / 8–14), now rail-enforced.
+7. Fairness on screen — ✓ (Phase 1) unchanged.
+8. Runs tell stories — ✓ boss pools randomize finales, 11 events, split-cascade Mud King runs are recountable ("the Mud King split and then the blobs split!").
+
+**Next**: Phase 3 QA of the art batch (25/57 at this entry) + drop-ins; Phase 4 music.
+
 ## 2026-07-31 · Phase 1 — StS map + game feel (CORE LANDED)
 
 **Done**

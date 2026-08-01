@@ -85,11 +85,11 @@ function forceHand(state, ids) {
   const e = state.enemies[0];
   forceHand(state, ['itching_powder']);
   C.playCard(state, state.hand[0], e);
-  eq(e.poison, 5, 'itching powder applies 5 poison');
+  eq(e.poison, 4, 'itching powder applies 4 poison');
   const hp0 = e.hp;
   C.endTurn(state);
-  eq(e.hp, hp0 - 5, 'poison ticked 5');
-  eq(e.poison, 4, 'poison decremented');
+  eq(e.hp, hp0 - 4, 'poison ticked 4');
+  eq(e.poison, 3, 'poison decremented');
 }
 {
   // block absorbs, expires next turn
@@ -393,7 +393,7 @@ for (const [id, def] of Object.entries(CARDS)) {
   const e = state.enemies[0];
   C.dealDamage(state, e, 999, { attacker: state.hero });
   ok(!state.over, 'twister phase 1 death does not end fight');
-  eq(e.hp, 240, 'twister re-formed with 240 HP');
+  eq(e.hp, 200, 'twister re-formed with 200 HP');
   eq(e.state.phase, 2, 'twister in phase 2');
   C.dealDamage(state, e, 9999, { attacker: state.hero });
   ok(state.over && state.won, 'twister phase 2 death wins');
@@ -493,7 +493,7 @@ for (const key of Object.keys(ENEMIES)) {
   // evoke order is oldest-first: fresh, then blowout
   state.hero.block = 0;
   C.evokeOrb(state);
-  eq(state.hero.block, 5, 'fresh evoke = 5 block');
+  eq(state.hero.block, 6, 'fresh evoke = 6 block');
   const weakest = state.enemies.slice().sort((a, b) => a.hp - b.hp)[0];
   weakest.block = 0;
   const whp = weakest.hp;
@@ -508,7 +508,7 @@ for (const key of Object.keys(ENEMIES)) {
   state.hero.block = 0;
   C.channelOrb(state, 'stinky');
   eq(state.hero.orbs.length, 3, 'capped at 3 slots');
-  eq(state.hero.block, 5, 'oldest auto-evoked (fresh: 5 block)');
+  eq(state.hero.block, 6, 'oldest auto-evoked (fresh: 6 block)');
   forceHand(state, ['more_diapers']);
   state.hero.energy = 3;
   C.playCard(state, state.hand[0]);
@@ -567,6 +567,39 @@ for (const key of Object.keys(ENEMIES)) {
   const h0 = state.hand.length;
   C.useSnack(state, 0);
   eq(state.hand.length, Math.min(10, h0 + 3), 'trail mix draws 3');
+}
+
+// ---------- alternate bosses ----------
+{
+  // Mud King splits into two mediums at half HP (Slime Boss)
+  const { state } = combatVs(['mud_king']);
+  const king = state.enemies[0];
+  C.dealDamage(state, king, Math.ceil(king.maxHp / 2) + 1, { attacker: state.hero });
+  ok(king.gone, 'Mud King steps aside when split');
+  const blobs = state.enemies.filter((e) => e.key === 'mud_blob_m');
+  eq(blobs.length, 2, 'Mud King splits into two Mud Blobs');
+  ok(blobs.every((b) => b.hp === blobs[0].hp && b.hp <= 78), 'split blobs inherit his remaining HP');
+  ok(!state.over, 'fight continues vs the blobs');
+  for (const b of blobs) C.dealDamage(state, b, 999, { attacker: state.hero });
+  ok(state.over && state.won, 'killing both blobs wins');
+}
+{
+  // Thunder buffs the pair, Lightning shields the pair (Donu & Deca)
+  const { state } = combatVs(['thunder', 'lightning']);
+  const [thunder, lightning] = state.enemies;
+  thunder.state.i = 0; // → BOOM
+  thunder.intent = thunder.def.nextMove(thunder, state, state.rng);
+  thunder.intent.fn(state, thunder);
+  ok(thunder.strength === 2 && lightning.strength === 2, 'Thunder empowers BOTH');
+  lightning.state.i = 1; // → Static Shield
+  const li = lightning.def.nextMove(lightning, state, state.rng);
+  li.fn(state, lightning);
+  ok(thunder.block === 11 && lightning.block === 11, 'Lightning shields BOTH');
+}
+{
+  // boss pools contain the alternates
+  ok(R.ENCOUNTERS[1].boss.some((b) => b.includes('mud_king')), 'act 1 boss pool has Mud King');
+  ok(R.ENCOUNTERS[3].boss.some((b) => b.includes('thunder') && b.includes('lightning')), 'act 3 boss pool has the pair');
 }
 
 // ---------- steppable enemy phase (UI sequencing = endTurn semantics) ----------
@@ -737,7 +770,7 @@ for (const key of Object.keys(ENEMIES)) {
   state.hero.hp = 50;
   C.dealDamage(state, state.enemies[0], 999, { attacker: state.hero });
   R.applyCombatResult(run, state);
-  eq(run.hp, 58, 'big breakfast heals 8 after fight');
+  eq(run.hp, 60, 'big breakfast heals 10 after fight');
 }
 
 // ---------- data integrity ----------
