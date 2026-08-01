@@ -1022,5 +1022,23 @@ const creditsPreview = /^#credits-(wyatt|aaron|liam|both)$/.exec(location.hash);
 if (creditsPreview) creditsRoll(creditsPreview[1], { el, artImg, sfx, REDUCED }, () => showTitle());
 else showTitle();
 
-// e2e/debug handle
-window.__RL2 = { get run() { return run; }, get combat() { return combat; }, R, C, showTitle };
+// e2e/debug handle (+ dev screen-jumps for tests/screenshots — harmless in play)
+window.__RL2 = {
+  get run() { return run; }, get combat() { return combat; }, R, C, showTitle,
+  dev: {
+    start(heroId = 'wyatt', seed = 4242) { run = R.newRun(heroId, seed); showMap(); },
+    enter(type, arg) {
+      if (!run) this.start();
+      const rng = makeRng(99);
+      if (type === 'shop') return enterNode({ type: 'shop', shop: R.makeShop(run, rng) });
+      if (type === 'rest') return enterNode({ type: 'rest' });
+      if (type === 'treasure') return enterNode({ type: 'treasure', relic: arg || 'sunflower' });
+      if (type === 'event') return enterNode({ type: 'event', event: arg || 'duck_pond' });
+      if (type === 'fight' || type === 'elite' || type === 'boss') {
+        return enterNode({ type, enemies: arg || (type === 'boss' ? ['big_twister'] : ['gopher']) });
+      }
+      if (type === 'defeat') { run.floor = 5; return showDefeat(); }
+      if (type === 'victory') return showVictory();
+    },
+  },
+};

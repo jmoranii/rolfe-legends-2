@@ -54,11 +54,14 @@ All four are live in the game already (first-win credits). Rewrites = regenerate
 
 ⚖️ Notes: "even the tall grass giggled too" in the finale is a deliberate no-name nod to Liam (zero-hint rule — the finale can play pre-unlock). · Anthem pronunciations unheard by me — if Suno mangles a name, the `REMAP` table in js/credits.js fixes the caption display without regenerating.
 
-## 🎨 Art calls to eyeball (Phase 3, running)
+## 🎨 Art calls to eyeball (Phase 3 — 57/57 generated, QA'd via contact sheets)
 
-- Style anchor: RL1 Storybook Gouache block verbatim; test gopher approved the lane (assets/enemies/gopher.png).
-- Liam portrait from the baby photo (gap #1) — recognizability is your call.
-- Title art must contain Goldie lower-right (the tap-3× secret hotspot sits on her). Verify her placement when it lands.
+- Style: RL1 Storybook Gouache verbatim; the full set reads as one painter (contact sheets: media/shots/contact-sheet*.png). Kid-check pass: everything funny-menacing, nothing horror.
+- **Liam portrait** (assets/ui/portrait_liam.png): generated from his baby photo — reads adorable but younger than 2½ (more like a 1-year-old). Recognizability + age vibe are your call; regenerates in one command with a recent photo (gap #1).
+- **Wyatt/Aaron hero portraits**: from their ref photos; Aaron's picked up his RL1 blue-fringe hair (continuity win). Would Wyatt say "that's me"? Your eye.
+- **Title art**: Goldie stands lower-right exactly as briefed; the invisible tap-3× hotspot sits on her and was probe-verified (buttons always win taps; llama-area taps fire the unlock). Duck parade + distant twister included.
+- Rerolls: delete the file + `./assets/generate-art.sh <id>`. Per-image cost $0 marginal (codex plan); ~130s each.
+- ⚖️ Aaron's portrait shirt is a pajama-animal print (from the ref photo's shirt) — endearing, but if he'd rather look "tough," reroll with a note.
 
 ## Publish checklist (yours — Phase 6)
 

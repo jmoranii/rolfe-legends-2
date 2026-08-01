@@ -2,6 +2,50 @@
 
 Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 300`.
 
+## 2026-07-31 · SHIP-READY — GOAL.md definition of done MET
+
+All five phases complete in one autonomous session (Phases 1–5, ~6 hours wall-clock, generation batches in background throughout).
+
+**Final numbers**
+- Winrate band (final 300/hero): **Aaron 51.3% · Wyatt 54.0% · Liam 49.3%** — all inside 35–55 (500-run confirmation earlier: 49.8 / 54.8 / 49.4).
+- Fight pacing: normals 4.7 · elites 6.6 · bosses 10.7 avg turns (targets 3–6 / 6–10 / 8–14) — rail-enforced.
+- Tests: **unit 1163/1163 · e2e 62/62 in BOTH Chromium and WebKit** (playwright pinned 1.60.0 for the frozen mac14 WebKit) · selfplay band rails ALL CLEAR.
+- Art: **57/57 generated** (storybook gouache, style-QA'd via contact sheets) + 9 RL1 reuses + derived icons — every hook filled, emoji fallback intact.
+- Music: **11/11 tracks** (take 1 kept) + word-level `.lrc` × 4 anthems — every `js/music.js` hook filled, silence fallback intact.
+- Liam zero-hint audit: hero select pre-unlock shows 2 heroes (e2e-checked), anthem_both never names him, no visible UI/copy references pre-unlock. ✓
+
+**Every-screen smoke** (`media/shots/s01…s19`): title (painted Goldie hotspot verified: buttons win taps, llama taps unlock) · heroes · boon · map · combat + targeting · reward · shop · rest · treasure · Goldie event · Pie Contest · act-2 fight · Twister boss · Thunder & Lightning pair · defeat · victory crown · settings · farm code. Plus `p4-credits-beat*.png` (live synced credits).
+
+**Final rubric — the Slay the Spire bar**
+1. Every turn is a solvable puzzle — ✓ intents + live previews + measured no-stall fights (0.5%).
+2. Path choices are real dilemmas — ✓ visible node graph; elite/shop/event routing carries real winrate stakes.
+3. Decks develop identity by act 2 — ✓ harness signatures: Aaron strength piles, Wyatt poison-tempo, Liam fresh-wall/stink.
+4. The power fantasy escalates — ✓ Tornado Form/MAXIMUM STINK/Ball Machine act-3 turns; boss fights average 10.7 tense turns.
+5. Risk is always paid for — ✓ elites optional, visible, relic-paying; Squall teaches flee; snacks are comeback tools (harness uses them like a kid would).
+6. Fights end before they bore — ✓ measured + rail-enforced.
+7. Fairness reads on screen — ✓ intents/statuses/block/floaties legible mid-fight on a phone.
+8. Runs tell stories — ✓ random boss pools, 11 events, cascading Mud King splits, and credits that literally retell the cast.
+
+**Remaining = James's Phase 6** (publish checklist in REVIEW.md): repo public y/n, Pages deploy, README, delivery. NEVER pushed anywhere — local git only, per the ground rules.
+
+## 2026-07-31 · Phase 4 — Music & endings (DONE) · Phase 5 — Ship hardening (core DONE)
+
+**Phase 4 — the crown jewels**
+- **11-track Suno soundtrack** (suno-auto unattended, take 1 kept on every track, ~130 credits): title / map1-2-3 (morning folk · dusk porch · storm-night underscore) / battle / elite / boss instrumentals + 4 vocal anthems (Wyatt pop-punk-country, Aaron stomp rock, Liam silly ukulele-tuba, both-brothers brass finale). Crossfading via js/music.js; anthems play once (they're the credits clock).
+- **Synced-lyric victory credits** (js/credits.js, the RL1 trick rebuilt data-driven): word-level `.lrc` from `suno timed-lyrics` for all four anthems; karaoke captions light each word AS it's sung; **portrait beats are DERIVED from the timed lyrics** (cast-name scan with cooldowns) so a regenerated anthem re-times the whole show with zero code changes. Staged intro, journey slide transitions, skip button, wall-clock + fallback-lines rescue (works silent/offline), both-finale duo scene, `#credits-<hero>` preview hash, replay button on the crown screen. Live smoke: at audio t=16.8s the caption read "Wyatt laced up, gave the ball a spin" with 4 words lit and WYATT's portrait up — synced to the real playhead.
+- Beats per anthem (derived): Wyatt 11 (Mom→Flaj→Rusty→Twister→Brody→Chelsea→Ducks→Goldie), Aaron 11, Liam 7, Both 8 (duo scenes).
+
+**Phase 5 — hardening**
+- **Offline service worker** (sw.js): shell network-first, assets cache-first lazy-fill, icons best-effort — boots and plays fully offline after one online visit; emoji/silence fallbacks cover uncached assets.
+- **Secret Farm Code** (js/farmcode.js): FARM2-checksummed base64url of profile (wins, bonusSeen, Liam unlock) + the current run (map, deck, relics — everything); Settings UI with copy + paste-restore; round-trip/tamper/garbage unit tests; Liam-wins-imply-unlock guard.
+- **PWA**: manifest (standalone, portrait), theme color, apple-touch-icon link, Add-to-Home-Screen helper (captures beforeinstallprompt on Android; Safari instructions for the iPads).
+- **WebKit e2e UNBLOCKED**: playwright pinned to **1.60.0** — probed 1.62.1 against this Mac's frozen `webkit_mac14_arm64_special-2251` (hangs, 20s+), 1.60.0 drives it in ~2s. Full suite now runs in BOTH engines. **e2e 62/62** (map graph, sequenced combat, liam unlock, credits, farm code, service worker — both engines).
+
+**Harness** (500/hero, regression-stable): Aaron 49.8 · Wyatt 54.8 · Liam 49.4 · pacing 4.7/6.6/10.7.
+**Tests**: unit 1163/1163 · e2e 62/62 (Chromium + WebKit) · selfplay band rails ALL CLEAR.
+
+**Rubric re-grade (endings lens)**: #8 runs tell stories — ✓✓ the credits literally retell the run's cast with the family taking bows; the boys' replay-for-credits behavior is the design target.
+
 ## 2026-07-31 · Phase 2 — Balance, boss variety, events (DONE)
 
 **Done**
