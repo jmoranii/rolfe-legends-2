@@ -2,7 +2,7 @@
 // Emoji art v1; PNG art + Suno music drop in later without code changes.
 
 import { makeRng, randomSeed } from './rng.js';
-import { HEROES, CARDS, cardInfo, makeCard } from './cards.js';
+import { HEROES, CARDS, DIAPERS, cardInfo, makeCard } from './cards.js';
 import { RELICS } from './relics.js';
 import { EVENTS } from './events.js';
 import * as C from './combat.js';
@@ -21,8 +21,8 @@ let selectedCard = null;
 
 // ---------- profile & save ----------
 function loadProfile() {
-  try { return JSON.parse(localStorage.getItem(PROFILE_KEY)) || { wins: { aaron: 0, wyatt: 0 }, bonusSeen: false }; }
-  catch { return { wins: { aaron: 0, wyatt: 0 }, bonusSeen: false }; }
+  try { return JSON.parse(localStorage.getItem(PROFILE_KEY)) || { wins: {}, bonusSeen: false, liamUnlocked: false }; }
+  catch { return { wins: {}, bonusSeen: false, liamUnlocked: false }; }
 }
 function saveProfile(p) { localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); }
 function saveRun() { if (run) localStorage.setItem(SAVE_KEY, R.serializeRun(run)); }
@@ -74,12 +74,42 @@ function showTitle() {
   nb.onclick = () => { sfx.tap(); showHeroSelect(); };
   s.appendChild(nb);
   const p = loadProfile();
-  if (p.wins.aaron > 0 || p.wins.wyatt > 0) {
-    s.appendChild(el('p', 'subtitle', `🏆 Farm defended: Wyatt ×${p.wins.wyatt} · Aaron ×${p.wins.aaron}`));
-  }
+  const winBits = ['wyatt', 'aaron', 'liam'].filter((h) => p.wins[h] > 0).map((h) => `${HEROES[h].name.split(' ')[0]} ×${p.wins[h]}`);
+  if (winBits.length) s.appendChild(el('p', 'subtitle', `🏆 Farm defended: ${winBits.join(' · ')}`));
   const settings = el('button', 'btn secondary', '⚙️ Settings');
   settings.onclick = showSettings;
   s.appendChild(settings);
+
+  // Goldie watches from the corner. Goldie says nothing. Goldie knows. (Tap 3×.)
+  const goldie = el('div', 'goldie-egg', '🦙');
+  let taps = 0;
+  goldie.onclick = () => {
+    taps += 1;
+    const prof = loadProfile();
+    if (taps >= 3) {
+      taps = 0;
+      if (!prof.liamUnlocked) {
+        prof.liamUnlocked = true;
+        saveProfile(prof);
+        sfx.win();
+        modal(null, (m, close) => {
+          m.appendChild(el('div', 'event-emoji', '🦙'));
+          m.appendChild(el('div', 'speaker-line', 'Goldie steps aside. Behind her, someone very small waddles out of the tall grass…'));
+          m.appendChild(el('div', 'crown', '🍼'));
+          m.appendChild(el('h2', '', 'LIAM THE LITTLE has joined the Legends!'));
+          m.appendChild(el('p', 'subtitle', 'Secret hero unlocked — find him on the hero screen. Diapers orbit him. Nobody knows why.'));
+          const b = el('button', 'btn gold', 'WHOA. →');
+          b.onclick = () => { close(); showTitle(); };
+          m.appendChild(b);
+        }, { dismissable: false });
+      } else {
+        toast('🦙 Goldie says nothing. Goldie knows.');
+      }
+    } else {
+      sfx.tap();
+    }
+  };
+  s.appendChild(goldie);
 }
 
 function showSettings() {
@@ -100,7 +130,9 @@ function showHeroSelect() {
   const s = screen('act-1');
   s.appendChild(el('h2', '', 'Who defends the farm today?'));
   const row = el('div', 'hero-pick');
-  for (const id of ['wyatt', 'aaron']) {
+  const roster = ['wyatt', 'aaron'];
+  if (loadProfile().liamUnlocked) roster.push('liam');
+  for (const id of roster) {
     const h = HEROES[id];
     const c = el('div', 'hero-card',
       `<div class="big">${h.emoji}</div><h3>${h.name}</h3><p>${h.tagline}</p><p>❤️ ${h.hp} HP · ${RELICS[h.relic].emoji} ${RELICS[h.relic].name}</p>`);
@@ -211,6 +243,7 @@ function statusChips(cr) {
   if (cr.frail) chips.push(`🦴${cr.frail}`);
   if (cr.thorns) chips.push(`🌵${cr.thorns}`);
   if (cr.intangible) chips.push('👻');
+  if (cr.focus) chips.push(`😆${cr.focus}`);
   return chips.map((c) => `<span class="chip">${c}</span>`).join('');
 }
 
@@ -249,6 +282,21 @@ function renderCombat() {
     row.appendChild(d);
   }
   s.appendChild(row);
+
+  // floating diapers (Liam)
+  if (st.hero.orbs && st.hero.orbs.length) {
+    const orbRow = el('div', 'orb-row');
+    for (const orb of st.hero.orbs) {
+      const d = DIAPERS[orb.type];
+      const val = orb.type === 'blowout' ? orb.stored
+        : orb.type === 'stinky' ? d.passive + st.hero.focus
+        : orb.type === 'fresh' ? d.passive + st.hero.focus
+        : '⚡';
+      orbRow.appendChild(el('span', 'orb', `${d.emoji}<small>${val}</small>`));
+    }
+    for (let i = st.hero.orbs.length; i < st.hero.orbSlots; i++) orbRow.appendChild(el('span', 'orb empty', '◌'));
+    s.appendChild(orbRow);
+  }
 
   // hero strip
   const h = st.hero;
@@ -582,10 +630,12 @@ function showVictory() {
   const s = screen('act-1');
   s.appendChild(el('div', 'crown', '👑'));
   s.appendChild(el('h1', '', 'THE FARM IS SAFE!'));
-  s.appendChild(el('div', 'speaker-line',
-    heroId === 'wyatt'
-      ? '"The Big Twister itself couldn\'t catch him. WYATT THE SPEEDY — Legend of Rolfe!" 🌪️⚡'
-      : '"He looked the Big Twister dead in the eye — and the twister blinked. AARON THE STRONG — the Lil Tornado himself!" 🌪️💪'));
+  const VICTORY_LINES = {
+    wyatt: '"The Big Twister itself couldn\'t catch him. WYATT THE SPEEDY — Legend of Rolfe!" 🌪️⚡',
+    aaron: '"He looked the Big Twister dead in the eye — and the twister blinked. AARON THE STRONG — the Lil Tornado himself!" 🌪️💪',
+    liam: '"The Big Twister took one whiff of THE BLOWOUT and surrendered on the spot. LIAM THE LITTLE — the tiniest Legend of Rolfe!" 🌪️🍼',
+  };
+  s.appendChild(el('div', 'speaker-line', VICTORY_LINES[heroId]));
   const both = p.wins.aaron > 0 && p.wins.wyatt > 0;
   if (both && !p.bonusSeen) {
     p.bonusSeen = true;

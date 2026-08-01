@@ -7,6 +7,8 @@ export const RELICS = {
     text: 'Heal 6 HP after every fight.' },
   head_start: { name: 'Head Start', emoji: '👟', sts: 'Ring of the Snake', starter: 'wyatt',
     text: 'Draw 2 extra cards on your first turn.' },
+  diaper_bag: { name: 'Diaper Bag', emoji: '👜', sts: 'Cracked Core', starter: 'liam',
+    text: 'Float a Stinky Diaper at the start of each fight.' },
   // pool
   fence_post: { name: 'Fence Post', emoji: '🪵', sts: 'Anchor', text: 'Start each fight with 8 Block.' },
   grannys_thermos: { name: "Granny's Thermos", emoji: '☕', sts: 'Blood Vial', text: 'Heal 2 HP at the start of each fight.' },

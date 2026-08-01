@@ -22,6 +22,10 @@ const PICK = {
   slide_tackle: 7, sneak_attack: 6, itching_powder: 7, leg_sweep: 6, prank_cloud: 7,
   bicycle_kick: 6, sleight_of_hand: 5, footwork: 8, sugar_rush: 8, hat_trick: 8,
   ball_machine: 6, afterimage: 7,
+  // liam
+  throw_spaghetti: 7, sippy_cup: 6, blanket_fort: 7, sticky_hands: 5, nap_time: 5,
+  snacks: 6, big_no: 8, giggle_fit: 8, uppies: 5, throw_food: 7, more_diapers: 7,
+  waddle_charge: 7, uh_oh: 6, maximum_stink: 9, birthday_boy: 8,
 };
 
 function worstHandCard(state) {
@@ -78,6 +82,11 @@ function playTurn(state) {
       const poison = fx.find((o) => o.status && o.status.k === 'poison');
       if (poison) s += poison.status.n * 0.9;
       if (fx.find((o) => o.selfStr || o.selfDex || o.tempStr)) s += 5; // scaling setup matters
+      if (fx.find((o) => o.focus)) s += 6;                              // giggle power scales everything
+      if (fx.find((o) => o.channel)) s += 5;                            // floating diapers = value engine
+      if (fx.find((o) => o.orbSlots)) s += 4;
+      if ((info.special === 'double_trouble' || info.special === 'uppies') && state.hero.orbs.length) s += 5;
+      if (info.special === 'throw_food') s += state.hero.orbs.length * 3;
       const debuff = fx.find((o) => o.status && (o.status.k === 'weak' || o.status.k === 'vulnerable'));
       if (debuff) s += 3;
       s -= costN * 0.4;
@@ -189,7 +198,7 @@ function simulateRun(heroId, seed) {
 // ---------- sweep ----------
 const report = {};
 let stalls = 0;
-for (const hero of ['aaron', 'wyatt']) {
+for (const hero of ['aaron', 'wyatt', 'liam']) {
   const res = { wins: 0, deaths: [], actReached: [0, 0, 0] };
   for (let i = 0; i < RUNS; i++) {
     const out = simulateRun(hero, 1000 + i * 17 + (hero === 'wyatt' ? 7 : 0));
@@ -200,7 +209,7 @@ for (const hero of ['aaron', 'wyatt']) {
 }
 
 console.log(`\n=== Rolfe Legends 2 selfplay — ${RUNS} runs per hero ===`);
-for (const hero of ['aaron', 'wyatt']) {
+for (const hero of Object.keys(report)) {
   const r = report[hero];
   const wr = (r.wins / RUNS * 100).toFixed(1);
   console.log(`\n${hero.toUpperCase()}: winrate ${wr}%  (deaths by act: ${r.actReached.join(' / ')})`);
@@ -213,7 +222,7 @@ console.log(`\nstalled fights: ${stalls}`);
 
 // ---------- verdict rails (wide for v1; tighten during tuning) ----------
 let bad = false;
-for (const hero of ['aaron', 'wyatt']) {
+for (const hero of ['aaron', 'wyatt', 'liam']) {
   const wr = report[hero].wins / RUNS;
   if (wr < 0.05) { console.log(`RAIL FAIL: ${hero} winrate ${(wr * 100).toFixed(1)}% < 5% — too brutal`); bad = true; }
   if (wr > 0.95) { console.log(`RAIL FAIL: ${hero} winrate ${(wr * 100).toFixed(1)}% > 95% — too easy`); bad = true; }

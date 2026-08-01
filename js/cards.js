@@ -17,6 +17,21 @@ export const HEROES = {
     tagline: 'Fastest feet in Rolfe. Blink and you miss him.',
     starter: ['kick', 'kick', 'kick', 'kick', 'kick', 'dodge', 'dodge', 'dodge', 'dodge', 'dodge', 'nutmeg', 'quick_feet'],
   },
+  liam: { // SECRET hero — unlocked via the title-screen Goldie egg. Defect spine.
+    id: 'liam', name: 'Liam the Little', emoji: '🍼', hp: 75,
+    relic: 'diaper_bag', secret: true,
+    tagline: 'Two and a half feet of chaos. Diapers orbit him. Nobody knows why.',
+    starter: ['bonk', 'bonk', 'bonk', 'bonk', 'peekaboo', 'peekaboo', 'peekaboo', 'peekaboo', 'change_it', 'double_trouble'],
+  },
+};
+
+// Diaper (orb) reference — combat.js implements; UI + cards read this table.
+// Mirrors StS orbs: stinky=Lightning, fresh=Frost, blowout=Dark, snack=Plasma.
+export const DIAPERS = {
+  stinky:  { name: 'Stinky Diaper', emoji: '💩', passive: 3, evoke: 8,  desc: 'Each turn: the smell deals {p} to a random enemy. Send it flying: {e}.' },
+  fresh:   { name: 'Fresh Diaper', emoji: '🩲', passive: 2, evoke: 5,  desc: 'Each turn: clean & cozy, gain {p} Block. Evoke: {e} Block.' },
+  blowout: { name: 'THE BLOWOUT', emoji: '🌋', passive: 6, evoke: 0,  desc: 'Grows +{p} damage every turn it floats. Evoke: unleash it ALL on the weakest enemy.' },
+  snack:   { name: 'Snack Time', emoji: '🧃', passive: 0, evoke: 2,  desc: 'Each turn: +1 ⚡. Evoke: +{e} ⚡.' },
 };
 
 export const CARDS = {
@@ -128,6 +143,48 @@ export const CARDS = {
                   text: 'At the start of each turn, add a Soccer Ball to your hand.', power: 'ball_machine' },
   afterimage:   { hero: 'wyatt', name: 'Afterimage', emoji: '👥', type: 'power', cost: 1, rarity: 'rare', sts: 'After Image',
                   text: 'Whenever you play a card, gain 1 Block.', power: 'afterimage' },
+
+  // ---------- Liam the Little (Defect spine — SECRET hero) ----------
+  bonk:         { hero: 'liam', name: 'Bonk', emoji: '🧸', type: 'attack', cost: 1, rarity: 'starter', sts: 'Strike',
+                  text: 'Deal {d} damage.', fx: [{ dmg: 6 }], up: { fx: [{ dmg: 9 }] } },
+  peekaboo:     { hero: 'liam', name: 'Peekaboo', emoji: '🙈', type: 'skill', cost: 1, rarity: 'starter', sts: 'Defend',
+                  text: 'Gain {b} Block.', fx: [{ block: 5 }], up: { fx: [{ block: 8 }] } },
+  change_it:    { hero: 'liam', name: 'Change It!', emoji: '💩', type: 'skill', cost: 1, rarity: 'starter', sts: 'Zap',
+                  text: 'Float a Stinky Diaper.', fx: [{ channel: 'stinky' }], up: { cost: 0 } },
+  double_trouble:{ hero: 'liam', name: 'Double Trouble', emoji: '👯', type: 'skill', cost: 1, rarity: 'starter', sts: 'Dualcast',
+                  text: 'Evoke your oldest diaper twice.', special: 'double_trouble', up: { cost: 0 } },
+  throw_spaghetti:{ hero: 'liam', name: 'Throw Spaghetti', emoji: '🍝', type: 'attack', cost: 1, rarity: 'common', sts: 'Ball Lightning',
+                  text: 'Deal {d} damage. Float a Stinky Diaper.', fx: [{ dmg: 7 }, { channel: 'stinky' }], up: { fx: [{ dmg: 10 }, { channel: 'stinky' }] } },
+  sippy_cup:    { hero: 'liam', name: 'Sippy Cup', emoji: '🥤', type: 'skill', cost: 1, rarity: 'common', sts: 'Coolheaded',
+                  text: 'Float a Fresh Diaper. Draw 1 card.', fx: [{ channel: 'fresh' }, { draw: 1 }], up: { cost: 0 } },
+  blanket_fort: { hero: 'liam', name: 'Blanket Fort', emoji: '🛏️', type: 'skill', cost: 2, rarity: 'common', sts: 'Glacier',
+                  text: 'Gain {b} Block. Float 2 Fresh Diapers.', fx: [{ block: 7 }, { channel: 'fresh' }, { channel: 'fresh' }],
+                  up: { fx: [{ block: 10 }, { channel: 'fresh' }, { channel: 'fresh' }] } },
+  sticky_hands: { hero: 'liam', name: 'Sticky Hands', emoji: '🍯', type: 'attack', cost: 0, rarity: 'common', sts: 'Claw',
+                  text: 'Deal {d} damage.', fx: [{ dmg: 4 }], up: { fx: [{ dmg: 6 }] } },
+  nap_time:     { hero: 'liam', name: 'Nap Time', emoji: '😴', type: 'skill', cost: 1, rarity: 'common', sts: '(original)',
+                  text: 'Gain {b} Block. Exhaust.', fx: [{ block: 12 }], exhausts: true, up: { fx: [{ block: 16 }] } },
+  snacks:       { hero: 'liam', name: 'Snacks!', emoji: '🍪', type: 'skill', cost: 1, rarity: 'common', sts: '(Plasma channel)',
+                  text: 'Float a Snack Time.', fx: [{ channel: 'snack' }], up: { fx: [{ channel: 'snack' }, { draw: 1 }] } },
+  big_no:       { hero: 'liam', name: 'NO!!', emoji: '🙅', type: 'attack', cost: 2, rarity: 'uncommon', sts: 'Doom and Gloom',
+                  text: 'Deal {d} damage to ALL enemies. Float a BLOWOUT.', fx: [{ dmg: 10, allEnemies: true }, { channel: 'blowout' }],
+                  up: { fx: [{ dmg: 14, allEnemies: true }, { channel: 'blowout' }] } },
+  giggle_fit:   { hero: 'liam', name: 'Giggle Fit', emoji: '😆', type: 'power', cost: 1, rarity: 'uncommon', sts: 'Defragment',
+                  text: 'Gain {n} Giggle Power (your diapers get stronger).', fx: [{ focus: 1 }], up: { fx: [{ focus: 2 }] } },
+  uppies:       { hero: 'liam', name: 'Uppies!', emoji: '🙌', type: 'skill', cost: 1, rarity: 'uncommon', sts: 'Recursion',
+                  text: 'Evoke your oldest diaper, then float a new one just like it.', special: 'uppies', up: { cost: 0 } },
+  throw_food:   { hero: 'liam', name: 'Throw Food', emoji: '🥣', type: 'attack', cost: 1, rarity: 'uncommon', sts: 'Barrage',
+                  text: 'Deal {d} damage for each floating diaper.', special: 'throw_food', base: 4, up: { base: 6 } },
+  more_diapers: { hero: 'liam', name: 'More Diapers!', emoji: '🧺', type: 'power', cost: 1, rarity: 'uncommon', sts: 'Capacitor',
+                  text: 'Gain {n} diaper slots.', fx: [{ orbSlots: 2 }], up: { fx: [{ orbSlots: 3 }] } },
+  waddle_charge:{ hero: 'liam', name: 'Waddle Charge', emoji: '🐧', type: 'attack', cost: 2, rarity: 'uncommon', sts: 'Thunder Strike',
+                  text: 'Deal {d} damage. Float a Stinky Diaper.', fx: [{ dmg: 12 }, { channel: 'stinky' }], up: { fx: [{ dmg: 16 }, { channel: 'stinky' }] } },
+  uh_oh:        { hero: 'liam', name: 'Uh-Oh.', emoji: '😱', type: 'skill', cost: 1, rarity: 'uncommon', sts: 'Darkness',
+                  text: 'Float a BLOWOUT.', fx: [{ channel: 'blowout' }], up: { cost: 0 } },
+  maximum_stink:{ hero: 'liam', name: 'MAXIMUM STINK', emoji: '🌫️', type: 'power', cost: 2, rarity: 'rare', sts: 'Electrodynamics',
+                  text: 'Your Stinky Diapers hit ALL enemies. Float a Stinky Diaper.', power: 'max_stink', fx: [{ channel: 'stinky' }], up: { cost: 1 } },
+  birthday_boy: { hero: 'liam', name: 'Birthday Boy', emoji: '🎂', type: 'power', cost: 3, rarity: 'rare', sts: '(Demon Form for Focus)',
+                  text: 'At the start of each turn, gain 1 Giggle Power. (He\'ll be THREE in December.)', power: 'birthday_boy', up: { cost: 2 } },
 
   // ---------- Special / ally ----------
   duck:         { hero: 'any', name: 'Duck Friend', emoji: '🦆', type: 'attack', cost: 1, rarity: 'special', sts: '(original)',

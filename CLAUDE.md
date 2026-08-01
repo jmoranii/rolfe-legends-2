@@ -24,7 +24,7 @@ A kid opens the game, picks himself as the hero, and every run down the randomiz
 ## Cast
 
 - **Heroes:** Wyatt the Speedy (shivs=Quick Kicks/Soccer Balls, poison, discard=Sleight of Hand, Footwork) · Aaron the Strong (strength, block, Tornado Form; he is "The Lil Tornado" from RL1).
-- **SECRET (do not reveal in any visible UI/copy until unlocked):** Baby Liam (cousin, Brody's son, ~3) is the Easter-egg third hero — Defect spine with floating DIAPERS as the orbs (Stinky=Lightning, Fresh=Frost, THE BLOWOUT=Dark, Snack Time=Plasma; Focus=Giggle Power). Zero-hint unlock via title-screen tap secret (RL1 llama canon). Post-v1 content update.
+- **SECRET (do not reveal in any visible UI/copy until unlocked):** Baby Liam (cousin, Brody's son, ~3) is the Easter-egg third hero — Defect spine with floating DIAPERS as the orbs (Stinky=Lightning, Fresh=Frost, THE BLOWOUT=Dark, Snack Time=Plasma; Focus=Giggle Power). Zero-hint unlock: tap Goldie 🦙 on the title 3× (RL1 llama canon). SHIPPED in v1 (Fri 2026-07-31).
 - **Helpers:** Jacob's farm-supply **shop** (Dad) · **Granny Rockie's porch** rest site (Cookies=heal / Practice=upgrade) · **Coach James** start-of-run boon (Neow role) · **Rusty** the dog = treasure (trots up with a relic in his mouth) · map **events** star Mom (Victoria), Poppa Flaj, Uncle Brody, Aunt Chelsea, Goldie the llama, the ducks.
 - **Acts:** 1 The Far Fields (morning) → 2 The Barnyard (dusk) → 3 The Storm (night). Bosses: The Rogue Combine / The Raccoon King / The Big Twister. Full bestiary in DESIGN.md — every enemy names its StS original.
 

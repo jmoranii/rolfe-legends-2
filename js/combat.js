@@ -3,7 +3,7 @@
 // Strength/Dexterity/Weak/Vulnerable/Frail/Poison, exhaust, innate, X-cost.
 // Enemies come from js/enemies.js (data + move functions); cards from js/cards.js.
 
-import { CARDS, cardInfo, makeCard } from './cards.js';
+import { CARDS, DIAPERS, cardInfo, makeCard } from './cards.js';
 import { ENEMIES } from './enemies.js';
 
 export const HAND_SIZE = 5;
@@ -148,6 +148,69 @@ function relicCombatStart(state) {
   if (hasRelic(state, 'skipping_stone')) state.hero.dexterity += 1;
   if (hasRelic(state, 'barbed_wire')) state.hero.thorns = (state.hero.thorns || 0) + 3;
   if (hasRelic(state, 'fence_post')) state.hero.block += 8;
+  if (hasRelic(state, 'diaper_bag')) channelOrb(state, 'stinky');
+}
+
+// ---------- diapers (Defect orb system; sts: Lightning/Frost/Dark/Plasma) ----------
+
+export function channelOrb(state, type) {
+  const h = state.hero;
+  if (h.orbs.length >= h.orbSlots) evokeOrb(state); // auto-evoke oldest when full
+  h.orbs.push({ type, stored: type === 'blowout' ? DIAPERS.blowout.passive : 0 });
+}
+
+function randomTargets(state, all) {
+  const live = livingEnemies(state);
+  if (!live.length) return [];
+  return all ? live : [state.rng.pick(live)];
+}
+
+// Evoke the oldest diaper (index 0). `times` for Double Trouble.
+export function evokeOrb(state, times = 1) {
+  const h = state.hero;
+  const orb = h.orbs.shift();
+  if (!orb) return;
+  for (let t = 0; t < times; t++) {
+    if (orb.type === 'stinky') {
+      for (const e of randomTargets(state, h.powers.max_stink)) {
+        dealDamage(state, e, DIAPERS.stinky.evoke + h.focus, { isAttack: false });
+      }
+    } else if (orb.type === 'fresh') {
+      h.block += DIAPERS.fresh.evoke + h.focus;
+    } else if (orb.type === 'snack') {
+      h.energy += DIAPERS.snack.evoke;
+    } else if (orb.type === 'blowout') {
+      const live = livingEnemies(state);
+      if (live.length) {
+        const weakest = live.slice().sort((a, b) => a.hp - b.hp)[0];
+        dealDamage(state, weakest, orb.stored, { isAttack: false });
+      }
+    }
+  }
+  checkCombatEnd(state);
+  return orb;
+}
+
+function orbTurnStart(state) {
+  const h = state.hero;
+  if (h.powers.birthday_boy) h.focus += 1;
+  for (const orb of h.orbs) if (orb.type === 'snack') h.energy += 1;
+}
+
+function orbTurnEnd(state) {
+  const h = state.hero;
+  for (const orb of [...h.orbs]) {
+    if (state.over) break;
+    if (orb.type === 'stinky') {
+      for (const e of randomTargets(state, h.powers.max_stink)) {
+        dealDamage(state, e, DIAPERS.stinky.passive + h.focus, { isAttack: false });
+      }
+    } else if (orb.type === 'fresh') {
+      h.block += DIAPERS.fresh.passive + h.focus;
+    } else if (orb.type === 'blowout') {
+      orb.stored += DIAPERS.blowout.passive + h.focus;
+    }
+  }
 }
 
 function relicTurnStart(state) {
@@ -195,6 +258,7 @@ export function startCombat(run, enemyKeys, rng, { kind = 'fight' } = {}) {
       isHero: true, hp: run.hp, maxHp: run.maxHp, block: 0, energy: 0,
       strength: 0, tempStr: 0, dexterity: 0, weak: 0, vulnerable: 0, frail: 0,
       poison: 0, thorns: 0, powers: {},
+      orbs: [], orbSlots: 3, focus: 0, // Liam's diapers (Defect orbs); inert for other heroes
     },
     heroId: run.hero,
     enemies: [],
@@ -234,6 +298,7 @@ export function startHeroTurn(state) {
   h.tempStr = 0;
   state.attacksThisTurn = 0; state.skillsThisTurn = 0; state.cardsThisTurn = 0;
   relicTurnStart(state);
+  orbTurnStart(state);
   // powers
   if (h.powers.tornado_form) applyStatus(state, h, 'strength', h.powers.tornado_form);
   if (h.powers.ball_machine) addCardToCombat(state, 'soccer_ball', 1, 'hand');
@@ -261,6 +326,19 @@ export const SPECIALS = {
       for (const e of livingEnemies(state)) {
         dealDamage(state, e, attackValue(info.base, state.hero), { attacker: state.hero });
       }
+    }
+  },
+  double_trouble(state) {
+    evokeOrb(state, 2);
+  },
+  uppies(state) {
+    const orb = evokeOrb(state);
+    if (orb) channelOrb(state, orb.type);
+  },
+  throw_food(state, info, target) {
+    const hits = state.hero.orbs.length;
+    for (let i = 0; i < hits; i++) {
+      if (target && target.hp > 0) dealDamage(state, target, attackValue(info.base, state.hero), { attacker: state.hero });
     }
   },
   bicycle_kick(state, info, target) {
@@ -324,8 +402,8 @@ export function playCard(state, inst, target = null) {
 }
 
 export function cardNeedsTarget(info) {
-  if (info.special === 'heavy_haul' || info.special === 'bicycle_kick') return true;
-  if (info.special === 'tornado_spin') return false;
+  if (info.special === 'heavy_haul' || info.special === 'bicycle_kick' || info.special === 'throw_food') return true;
+  if (info.special === 'tornado_spin' || info.special === 'double_trouble' || info.special === 'uppies') return false;
   return (info.fx || []).some((op) => (op.dmg != null && !op.allEnemies)
     || (op.status && op.status.target === 'target'));
 }
@@ -359,6 +437,10 @@ function runEffects(state, info, target) {
     if (op.selfDex) h.dexterity += op.selfDex;
     if (op.tempStr) h.tempStr += op.tempStr;
     if (op.addCard) addCardToCombat(state, op.addCard.id, op.addCard.n, op.addCard.to);
+    if (op.channel) channelOrb(state, op.channel);
+    if (op.evoke) for (let i = 0; i < op.evoke; i++) evokeOrb(state);
+    if (op.focus) h.focus += op.focus;
+    if (op.orbSlots) h.orbSlots += op.orbSlots;
     if (op.status) {
       const { k, n, target: tgt } = op.status;
       if (tgt === 'self') applyStatus(state, h, k, n);
@@ -408,6 +490,7 @@ export function endTurn(state) {
     if (info.endTurnDmg) dealDamage(state, h, info.endTurnDmg, { isAttack: false });
   }
   if (h.powers.tough_skin) h.block += h.powers.tough_skin;
+  orbTurnEnd(state);
   relicTurnEnd(state);
   tickDebuffs(h);
   // discard hand

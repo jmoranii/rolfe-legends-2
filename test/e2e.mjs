@@ -140,8 +140,43 @@ async function deepRun() {
   await browser.close();
 }
 
+// secret-hero unlock flow: Goldie ×3 → Liam appears → run starts with floating diapers
+async function liamUnlock() {
+  const name = 'liam';
+  const browser = await chromium.launch();
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  await page.goto(BASE, { waitUntil: 'load' });
+  ok(await page.locator('.goldie-egg').count() === 1, 'liam: Goldie watches the title screen');
+  // zero-hint check: no Liam on hero select before unlock
+  await page.locator('.btn', { hasText: 'New Adventure' }).click();
+  ok(await page.locator('.hero-card').count() === 2, 'liam: only 2 heroes before unlock');
+  await page.locator('.btn', { hasText: 'Back' }).click();
+  for (let i = 0; i < 3; i++) await page.locator('.goldie-egg').click();
+  ok((await page.textContent('.modal h2')).includes('LIAM THE LITTLE'), 'liam: unlock modal fires on 3rd tap');
+  await page.locator('.modal .btn').click();
+  await page.locator('.btn', { hasText: 'New Adventure' }).click();
+  ok(await page.locator('.hero-card').count() === 3, 'liam: 3 heroes after unlock');
+  await page.locator('.hero-card', { hasText: 'Liam' }).click();
+  await page.locator('.btn').first().click(); // boon
+  await page.waitForSelector('.map-node');
+  await page.locator('.map-node').first().click();
+  await page.waitForSelector('.enemy');
+  ok(await page.locator('.orb-row .orb').count() >= 1, 'liam: diapers float in combat (Diaper Bag)');
+  // unlock persists
+  await page.reload({ waitUntil: 'load' });
+  await page.evaluate(() => localStorage.removeItem('rl2_run'));
+  await page.reload({ waitUntil: 'load' });
+  await page.locator('.btn', { hasText: 'New Adventure' }).click();
+  ok(await page.locator('.hero-card').count() === 3, 'liam: unlock persists across reload');
+  ok(errors.length === 0, `liam: zero page errors${errors.length ? ' — ' + errors[0].slice(0, 120) : ''}`);
+  await browser.close();
+}
+
 try {
   await runSuite(chromium, 'chromium');
+  await liamUnlock();
   await deepRun();
 } catch (e) {
   ok(false, 'suite crashed: ' + e.message);

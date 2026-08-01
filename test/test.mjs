@@ -444,6 +444,113 @@ for (const key of Object.keys(ENEMIES)) {
   ok(!crashed, `enemy smoke: ${key}`);
 }
 
+// ---------- Liam the Little: diapers (orb system) ----------
+{
+  const run = freshRun('liam', 200);
+  eq(run.deck.length, 10, 'liam starter deck 10');
+  eq(run.relics[0], 'diaper_bag', 'liam starter relic');
+  const state = C.startCombat(run, ['gopher'], makeRng(200));
+  eq(state.hero.orbs.length, 1, 'Diaper Bag floats a diaper at combat start');
+  eq(state.hero.orbs[0].type, 'stinky', 'and it is Stinky');
+}
+{
+  // stinky passive + evoke, focus scaling
+  const { state } = combatVs(['old_scarecrow'], { hero: 'liam', seed: 201 });
+  state.hero.orbs = [];
+  const e = state.enemies[0];
+  forceHand(state, ['change_it']);
+  C.playCard(state, state.hand[0]);
+  eq(state.hero.orbs.length, 1, 'Change It! channels');
+  const hp0 = e.hp;
+  state.enemies[0].intent = { name: 'x', kind: 'buff' };
+  C.endTurn(state);
+  eq(hp0 - e.hp, 3, 'stinky passive zaps 3 at end of turn');
+  e.block = 0;
+  state.hero.focus = 2;
+  forceHand(state, ['double_trouble']);
+  state.hero.energy = 3;
+  const hp1 = e.hp;
+  C.playCard(state, state.hand[0]);
+  eq(hp1 - e.hp, (8 + 2) * 2, 'Double Trouble evokes stinky twice with Giggle Power');
+  eq(state.hero.orbs.length, 0, 'orb consumed by evoke');
+}
+{
+  // fresh passive/evoke; blowout growth + weakest-target evoke; snack energy
+  const { state } = combatVs(['gopher', 'old_scarecrow'], { hero: 'liam', seed: 202 });
+  state.hero.orbs = [];
+  forceHand(state, ['sippy_cup', 'uh_oh', 'snacks']);
+  state.hero.energy = 9;
+  C.playCard(state, state.hand.find((c) => c.id === 'sippy_cup'));
+  C.playCard(state, state.hand.find((c) => c.id === 'uh_oh'));
+  C.playCard(state, state.hand.find((c) => c.id === 'snacks'));
+  eq(state.hero.orbs.length, 3, 'three diapers floating');
+  for (const e of state.enemies) e.intent = { name: 'x', kind: 'buff' };
+  const blowout = state.hero.orbs.find((o) => o.type === 'blowout');
+  C.endTurn(state);
+  eq(blowout.stored, 12, 'BLOWOUT grew from 6 to 12');
+  ok(state.hero.energy >= 4, 'snack diaper gave +1 energy at turn start');
+  // evoke order is oldest-first: fresh, then blowout
+  state.hero.block = 0;
+  C.evokeOrb(state);
+  eq(state.hero.block, 5, 'fresh evoke = 5 block');
+  const weakest = state.enemies.slice().sort((a, b) => a.hp - b.hp)[0];
+  weakest.block = 0;
+  const whp = weakest.hp;
+  C.evokeOrb(state);
+  eq(whp - weakest.hp, 12, 'BLOWOUT unleashes stored damage on the weakest enemy');
+}
+{
+  // auto-evoke when slots full; More Diapers! raises the cap
+  const { state } = combatVs(['old_scarecrow'], { hero: 'liam', seed: 203 });
+  state.hero.orbs = [];
+  C.channelOrb(state, 'fresh'); C.channelOrb(state, 'fresh'); C.channelOrb(state, 'fresh');
+  state.hero.block = 0;
+  C.channelOrb(state, 'stinky');
+  eq(state.hero.orbs.length, 3, 'capped at 3 slots');
+  eq(state.hero.block, 5, 'oldest auto-evoked (fresh: 5 block)');
+  forceHand(state, ['more_diapers']);
+  state.hero.energy = 3;
+  C.playCard(state, state.hand[0]);
+  eq(state.hero.orbSlots, 5, 'More Diapers! +2 slots');
+}
+{
+  // uppies re-channels; throw_food scales with orbs; maximum stink hits all
+  const { state } = combatVs(['gopher', 'crow'], { hero: 'liam', seed: 204 });
+  state.hero.orbs = [];
+  C.channelOrb(state, 'snack');
+  forceHand(state, ['uppies']);
+  state.hero.energy = 9;
+  C.playCard(state, state.hand[0]);
+  eq(state.hero.orbs.length, 1, 'Uppies! evoked and re-channeled');
+  eq(state.hero.orbs[0].type, 'snack', 'same diaper type');
+  C.channelOrb(state, 'fresh');
+  forceHand(state, ['throw_food']);
+  const e = state.enemies[0];
+  const hp0 = e.hp;
+  C.playCard(state, state.hand[0], e);
+  eq(hp0 - e.hp, 8, 'Throw Food: 4 × 2 floating diapers');
+  forceHand(state, ['maximum_stink']);
+  state.hero.energy = 9;
+  C.playCard(state, state.hand[0]);
+  ok(state.hero.powers.max_stink, 'MAXIMUM STINK active');
+  state.hero.orbs = [{ type: 'stinky', stored: 0 }];
+  const hpa = state.enemies[0].hp, hpb = state.enemies[1].hp;
+  for (const en of state.enemies) en.intent = { name: 'x', kind: 'defend', block: 1 };
+  C.endTurn(state);
+  ok(state.enemies[0].hp < hpa && state.enemies[1].hp < hpb, 'stinky hits ALL enemies under MAXIMUM STINK');
+}
+{
+  // birthday boy scales giggle power
+  const { state } = combatVs(['old_scarecrow'], { hero: 'liam', seed: 205 });
+  forceHand(state, ['birthday_boy']);
+  state.hero.energy = 3;
+  C.playCard(state, state.hand[0]);
+  state.enemies[0].intent = { name: 'x', kind: 'defend', block: 1 };
+  state.hand = [];
+  C.endTurn(state);
+  eq(state.hero.focus, 1, 'Birthday Boy: +1 Giggle Power at turn start');
+}
+
 // ---------- snacks ----------
 {
   const run = freshRun('aaron', 11);
@@ -588,6 +695,8 @@ for (const key of Object.keys(ENEMIES)) {
   ok(draftPool('aaron').length >= 15, 'aaron has a real card pool');
   ok(draftPool('wyatt').length >= 15, 'wyatt has a real card pool');
   ok(!draftPool('aaron').some((id) => draftPool('wyatt').includes(id)), 'hero pools are disjoint');
+  ok(draftPool('liam').length >= 15, 'liam has a real card pool');
+  ok(!draftPool('liam').some((id) => draftPool('aaron').includes(id) || draftPool('wyatt').includes(id)), 'liam pool disjoint');
 }
 
 // ---------- report ----------
