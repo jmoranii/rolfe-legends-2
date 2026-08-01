@@ -40,6 +40,20 @@ Tuned by the harness into the 35–55% band (500 runs/hero: **Aaron 49.8 · Wyat
 
 **Coach James onboarding tips** (Phase 1, ≤12 words each): "Pick your path — you can see the whole climb." · "💀 is BIG trouble… and big treasure. Your call." · "Farm Treasures work the whole run. Collect them!" · "Snacks are one-time saves — spend them when it counts." · Defeat screen: "Runs end — that's the game. You keep everything you learned. 💪"
 
+## ✍️ Anthem lyrics (Phase 4 — generated, take 1 kept; your approval pass)
+
+All four are live in the game already (first-win credits). Rewrites = regenerate that anthem + re-pull its `.lrc`; the credits re-time themselves automatically.
+
+**Wyatt the Speedy** (pop-punk country): *Out in Rolfe when the morning glows / Trouble came where the tall corn grows / Wyatt laced up, gave the ball a spin / Fastest feet that have ever been // Mom packed sandwiches, Dad sold gear / Poppa Flaj drove the tractor here / Granny Rockie baked him strong / Rusty brought him treasure all along //* **WYATT! Speedy as the wind / Nutmeg the storm and score again / WYATT! Racing through the rain / The Big Twister couldn't catch him / And it's never coming back again!** */ Uncle Brody yelled REAL TALK, go go go / Aunt Chelsea warmed him head to toe / Coach James said kid, just trust your feet / The ducks all quacked the victory beat / … Even Goldie nodded — once // The farm is safe, the fields are green / Fastest legend Rolfe has ever seen / WYATT!*
+
+**Aaron the Strong** (stomp rock): *Storm rolled in with a hungry sound / Aaron the Strong stood his ground / Eight years old with a hay-wagon swing / The Lil Tornado does his thing // FLEX! The raccoons ran away / Shoved the Mud King into yesterday / Granny's cookies made him stout / A big breakfast never wears out //* **AARON! Strong as an oak / TORNADO FORM — the twister broke! / AARON! Hear the Lil Tornado roar / The storm knocked once — he slammed the door!** */ Dad fixed fences, Mom stood proud / Poppa Flaj cheered extra loud / Coach James grinned, that's my guy / Rusty howled at the clearing sky // The barn still stands, the fields are gold / The strongest story ever told / AARON!*
+
+**Liam the Little** (silly ukulele-tuba): *Who's that waddling through the corn? / Littlest hero ever born / Two and a half feet, hear him giggle / Diapers floating in a magic wiggle //* **LIAM! LIAM THE LITTLE! / Stinky, Fresh, and Snack Time too / When trouble came he yelled UH-OH / And THE BLOWOUT went KA-BOOM!** */ Goldie kept his secret well / Only the tall grass ever could tell / Granny Rockie squeezed his cheeks / Rusty followed him for weeks // The Big Twister sniffed one time / Turned right around and quit the crime / The tiniest legend saved the day / LIAM! Hooray!*
+
+**Legends of Rolfe** (both-brothers finale): *Two brothers on one farm road / Carried home the heavy load / Wyatt quick and Aaron strong / The whole family sang along //* **LEGENDS OF ROLFE! The storm is done / WYATT AND AARON — the farm is won! / Mom and Dad and Granny too / Poppa Flaj and the whole duck crew** */ Brody hollered, Chelsea cheered / Coach James wiped away a tear / Rusty barked and Goldie knew / And even the tall grass giggled too // … Brothers forever, side by side / Defenders of the countryside / LEGENDS OF ROLFE!*
+
+⚖️ Notes: "even the tall grass giggled too" in the finale is a deliberate no-name nod to Liam (zero-hint rule — the finale can play pre-unlock). · Anthem pronunciations unheard by me — if Suno mangles a name, the `REMAP` table in js/credits.js fixes the caption display without regenerating.
+
 ## 🎨 Art calls to eyeball (Phase 3, running)
 
 - Style anchor: RL1 Storybook Gouache block verbatim; test gopher approved the lane (assets/enemies/gopher.png).

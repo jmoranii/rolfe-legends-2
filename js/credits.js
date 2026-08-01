@@ -114,17 +114,21 @@ export function parseLrc(text) {
 }
 
 // derive portrait beats from the timed words
-function deriveBeats(lines, heroId) {
+export function deriveBeats(lines, heroId) {
   const beats = [];
   const lastShown = new Map();
   let lastBeat = -3;
-  const heroes = heroId === 'both' ? [HERO_SCENES.wyatt, HERO_SCENES.aaron] : [HERO_SCENES[heroId]];
+  // the both-finale shows the brothers TOGETHER — either name summons the duo
+  // (separately they'd fall inside each other's cooldown: "Wyatt quick and Aaron strong")
+  const heroes = heroId === 'both'
+    ? [{ re: /^(wyatt|aaron)/i, kind: 'duo', name: 'WYATT & AARON', title: 'The Legends of Rolfe' }]
+    : [HERO_SCENES[heroId]];
   for (const line of lines) {
     for (const { w, t } of line.words) {
       const word = w.replace(/[^a-zA-Z]/g, '');
       if (!word) continue;
       let scene = null;
-      for (const h of heroes) if (h && h.re.test(word)) scene = { kind: 'hero', ...h };
+      for (const h of heroes) if (h && h.re.test(word)) scene = { kind: h.kind || 'hero', ...h };
       if (!scene) {
         for (const c of CAST) if (c.re.test(word)) { scene = { kind: 'cast', ...c }; break; }
       }
@@ -204,10 +208,17 @@ export function creditsRoll(heroId, deps, onDone) {
   }
 
   function sceneSlide(scene) {
-    setBg(scene.kind === 'hero' ? 'assets/ui/title.png' : `assets/backgrounds/battle1.png`);
+    setBg(scene.kind === 'cast' ? 'assets/backgrounds/battle1.png' : 'assets/ui/title.png');
     showSlide((s) => {
-      if (scene.kind === 'hero') s.append(el('div', 'credits-crown small', '👑'));
-      s.append(artImg(scene.art, scene.emoji, `credits-portrait${scene.kind === 'hero' ? ' hero' : ''} in-pop`));
+      if (scene.kind !== 'cast') s.append(el('div', 'credits-crown small', '👑'));
+      if (scene.kind === 'duo') {
+        const row = el('div', 'credits-duo');
+        row.append(artImg(HERO_SCENES.wyatt.art, HERO_SCENES.wyatt.emoji, 'credits-portrait hero in-pop'));
+        row.append(artImg(HERO_SCENES.aaron.art, HERO_SCENES.aaron.emoji, 'credits-portrait hero in-pop'));
+        s.append(row);
+      } else {
+        s.append(artImg(scene.art, scene.emoji, `credits-portrait${scene.kind === 'hero' ? ' hero' : ''} in-pop`));
+      }
       const card = el('div', 'credits-titlecard');
       card.append(el('div', 'cn', scene.name), el('div', 'ct', scene.title));
       s.append(card);
