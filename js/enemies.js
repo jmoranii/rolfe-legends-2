@@ -190,9 +190,9 @@ export const ENEMIES = {
   },
   snapping_turtle: { // sts: Shelled Parasite — plated armor
     name: 'Snapping Turtle', emoji: '🐢', hp: [58, 62],
-    init(self) { self.block_persist = true; self.block = 8; },
+    init(self) { self.block_persist = true; self.block = 6; },
     nextMove(self, state, rng) {
-      self.block += 4; // plating regrows
+      self.block += 3; // plating regrows
       return rng.chance(0.5) ? A('Double Snap', 5, 2) : A('Lunge', 9);
     },
   },
@@ -375,7 +375,7 @@ export const ENEMIES = {
       if (self.state.phase === 1) {
         self.state.phase = 2; self.deathHandled = false;
         self.maxHp = 240; self.hp = 240; self.block = 0;
-        self.name = 'THE BIG TWISTER — REFORMED'; self.emoji = '🌪️';
+        self.name = 'THE BIG TWISTER — REFORMED'; self.emoji = '🌪️'; self.artKey = 'big_twister_p2';
         self.strength = (self.strength || 0) + 2;
         self.state.i = 0;
         self.intent = { name: 'IT RE-FORMS…', kind: 'buff' };

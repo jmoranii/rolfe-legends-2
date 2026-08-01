@@ -235,7 +235,7 @@ export function spawnEnemy(state, key, opts = {}) {
   const def = ENEMIES[key];
   if (!def) throw new Error(`unknown enemy: ${key}`);
   const e = {
-    key, name: def.name, emoji: def.emoji,
+    key, name: def.name, emoji: def.emoji, artKey: key,
     maxHp: opts.hp ?? state.rng.range(def.hp[0], def.hp[1]),
     block: 0, strength: 0, weak: 0, vulnerable: 0, frail: 0, poison: 0,
     thorns: 0, intangible: false, gone: false, fled: false, stolen: 0,
@@ -268,6 +268,7 @@ export function startCombat(run, enemyKeys, rng, { kind = 'fight' } = {}) {
     attacksThisTurn: 0, skillsThisTurn: 0, cardsThisTurn: 0,
     pendingDiscard: 0, costOverride: {}, flags: {},
     goldRecovered: 0, log: [],
+    phase: 'hero', queue: [],
   };
   for (const k of enemyKeys) spawnEnemy(state, k);
   // deck in: shuffle; innate cards surface at top
@@ -481,8 +482,13 @@ export function useSnack(state, idx) {
 
 // ---------- enemy phase ----------
 
-export function endTurn(state) {
-  if (state.over || state.pendingDiscard > 0) return;
+// The enemy phase is steppable so the UI can act enemies one at a time with
+// animation between steps. beginEnemyPhase → stepEnemyAction×N (returns the
+// enemy that visibly acted, or null once the phase completes and the next hero
+// turn has begun). endTurn() runs the whole thing synchronously (tests/selfplay).
+
+export function beginEnemyPhase(state) {
+  if (state.over || state.pendingDiscard > 0 || state.phase === 'enemy') return false;
   const h = state.hero;
   // Hailstones in hand burn
   for (const c of [...state.hand]) {
@@ -496,11 +502,16 @@ export function endTurn(state) {
   // discard hand
   state.discard.push(...state.hand);
   state.hand = [];
-  if (state.over) return;
+  state.phase = 'enemy';
+  state.queue = [...state.enemies]; // snapshot: summons join NEXT turn
+  if (state.over) { state.phase = 'hero'; state.queue = []; }
+  return true;
+}
 
-  // enemies act
-  for (const e of [...state.enemies]) {
+export function stepEnemyAction(state) {
+  while (state.phase === 'enemy' && state.queue.length) {
     if (state.over) break;
+    const e = state.queue.shift();
     if (e.gone || e.fled) continue;
     if (e.hp <= 0) {
       // pending revive (Ball Lightning)
@@ -509,6 +520,7 @@ export function endTurn(state) {
         if (e.state.reviveIn <= 0 && livingEnemies(state).length > 0) {
           e.hp = Math.floor(e.maxHp / 2); e.deathHandled = false; e.state.reviveIn = null;
           setIntent(state, e);
+          return e; // visible: it crackles back to life
         }
       }
       continue;
@@ -519,9 +531,19 @@ export function endTurn(state) {
     executeIntent(state, e);
     tickDebuffs(e);
     if (!state.over && e.hp > 0 && !e.fled && !e.gone) setIntent(state, e);
+    return e;
   }
+  // queue exhausted (or combat ended) → close the phase
+  state.phase = 'hero';
+  state.queue = [];
   checkCombatEnd(state);
   if (!state.over) startHeroTurn(state);
+  return null;
+}
+
+export function endTurn(state) {
+  if (!beginEnemyPhase(state)) return;
+  while (state.phase === 'enemy') stepEnemyAction(state);
 }
 
 function executeIntent(state, e) {

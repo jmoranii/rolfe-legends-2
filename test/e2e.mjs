@@ -18,7 +18,7 @@ function ok(cond, msg) { results.push([cond, msg]); if (!cond) console.log('  �
 
 async function runSuite(browserType, name) {
   console.log('launching', name); const browser = await browserType.launch({ timeout: 30000 }); console.log('launched', name);
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e)));
   page.on('console', (m) => { if (m.type() === 'error' && !m.text().includes('Failed to load resource')) errors.push(m.text()); }); // 404s for not-yet-added music/art are by-design (drop-in layers)
@@ -36,12 +36,15 @@ async function runSuite(browserType, name) {
   ok((await page.textContent('h2')).includes('Coach'), `${name}: coach boon screen`);
   await page.locator('.btn').first().click();
 
-  // map
+  // map: a real node graph — many spots, drawn edges, reachable starts pulsing
   await page.waitForSelector('.map-node');
-  ok(await page.locator('.map-node').count() >= 1, `${name}: map offers stops`);
+  ok(await page.locator('.map-spot').count() >= 12, `${name}: map draws the act's node graph`);
+  ok(await page.locator('.map-edges .edge').count() >= 10, `${name}: map draws edges`);
+  ok(await page.locator('.map-node.reachable').count() >= 2, `${name}: multiple starting paths`);
+  ok(await page.locator('.spot-boss-big').count() === 1, `${name}: boss crowns the map`);
   ok((await page.textContent('h2')).includes('Far Fields'), `${name}: act 1 header`);
 
-  // enter first node (floor 1 = fight)
+  // enter a reachable node (floor 1 = fight)
   await page.locator('.map-node').first().click();
   await page.waitForSelector('.enemy');
   ok(await page.locator('.enemy').count() >= 1, `${name}: combat renders enemies`);
@@ -49,7 +52,8 @@ async function runSuite(browserType, name) {
   ok(await page.locator('.energy-orb').count() === 1, `${name}: energy orb`);
   ok(await page.locator('.intent').count() >= 1, `${name}: enemy intent telegraphed`);
 
-  // play the whole fight via UI clicks (up to 30 turns)
+  // play the whole fight via UI clicks (up to 30 turns); enemy turns are
+  // sequenced with animation, so wait for END TURN to re-enable between turns
   let won = false;
   for (let turn = 0; turn < 30 && !won; turn++) {
     // play affordable cards while any
@@ -66,8 +70,15 @@ async function runSuite(browserType, name) {
       if (await page.locator('.endturn').count() === 0) break; // fight over
     }
     if (await page.locator('.endturn').count() === 0) break;
-    await page.locator('.endturn').click();
-    await page.waitForTimeout(80);
+    const endB = page.locator('.endturn:not([disabled])');
+    if (await endB.count() === 0) break;
+    await endB.click();
+    // let the sequenced enemy phase play out (reduced-motion beat is fast)
+    for (let w = 0; w < 40; w++) {
+      await page.waitForTimeout(60);
+      if (await page.locator('.endturn:not([disabled])').count() > 0) break;
+      if (await page.locator('.endturn').count() === 0) break;
+    }
     const h2 = await page.locator('h2').first().textContent().catch(() => '');
     if (h2 && (h2.includes('You did it') || h2.includes('rest up'))) break;
   }
@@ -82,6 +93,7 @@ async function runSuite(browserType, name) {
     await page.waitForSelector('.map-node');
     ok(await page.locator('.map-node').count() >= 1, `${name}: back on map after reward`);
     ok((await page.textContent('.floor-meter')).includes('Floor 1'), `${name}: floor advanced`);
+    ok(await page.locator('.map-spot.current').count() === 1, `${name}: player trail marked on map`);
     // save persistence: reload → continue
     await page.reload({ waitUntil: 'load' });
     ok(await page.locator('.btn', { hasText: 'Continue' }).count() === 1, `${name}: save persists across reload`);
@@ -105,14 +117,15 @@ async function deepRun() {
   const out = await page.evaluate(async () => {
     const { R, C } = window.__RL2;
     const { makeRng } = await import('./js/rng.js');
-    const { makeCard, cardInfo } = await import('./js/cards.js');
     // simulate a full run headless-in-page (same engine the UI uses)
     const run = R.newRun('aaron', 12345);
     let fights = 0;
     for (let act = 1; act <= 3; act++) {
-      while (run.floor < R.FLOORS_PER_ACT) {
-        const opts = R.floorOptions(run);
-        const node = R.chooseFloor(run, opts[0]);
+      let bossDone = false;
+      let guard0 = 60;
+      while (!bossDone && guard0-- > 0) {
+        const opts = R.nextNodes(run);
+        const node = R.enterMapNode(run, opts[0].id);
         if (['fight', 'elite', 'boss'].includes(node.type)) {
           const st = C.startCombat(run, node.enemies, makeRng(run.floor * 7 + act), { kind: node.type });
           let guard = 0;
@@ -125,8 +138,7 @@ async function deepRun() {
           }
           fights++;
           run.hp = 500; run.maxHp = 500;
-        } else if (node.type === 'event') {
-          // exercised via unit tests; skip here
+          if (node.type === 'boss') bossDone = true;
         }
       }
       if (act < 3) R.advanceAct(run);
@@ -144,7 +156,7 @@ async function deepRun() {
 async function liamUnlock() {
   const name = 'liam';
   const browser = await chromium.launch();
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e)));
   await page.goto(BASE, { waitUntil: 'load' });

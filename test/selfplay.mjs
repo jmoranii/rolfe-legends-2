@@ -139,10 +139,10 @@ function simulateRun(heroId, seed) {
   // coach boon
   const boons = R.coachBoons(run, rng);
   (boons.find((b) => b.id === 'maxhp' || b.id === 'relic') || boons[0]).apply(run, rng);
-  const death = { act: 0, floor: 0, by: null };
-  while (true) {
-    const opts = R.floorOptions(run);
-    // path policy
+  let guard = 200;
+  while (guard-- > 0) {
+    const opts = R.nextNodes(run);
+    // path policy over the reachable map nodes
     let pick = opts[0];
     const hpFrac = run.hp / run.maxHp;
     const prefer = (t) => opts.find((o) => o.type === t);
@@ -152,7 +152,7 @@ function simulateRun(heroId, seed) {
     else if (hpFrac > 0.75 && run.deck.length >= 13 && prefer('elite')) pick = prefer('elite');
     else if (prefer('event')) pick = prefer('event');
     else if (prefer('fight')) pick = prefer('fight');
-    const node = R.chooseFloor(run, pick);
+    const node = R.enterMapNode(run, pick.id);
     if (node.type === 'fight' || node.type === 'elite' || node.type === 'boss') {
       const state = runCombat(run, node.enemies, makeRng(seed ^ (run.act * 1000 + run.floor)), node.type);
       if (!state.won || state.hero.hp <= 0) {
@@ -191,8 +191,8 @@ function simulateRun(heroId, seed) {
     } else if (node.type === 'treasure') {
       if (node.relic) R.onRelicGained(run, node.relic);
     }
-    if (run.floor >= R.FLOORS_PER_ACT && run.act >= R.ACTS) return { won: true, act: 3, floor: run.floor };
   }
+  return { won: false, act: run.act, floor: run.floor, by: 'guard_exhausted', stall: true };
 }
 
 // ---------- sweep ----------

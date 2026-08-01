@@ -1,10 +1,12 @@
 // Rolfe Legends 2 — run layer (pure, no DOM): run creation, Coach James's boon,
-// act maps (floor-by-floor choices), encounters, rewards, shop, rest, treasure, save.
+// act maps (StS node graphs — js/map.js), encounters, rewards, shop, rest,
+// treasure, save.
 
 import { HEROES, CARDS, makeCard, draftPool, RARITY_WEIGHTS } from './cards.js';
 import { RELICS, relicPool } from './relics.js';
 import { EVENTS, EVENT_KEYS } from './events.js';
 import { makeRng } from './rng.js';
+import { generateActMap, reachableIds, BOSS_ID } from './map.js';
 
 export const FLOORS_PER_ACT = 12;
 export const ACTS = 3;
@@ -41,7 +43,7 @@ export const ENCOUNTERS = {
 export function newRun(heroId, seed) {
   const hero = HEROES[heroId];
   const run = {
-    v: 1, seed, rngCalls: 0,
+    v: 2, seed, rngCalls: 0,
     hero: heroId, hp: hero.hp, maxHp: hero.hp,
     gold: 99,
     deck: hero.starter.map((id) => makeCard(id)),
@@ -49,16 +51,13 @@ export function newRun(heroId, seed) {
     snacks: [], snackSlots: 1,
     counters: {}, // cross-fight counters (slingshot, sunflower resets per fight in combat state? sunflower is per-fight in StS; keep per-fight by clearing at combat start)
     act: 1, floor: 0,
+    map: generateActMap(seed, 1),
+    pos: null, trail: [],
     skipNextFloor: false,
     pendingRemove: false,
-    quotas: actQuotas(),
     stats: { fights: 0, elites: 0, damageTaken: 0 },
   };
   return run;
-}
-
-function actQuotas() {
-  return { shop: 1, treasure: 1, rest: 1, elite: 2, event: 3 };
 }
 
 export function runRng(run) {
@@ -81,38 +80,27 @@ export function coachBoons(run, rng) {
 }
 const SNACK_IDS = { lemonade: 1, juice_box: 1, jerky: 1, trail_mix: 1, band_aid: 1 };
 
-// ---------- floor options (the map) ----------
+// ---------- the map (StS node graph; generation in js/map.js) ----------
 
-// Each floor the player picks 1 of 2–3 stops. Quotas keep acts StS-shaped:
-// 1 shop, 1 treasure, 1 mid rest, ≤2 elites, ~3 events per act; floor 11 rest; 12 boss.
-export function floorOptions(run) {
-  const rng = runRng(run);
-  const f = run.floor + 1; // the floor being offered
-  if (f >= FLOORS_PER_ACT) return [{ type: 'boss' }];
-  if (f === FLOORS_PER_ACT - 1) return [{ type: 'rest' }];
-  if (f === 1) return [{ type: 'fight' }];
-  const q = run.quotas;
-  const opts = new Set(['fight']);
-  const candidates = [];
-  if (q.elite > 0 && f >= 4) candidates.push('elite');
-  if (q.shop > 0 && f >= 3) candidates.push('shop');
-  if (q.treasure > 0 && f >= 3) candidates.push('treasure');
-  if (q.rest > 0 && f >= 5) candidates.push('rest');
-  if (q.event > 0) candidates.push('event');
-  for (const c of rng.shuffle(candidates).slice(0, 2)) opts.add(c);
-  return [...opts].map((type) => ({ type }));
+// Node ids the player may step to next (floor-1 row at act start, else the
+// current node's outgoing edges).
+export function nextNodes(run) {
+  return reachableIds(run.map, run.pos).map((id) => ({ id, ...run.map.nodes[id] }));
 }
 
-export function chooseFloor(run, opt) {
-  run.floor += 1;
-  const q = run.quotas;
-  if (q[opt.type] != null) q[opt.type] = Math.max(0, q[opt.type] - 1);
-  if (run.skipNextFloor && opt.type !== 'boss') {
+// Step onto a map node and resolve what happens there.
+export function enterMapNode(run, id) {
+  if (!reachableIds(run.map, run.pos).includes(id)) return null;
+  const node = run.map.nodes[id];
+  run.pos = id;
+  run.trail.push(id);
+  run.floor = node.f;
+  if (run.skipNextFloor && node.type !== 'boss') {
     // Poppa Flaj's tractor: this floor resolves as a free pass
     run.skipNextFloor = false;
     return { type: 'skipped' };
   }
-  return resolveNode(run, opt.type);
+  return resolveNode(run, node.type);
 }
 
 function resolveNode(run, type) {
@@ -192,7 +180,7 @@ export function applyCombatResult(run, combatState) {
   let lost = 0;
   for (const e of combatState.enemies) if (e.fled && e.stolen) lost += e.stolen;
   run.gold = Math.max(0, run.gold - lost);
-  if (run.relics.includes('big_breakfast')) run.hp = Math.min(run.maxHp, run.hp + 6);
+  if (run.relics.includes('big_breakfast')) run.hp = Math.min(run.maxHp, run.hp + 8);
   run.stats.fights += 1;
   return { goldLost: lost };
 }
@@ -267,11 +255,13 @@ export function advanceAct(run) {
   if (run.act >= ACTS) return false;
   run.act += 1;
   run.floor = 0;
-  run.quotas = actQuotas();
+  run.map = generateActMap(run.seed, run.act);
+  run.pos = null;
+  run.trail = [];
   run.seenEvents = [];
-  // "Catch your breath" — heal 25% between acts. Kid-kindness deviation from StS
+  // "Catch your breath" — heal 33% between acts. Kid-kindness deviation from StS
   // (documented in DESIGN.md); the harness validates overall difficulty with it.
-  run.hp = Math.min(run.maxHp, run.hp + Math.floor(run.maxHp * 0.25));
+  run.hp = Math.min(run.maxHp, run.hp + Math.floor(run.maxHp * 0.33));
   return true;
 }
 
@@ -283,8 +273,9 @@ export function serializeRun(run) {
 export function deserializeRun(json) {
   try {
     const run = JSON.parse(json);
-    if (!run || run.v !== 1 || !HEROES[run.hero]) return null;
+    if (!run || run.v !== 2 || !HEROES[run.hero]) return null;
     if (!Array.isArray(run.deck) || !run.deck.every((c) => CARDS[c.id])) return null;
+    if (!run.map || !run.map.nodes || !run.map.nodes[BOSS_ID]) return null;
     return run;
   } catch { return null; }
 }

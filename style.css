@@ -1,5 +1,6 @@
-/* Rolfe Legends 2: Defend the Farm — mobile-first, big tap targets, emoji-forward.
-   Acts theme the world: act-1 morning fields, act-2 dusk barnyard, act-3 storm night. */
+/* Rolfe Legends 2: Defend the Farm — mobile-first, big tap targets, art-forward
+   with emoji fallback. Acts theme the world: act-1 morning fields, act-2 dusk
+   barnyard, act-3 storm night. */
 
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; }
@@ -10,15 +11,24 @@ body {
 }
 #app { height: 100%; display: flex; flex-direction: column; }
 
-.screen { flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)); }
+.screen { flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)); position: relative; }
 .screen.act-1 { background: linear-gradient(#7ec8e3 0%, #f9d976 55%, #90b65b 100%); color: #2a2a18; }
 .screen.act-2 { background: linear-gradient(#3b2d55 0%, #c96f4a 60%, #7a4a2b 100%); color: #fdf3e3; }
 .screen.act-3 { background: linear-gradient(#0d1220 0%, #232c4a 60%, #2f3a34 100%); color: #e8ecf7; }
 .screen.plain { background: linear-gradient(#20304a, #1a2436); }
 
-h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); }
+.screen-enter { animation: screenin .32s ease; }
+@keyframes screenin { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); letter-spacing: .02em; }
 .title-logo { font-size: 2rem; margin: 18px 0 4px; }
 .subtitle { text-align: center; opacity: .85; margin-bottom: 18px; }
+
+/* drop-in art slots: <img> when the PNG exists, emoji text when it doesn't */
+.art-slot { display: inline-flex; align-items: center; justify-content: center; }
+.art-slot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.scene-art { display: flex; width: 132px; height: 132px; margin: 10px auto 2px; border-radius: 18px; overflow: hidden; border: 3px solid rgba(255,255,255,.5); box-shadow: 0 4px 14px rgba(0,0,0,.3); font-size: 3.4rem; background: rgba(0,0,0,.15); }
+.scene-art.art-emoji { border: none; box-shadow: none; background: none; }
 
 .btn {
   display: block; width: 100%; max-width: 420px; margin: 8px auto; padding: 14px 16px;
@@ -31,26 +41,49 @@ h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); }
 .btn.danger { background: #a33327; }
 .btn:disabled { opacity: .45; pointer-events: none; }
 
+/* ---------- title ---------- */
+.title-screen { justify-content: flex-start; }
+.title-art { position: absolute; inset: 0; background-size: cover; background-position: center bottom; opacity: 0; transition: opacity .6s ease; z-index: 0; }
+.title-art.has-art { opacity: 1; }
+.title-inner { position: relative; z-index: 1; display: flex; flex-direction: column; flex: 1; }
+.title-art.has-art ~ .title-inner .title-logo,
+.title-inner .title-logo { text-shadow: 0 2px 4px rgba(0,0,0,.45), 0 6px 18px rgba(0,0,0,.3); }
+.title-buttons { margin-top: auto; padding-bottom: 46px; }
+.title-screen .title-sub { text-shadow: 0 1px 3px rgba(0,0,0,.4); }
+.goldie-egg { position: fixed; bottom: 10px; right: 12px; font-size: 1.7rem; opacity: .55; cursor: pointer; z-index: 2; }
+.goldie-egg.on-art { font-size: 1rem; opacity: 0.001; width: 96px; height: 130px; display: block; } /* invisible hotspot over the painted llama */
+
 .hero-pick { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 12px 0; }
 .hero-card {
   flex: 1 1 150px; max-width: 210px; background: rgba(255,255,255,.12); border: 3px solid rgba(255,255,255,.35);
-  border-radius: 18px; padding: 18px 10px; text-align: center; cursor: pointer;
+  border-radius: 18px; padding: 14px 10px; text-align: center; cursor: pointer;
 }
-.hero-card .big { font-size: 3rem; }
+.hero-card .hero-face { display: flex; width: 96px; height: 96px; margin: 0 auto; border-radius: 50%; overflow: hidden; font-size: 3rem; border: 3px solid rgba(255,255,255,.5); background: rgba(0,0,0,.12); }
+.hero-card .hero-face.art-emoji { border: none; background: none; }
 .hero-card h3 { margin: 6px 0 4px; }
 .hero-card p { font-size: .82rem; opacity: .85; }
 
 /* ---------- combat ---------- */
-.combat { display: flex; flex-direction: column; height: 100%; gap: 6px; }
-.enemy-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; padding: 6px 0 2px; }
+.combat { display: flex; flex-direction: column; height: 100%; padding: 0; overflow: hidden; }
+.battle-bg { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity .5s; z-index: 0; }
+.battle-bg.has-art { opacity: .5; }
+.combat-inner { position: relative; z-index: 1; display: flex; flex-direction: column; height: 100%; gap: 6px; padding: max(10px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom)); }
+
+.enemy-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; padding: 6px 0 2px; flex: 1; align-items: center; align-content: center; min-height: 0; }
 .enemy {
   background: rgba(0,0,0,.28); border: 2px solid rgba(255,255,255,.25); border-radius: 14px;
-  padding: 8px 10px; min-width: 96px; max-width: 132px; text-align: center; cursor: pointer; position: relative;
+  padding: 8px 10px; min-width: 96px; max-width: 138px; text-align: center; cursor: pointer; position: relative;
 }
-.enemy.targetable { border-color: #ffd23f; box-shadow: 0 0 12px #ffd23f88; }
+.enemy.targetable { border-color: #ffd23f; box-shadow: 0 0 12px #ffd23f88; animation: targetpulse 1s infinite; }
+@keyframes targetpulse { 50% { box-shadow: 0 0 20px #ffd23fcc; } }
 .enemy.dead { opacity: .25; pointer-events: none; }
-.enemy .face { font-size: 2.1rem; }
-.enemy .nm { font-size: .72rem; font-weight: 700; line-height: 1.1; }
+.enemy.dying { animation: die .5s ease forwards; }
+@keyframes die { to { opacity: .25; transform: scale(.85) rotate(4deg); filter: grayscale(1); } }
+.enemy .face { display: flex; width: 74px; height: 74px; margin: 0 auto; border-radius: 12px; overflow: hidden; font-size: 2.1rem; }
+.enemy .face.art-emoji { overflow: visible; }
+.enemy.boss-foe { max-width: 190px; }
+.enemy.boss-foe .face { width: 118px; height: 118px; font-size: 3rem; }
+.enemy .nm { font-size: .72rem; font-weight: 700; line-height: 1.1; margin-top: 2px; }
 .intent { font-size: .8rem; font-weight: 800; background: rgba(0,0,0,.45); border-radius: 8px; padding: 2px 6px; margin-top: 4px; display: inline-block; }
 .intent.attack { color: #ff8b7a; }
 .intent.defend { color: #8fd0ff; }
@@ -59,16 +92,17 @@ h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); }
 .intent.sleep, .intent.flee, .intent.countdown, .intent.summon { color: #cfd8dc; }
 
 .hpbar { height: 8px; background: rgba(0,0,0,.5); border-radius: 5px; margin-top: 5px; overflow: hidden; }
-.hpbar > div { height: 100%; background: #e4574a; border-radius: 5px; }
+.hpbar > div { height: 100%; background: #e4574a; border-radius: 5px; transition: width .35s ease; }
 .hpnum { font-size: .72rem; font-weight: 700; }
 .chips { display: flex; gap: 3px; flex-wrap: wrap; justify-content: center; margin-top: 3px; min-height: 14px; }
 .chip { font-size: .66rem; background: rgba(0,0,0,.4); color: #fff; border-radius: 6px; padding: 1px 5px; font-weight: 700; }
 
 .hero-strip {
   display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,.35);
-  border-radius: 14px; padding: 8px 12px; color: #fff;
+  border-radius: 14px; padding: 8px 12px; color: #fff; position: relative;
 }
 .hero-strip .face { font-size: 2rem; }
+.hero-strip .hero-face-combat { display: flex; width: 54px; height: 54px; border-radius: 50%; overflow: hidden; flex-shrink: 0; }
 .hero-strip .stats { flex: 1; }
 .energy-orb {
   font-size: 1.05rem; font-weight: 900; background: #b8860b; border-radius: 50%;
@@ -76,17 +110,40 @@ h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); }
   border: 3px solid #ffd23f; line-height: 1;
 }
 .energy-orb small { font-size: .55rem; font-weight: 700; }
+.energy-orb.pulse { animation: orbpulse .45s ease; }
+@keyframes orbpulse { 30% { transform: scale(1.25); box-shadow: 0 0 16px #ffd23f; } }
 
-.hand { display: flex; gap: 6px; overflow-x: auto; padding: 8px 2px 4px; min-height: 148px; align-items: flex-end; }
+/* damage / heal / block floaties */
+.floaty {
+  position: absolute; top: 8%; font-size: 1.25rem; font-weight: 900; pointer-events: none; z-index: 30;
+  text-shadow: 0 2px 4px rgba(0,0,0,.5); animation: floatup .85s ease-out forwards;
+}
+.floaty.dmg { color: #ff6b5a; }
+.floaty.heal { color: #7ae87a; }
+.floaty.blk { color: #8fd0ff; font-size: 1rem; }
+@keyframes floatup { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-42px); } }
+
+.shake { animation: shake .35s; }
+@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+.lunge { animation: lunge .4s ease; }
+@keyframes lunge { 35% { transform: translateY(14px) scale(1.1); } }
+
+/* ---------- hand (fanned) ---------- */
+.hand { display: flex; gap: 6px; overflow-x: auto; overflow-y: visible; padding: 16px 2px 10px; min-height: 152px; align-items: flex-end; }
+.hand > .card:first-child { margin-left: auto; }
+.hand > .card:last-child { margin-right: auto; } /* centers small hands, scrolls big ones */
 .card {
   flex: 0 0 104px; background: #fdf6e3; color: #333; border-radius: 12px; border: 3px solid #b9a97c;
-  padding: 6px; text-align: center; cursor: pointer; position: relative; transition: transform .12s;
+  padding: 6px; text-align: center; cursor: pointer; position: relative;
+  transition: transform .15s ease, box-shadow .15s ease;
+  transform: rotate(var(--fan-rot, 0deg)) translateY(var(--fan-y, 0px));
 }
-.card.selected { transform: translateY(-14px) scale(1.06); border-color: #ffd23f; box-shadow: 0 0 14px #ffd23f99; }
+.card:hover, .card:focus-visible { transform: rotate(0deg) translateY(-16px) scale(1.08); z-index: 5; box-shadow: 0 8px 18px rgba(0,0,0,.35); }
+.card.selected { transform: rotate(0deg) translateY(-16px) scale(1.08); border-color: #ffd23f; box-shadow: 0 0 14px #ffd23f99; z-index: 6; }
 .card.unaffordable { filter: grayscale(.7); opacity: .6; }
 .card .cost {
   position: absolute; top: -8px; left: -8px; background: #b8860b; color: #fff; border: 2px solid #ffd23f;
-  border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: .9rem;
+  border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: .9rem; z-index: 2;
 }
 .card .art { font-size: 1.7rem; }
 .card .cnm { font-weight: 800; font-size: .72rem; line-height: 1.05; }
@@ -96,20 +153,66 @@ h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); }
 .card.type-power { background: #f3e5ff; }
 .card.type-status, .card.type-curse { background: #d8d8d8; }
 .card.upgraded .cnm { color: #1c7a2e; }
+/* rarity framing */
+.card.rarity-common { border-color: #b9a97c; }
+.card.rarity-uncommon { border-color: #6fa8dc; box-shadow: 0 0 6px #6fa8dc44; }
+.card.rarity-rare { border-color: #e0a93e; box-shadow: 0 0 10px #e0a93e66; }
+.reward-card.rarity-uncommon { border-color: #6fa8dc; box-shadow: 0 0 8px #6fa8dc55; }
+.reward-card.rarity-rare { border-color: #e0a93e; box-shadow: 0 0 12px #e0a93e77; }
+
+/* played-card fly-away ghost */
+.card-ghost { position: fixed; z-index: 80; pointer-events: none; transition: transform .42s ease-in, opacity .42s ease-in; background: #fdf6e3; color: #333; border-radius: 12px; border: 3px solid #ffd23f; padding: 6px; text-align: center; }
+.card-ghost.fly { transform: translateY(-46vh) scale(.55) rotate(6deg); opacity: 0; }
+
+.target-hint { text-align: center; font-weight: 900; color: #ffd23f; text-shadow: 0 1px 3px rgba(0,0,0,.6); animation: hintbob .8s infinite; }
+@keyframes hintbob { 50% { transform: translateY(-4px); } }
 
 .combat-bottom { display: flex; gap: 8px; align-items: center; }
 .pilebtn { background: rgba(0,0,0,.35); color: #fff; border: none; border-radius: 10px; padding: 8px 10px; font-size: .8rem; font-weight: 700; cursor: pointer; }
 .endturn { flex: 1; background: #2e6b34; color: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 1.05rem; font-weight: 900; cursor: pointer; box-shadow: 0 3px 0 rgba(0,0,0,.3); }
+.endturn:disabled { background: #55575e; opacity: .8; }
 .snackbar { display: flex; gap: 6px; }
 .snack { background: rgba(0,0,0,.35); border: 2px solid #ffd23f88; border-radius: 10px; padding: 6px 8px; font-size: 1.2rem; cursor: pointer; }
 
-/* ---------- map ---------- */
-.map-node { display: flex; align-items: center; gap: 14px; background: rgba(0,0,0,.25); border: 3px solid rgba(255,255,255,.3); border-radius: 16px; padding: 14px; margin: 8px auto; width: 100%; max-width: 420px; cursor: pointer; }
-.map-node .ico { font-size: 2rem; }
-.map-node h3 { font-size: 1rem; }
-.map-node p { font-size: .78rem; opacity: .8; }
-.floor-meter { text-align: center; font-size: .85rem; opacity: .9; margin: 6px 0; font-weight: 700; }
+/* ---------- the map (StS node graph) ---------- */
+.map-screen { padding: 0; overflow: hidden; }
+.map-topbar { position: relative; z-index: 3; padding: max(10px, env(safe-area-inset-top)) 12px 8px; background: rgba(0,0,0,.22); backdrop-filter: blur(3px); }
+.map-title { font-size: 1.15rem; }
+.floor-meter { text-align: center; font-size: .85rem; opacity: .95; margin: 4px 0; font-weight: 700; }
+.relic-shelf { display: flex; gap: 5px; flex-wrap: wrap; padding: 2px 0; justify-content: center; align-items: center; }
+.relic-pin { font-size: 1.1rem; background: rgba(0,0,0,.3); border-radius: 8px; padding: 2px 5px; cursor: pointer; }
+.snack-pin { border: 1px solid #ffd23f88; }
 
+.map-wrap { flex: 1; overflow-y: auto; position: relative; -webkit-overflow-scrolling: touch; }
+.map-bg { position: sticky; top: 0; height: 0; z-index: 0; }
+.map-bg.has-art { height: 100%; position: absolute; inset: 0; background-size: cover; background-position: center; opacity: .5; }
+.map-canvas { position: relative; margin: 0 auto; z-index: 1; }
+.map-edges { position: absolute; inset: 0; }
+.map-edges .edge { fill: none; stroke: rgba(255,255,255,.38); stroke-width: 3.5; stroke-dasharray: 1 9; stroke-linecap: round; }
+.map-edges .edge-taken { stroke: rgba(255,255,255,.85); stroke-dasharray: none; }
+.map-edges .edge-open { stroke: #ffd23f; stroke-width: 4.5; }
+
+.map-spot {
+  position: absolute; width: 54px; height: 54px; transform: translate(-50%, -50%);
+  border-radius: 50%; background: rgba(0,0,0,.42); border: 3px solid rgba(255,255,255,.4);
+  display: flex; align-items: center; justify-content: center; z-index: 2;
+}
+.map-spot .spot-ico { font-size: 1.5rem; line-height: 1; }
+.map-spot.spot-boss-big { width: 76px; height: 76px; border-width: 4px; }
+.map-spot.spot-boss-big .spot-ico { font-size: 2.2rem; }
+.map-spot.visited { opacity: .55; border-color: rgba(255,255,255,.7); }
+.map-spot.current { border-color: #fff; box-shadow: 0 0 0 4px rgba(255,255,255,.35), 0 0 18px rgba(255,255,255,.5); opacity: 1; }
+.map-spot.map-node.reachable { cursor: pointer; border-color: #ffd23f; box-shadow: 0 0 14px #ffd23f99; animation: nodepulse 1.3s infinite; }
+@keyframes nodepulse { 50% { box-shadow: 0 0 26px #ffd23fee; border-color: #fff0b0; } }
+.map-spot.map-node.reachable .spot-ico { animation: icobob 1.3s ease-in-out infinite; }
+@keyframes icobob { 50% { transform: scale(1.12); } }
+.map-spot.spot-elite { background: rgba(90,20,30,.55); }
+.map-spot.spot-rest { background: rgba(35,80,40,.55); }
+.map-spot.spot-shop { background: rgba(30,60,95,.55); }
+.map-spot.spot-treasure { background: rgba(120,90,20,.55); }
+.map-start-hint { position: absolute; width: 100%; text-align: center; font-weight: 900; text-shadow: 0 1px 4px rgba(0,0,0,.6); animation: hintbob .9s infinite; z-index: 2; }
+
+/* ---------- shared bits ---------- */
 .reward-card { border: 3px solid #b9a97c; border-radius: 14px; background: #fdf6e3; color: #333; padding: 12px; margin: 6px; cursor: pointer; text-align: center; width: 128px; display: inline-block; vertical-align: top; }
 .reward-row { text-align: center; }
 
@@ -123,29 +226,26 @@ h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); }
 }
 @keyframes toastin { from { opacity: 0; transform: translateX(-50%) translateY(-12px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 
+/* Coach James onboarding bubble (never blocks input) */
+.coach-bubble {
+  position: fixed; left: 50%; bottom: 88px; transform: translateX(-50%); z-index: 70;
+  display: flex; align-items: center; gap: 10px; max-width: 92%; width: 360px;
+  background: #fdf6e3; color: #2a2a18; border: 3px solid #2e6b34; border-radius: 16px; padding: 10px 14px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.4); pointer-events: none;
+  animation: coachin .4s ease; transition: opacity .7s ease;
+}
+.coach-bubble.gone { opacity: 0; }
+.coach-bubble .coach-face { display: flex; width: 44px; height: 44px; border-radius: 50%; overflow: hidden; flex-shrink: 0; font-size: 1.7rem; }
+.coach-bubble .coach-text { font-size: .88rem; line-height: 1.25; }
+@keyframes coachin { from { opacity: 0; transform: translateX(-50%) translateY(14px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
 .speaker-line { background: rgba(0,0,0,.3); border-left: 5px solid #ffd23f; border-radius: 10px; padding: 12px; margin: 10px auto; max-width: 420px; font-style: italic; }
 .event-emoji { font-size: 3.4rem; text-align: center; margin: 10px 0; }
-
-.shake { animation: shake .3s; }
-@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
-.lunge { animation: lunge .25s ease; }
-@keyframes lunge { 40% { transform: translateY(10px) scale(1.08); } }
-
-.relic-shelf { display: flex; gap: 5px; flex-wrap: wrap; padding: 2px 0; }
-.relic-pin { font-size: 1.1rem; background: rgba(0,0,0,.3); border-radius: 8px; padding: 2px 5px; }
 
 .crown { font-size: 4.5rem; text-align: center; animation: crownpulse 1.6s infinite; }
 @keyframes crownpulse { 50% { transform: scale(1.12); } }
 
-@media (prefers-reduced-motion: reduce) {
-  * { animation: none !important; transition: none !important; }
-}
-@media (min-width: 700px) {
-  .card { flex-basis: 118px; }
-  .title-logo { font-size: 2.6rem; }
-}
-
-/* Liam's floating diapers (orb row) + the Goldie title egg */
+/* Liam's floating diapers (orb row) */
 .orb-row { display: flex; gap: 8px; justify-content: center; padding: 2px 0; }
 .orb {
   font-size: 1.5rem; background: rgba(0,0,0,.3); border: 2px solid #ffd23f66; border-radius: 50%;
@@ -159,4 +259,11 @@ h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); }
 .orb:nth-child(4) { animation-delay: 1.2s; }
 .orb:nth-child(5) { animation-delay: 1.6s; }
 @keyframes orbbob { 50% { transform: translateY(-5px); } }
-.goldie-egg { position: fixed; bottom: 10px; right: 12px; font-size: 1.7rem; opacity: .55; cursor: pointer; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+@media (min-width: 700px) {
+  .card { flex-basis: 118px; }
+  .title-logo { font-size: 2.6rem; }
+}

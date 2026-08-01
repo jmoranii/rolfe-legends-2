@@ -6,6 +6,7 @@ import { ENEMIES } from '../js/enemies.js';
 import { EVENTS, EVENT_KEYS } from '../js/events.js';
 import * as C from '../js/combat.js';
 import * as R from '../js/run.js';
+import { generateActMap, reachableIds, validateMap, MAP_FLOORS, TREASURE_FLOOR, REST_FLOOR, BOSS_ID } from '../js/map.js';
 
 let passed = 0, failed = 0;
 const fails = [];
@@ -568,6 +569,29 @@ for (const key of Object.keys(ENEMIES)) {
   eq(state.hand.length, Math.min(10, h0 + 3), 'trail mix draws 3');
 }
 
+// ---------- steppable enemy phase (UI sequencing = endTurn semantics) ----------
+{
+  const { state } = combatVs(['gopher', 'crow'], { seed: 55 });
+  ok(state.phase === 'hero', 'combat starts in hero phase');
+  ok(C.beginEnemyPhase(state), 'enemy phase begins');
+  eq(state.phase, 'enemy', 'phase flips to enemy');
+  eq(state.hand.length, 0, 'hand discarded at phase start');
+  let steps = 0;
+  let acted;
+  while ((acted = C.stepEnemyAction(state)) !== null) {
+    ok(acted.name, `step ${++steps} returns the acting enemy`);
+    ok(steps < 10, 'stepper terminates');
+  }
+  eq(state.phase, 'hero', 'phase returns to hero');
+  eq(state.turn, 2, 'next hero turn began');
+  ok(state.hand.length > 0, 'new hand drawn');
+  // endTurn (sync) drives the same machinery
+  const { state: s2 } = combatVs(['gopher'], { seed: 56 });
+  C.endTurn(s2);
+  eq(s2.turn, 2, 'endTurn advances to turn 2');
+  eq(s2.phase, 'hero', 'endTurn leaves hero phase');
+}
+
 // ---------- run layer ----------
 {
   const run = freshRun('aaron', 42);
@@ -581,23 +605,59 @@ for (const key of Object.keys(ENEMIES)) {
   ok(true, 'boon applies without crash');
 }
 {
-  // a full act's floor structure: all node types valid, boss at 12
+  // ---------- map generation invariants (many seeds) ----------
+  for (const seed of [1, 7, 42, 999, 31337]) {
+    for (let act = 1; act <= 3; act++) {
+      const map = generateActMap(seed, act);
+      const problems = validateMap(map);
+      eq(problems.length, 0, `map ${seed}/${act} valid (${problems[0] || ''})`);
+      const types = Object.values(map.nodes).map((n) => n.type);
+      eq(types.filter((t) => t === 'shop').length, 1, `map ${seed}/${act} exactly 1 shop`);
+      eq(types.filter((t) => t === 'elite').length, 2, `map ${seed}/${act} exactly 2 elites`);
+      ok(types.filter((t) => t === 'event').length >= 3, `map ${seed}/${act} ≥3 events`);
+      ok(map.floors[1].every((id) => map.nodes[id].type === 'fight'), `map ${seed}/${act} floor 1 all fights`);
+      ok(map.floors[TREASURE_FLOOR].every((id) => map.nodes[id].type === 'treasure'), `map ${seed}/${act} treasure row`);
+      ok(map.floors[REST_FLOOR].every((id) => map.nodes[id].type === 'rest'), `map ${seed}/${act} pre-boss rest row`);
+      eq(map.floors[MAP_FLOORS].length, 1, `map ${seed}/${act} single boss`);
+      ok(Object.values(map.nodes).every((n) => n.type !== 'elite' || n.f >= 5), `map ${seed}/${act} elites at floor ≥5`);
+      for (let f = 1; f < REST_FLOOR; f++) {
+        ok(map.floors[f].length >= 1 && map.floors[f].length <= 4, `map ${seed}/${act} floor ${f} has 1-4 nodes`);
+      }
+      ok(map.floors[1].length >= 2, `map ${seed}/${act} ≥2 starting choices`);
+    }
+  }
+  // determinism
+  const a = generateActMap(42, 2), b = generateActMap(42, 2);
+  eq(JSON.stringify(a), JSON.stringify(b), 'same seed → same map');
+  ok(JSON.stringify(generateActMap(42, 1)) !== JSON.stringify(generateActMap(43, 1)), 'different seed → different map');
+}
+{
+  // walking the map: full act traversal through run layer
   const run = freshRun('aaron', 77);
   const seen = new Set();
-  for (let f = 0; f < R.FLOORS_PER_ACT; f++) {
-    const opts = R.floorOptions(run);
-    ok(opts.length >= 1 && opts.length <= 3, `floor ${f + 1} offers 1-3 options`);
-    const node = R.chooseFloor(run, opts[0]);
+  let guard = 40;
+  while (guard-- > 0) {
+    const opts = R.nextNodes(run);
+    ok(opts.length >= 1, `reachable nodes at floor ${run.floor}`);
+    const node = R.enterMapNode(run, opts[0].id);
+    ok(node, 'enterMapNode resolves a reachable node');
     seen.add(node.type);
     if (node.type === 'fight' || node.type === 'elite' || node.type === 'boss') {
       ok(node.enemies.every((k) => ENEMIES[k]), `valid encounter keys at floor ${run.floor}`);
     }
+    if (node.type === 'boss') break;
   }
-  eq(run.floor, 12, 'act runs 12 floors');
+  eq(run.floor, MAP_FLOORS, 'act runs 12 floors');
   ok(seen.has('boss'), 'act ends with boss');
+  ok(seen.has('treasure'), 'path passed the treasure row');
+  ok(seen.has('rest'), 'path passed the pre-boss rest');
+  eq(R.enterMapNode(run, 'nope'), null, 'unreachable node rejected');
   ok(R.advanceAct(run), 'advance to act 2');
   eq(run.act, 2, 'act advanced');
   eq(run.floor, 0, 'floor reset');
+  eq(run.pos, null, 'position reset');
+  ok(run.map && run.map.nodes[BOSS_ID], 'fresh act-2 map generated');
+  ok(reachableIds(run.map, null).length >= 2, 'act 2 offers starting nodes');
 }
 {
   // rewards + draft
@@ -677,7 +737,7 @@ for (const key of Object.keys(ENEMIES)) {
   state.hero.hp = 50;
   C.dealDamage(state, state.enemies[0], 999, { attacker: state.hero });
   R.applyCombatResult(run, state);
-  eq(run.hp, 56, 'big breakfast heals 6 after fight');
+  eq(run.hp, 58, 'big breakfast heals 8 after fight');
 }
 
 // ---------- data integrity ----------
