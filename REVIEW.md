@@ -65,7 +65,8 @@ All four are live in the game already (first-win credits). Rewrites = regenerate
 
 ## Publish checklist (yours — Phase 6)
 
-- [ ] Public repo y/n (RL1 precedent: public + Pages, but the go is per-project)
+- [x] ~~Backup~~ **Private repo live Fri 2026-08-01**: <https://github.com/jmoranii/rolfe-legends-2> (main; you're the only viewer; ref photos never pushed — gitignored)
+- [ ] Flip public at delivery time (GitHub Pages on the free plan needs a public repo; RL1 precedent says fine, but it's your per-project go)
 - [ ] GitHub Pages deploy under jmoranii.github.io (same parental-controls origin as RL1)
 - [ ] README polish
 - [ ] Delivery plan (when/how the boys get it)
