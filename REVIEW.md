@@ -65,8 +65,7 @@ All four are live in the game already (first-win credits). Rewrites = regenerate
 
 ## Publish checklist (yours — Phase 6)
 
-- [x] ~~Backup~~ **Private repo live Fri 2026-08-01**: <https://github.com/jmoranii/rolfe-legends-2> (main; you're the only viewer; ref photos never pushed — gitignored)
-- [ ] Flip public at delivery time (GitHub Pages on the free plan needs a public repo; RL1 precedent says fine, but it's your per-project go)
-- [ ] GitHub Pages deploy under jmoranii.github.io (same parental-controls origin as RL1)
+- [x] Repo **PUBLIC** (James's call Sat 2026-08-01, for cross-device playtesting): <https://github.com/jmoranii/rolfe-legends-2> (ref photos never pushed — gitignored; surname scrubbed from docs first)
+- [x] **GitHub Pages LIVE**: <https://jmoranii.github.io/rolfe-legends-2/> — the playtest link (works offline after first visit, Add-to-Home-Screen ready; art slimmed 140MB→6.5MB for tablet loads)
 - [ ] README polish
 - [ ] Delivery plan (when/how the boys get it)
