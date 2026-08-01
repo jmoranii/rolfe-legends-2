@@ -1,6 +1,6 @@
 # Rolfe Legends 2: Defend the Farm
 
-A personalized Slay-the-Spire-style roguelike deckbuilder built by James (Uncle James) as the requested sequel to Rolfe Legends, for his nephews **Wyatt (10)** and **Aaron (8)** Rittgers, who live on a farm in Rolfe, Iowa. The boys beat RL1, loved it, and asked for a sequel with more ducks and farm life. No deadline — it ships when it's good.
+A personalized Slay-the-Spire-style roguelike deckbuilder built by James (Uncle James) as the requested sequel to Rolfe Legends, for his nephews **Wyatt (10)** and **Aaron (8)**, who live on a farm in Rolfe, Iowa. The boys beat RL1, loved it, and asked for a sequel with more ducks and farm life. No deadline — it ships when it's good.
 
 ## The one-sentence vision
 
