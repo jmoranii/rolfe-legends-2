@@ -85,10 +85,31 @@ $STYLE
 
 Subject: the 8-year-old boy from the attached reference photo, clearly recognizable. The hero of a farm adventure: planted in a mighty superhero stance with both fists clenched, a small friendly tornado of leaves and hay swirling around his arms and shoulders like a power-up, determined happy grin. Morning light over green farm fields. Small kid, huge strength."
 
-gen portrait_liam assets/ui/portrait_liam.png 1024x1024 liam "Square image, 1024x1024.
+# NOTE: Liam's portrait uses TWO recent reference photos (dual --ref) — added by
+# James Fri 2026-08-01, staged as ref-photos/liam-recent-1.png + liam-recent-2.png.
+# The gen() helper is single-ref, so this one calls gpt-image directly.
+gen_portrait_liam() {
+  local out=assets/ui/portrait_liam.png
+  ALL_IDS+=("portrait_liam|$out")
+  if [ "$MODE" != "missing" ]; then
+    local want=0 w
+    for w in ${WANTED[@]+"${WANTED[@]}"}; do [ "$w" = "portrait_liam" ] && want=1; done
+    [ $want = 0 ] && return 0
+  fi
+  if [ -f "$out" ]; then SKIPPED+=("portrait_liam"); return 0; fi
+  echo "=== $(date +%H:%M:%S) portrait_liam → $out (1024x1024, q=$QUALITY, 2 refs)" | tee -a "$LOG"
+  if gpt-image "Square image, 1024x1024.
 $STYLE
 
-Subject: a giggling toddler boy, almost 3 years old, inspired by the baby in the attached reference photo grown into a toddler — same warm dark-brown eyes, round happy cheeks, and soft light-brown wispy hair. He wears a tiny white t-shirt and a diaper, arms thrown up in triumph, mid-belly-laugh. Four cartoon diapers float in a gentle orbit around him like magical charms, one glowing softly. Morning light over green farm fields. Two and a half feet of pure chaos."
+Subject: the toddler boy from the attached reference photos, clearly recognizable — same sandy-blond wavy hair, same face shape and cheeks, same sturdy toddler build. He is almost 3 years old. He wears a tiny white t-shirt and a diaper, arms thrown up in triumph, mid-belly-laugh. Four cartoon diapers float in a gentle orbit around him like magical charms, one glowing softly. Morning light over green farm fields. Two and a half feet of pure chaos." \
+      --ref "$REF_DIR/liam-recent-1.png" --ref "$REF_DIR/liam-recent-2.png" \
+      --size 1024x1024 --quality "$QUALITY" -o "$out" $EXTRA >>"$LOG" 2>&1; then
+    GENERATED+=("portrait_liam"); echo "    done: portrait_liam" | tee -a "$LOG"
+  else
+    FAILED+=("portrait_liam"); echo "    FAILED: portrait_liam (see $LOG)" | tee -a "$LOG"
+  fi
+}
+gen_portrait_liam
 
 # ============================= ACT 1 ENEMIES ================================
 
