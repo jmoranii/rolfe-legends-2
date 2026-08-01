@@ -2,6 +2,32 @@
 
 Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 300`.
 
+## 2026-08-01 · UI legibility pass (James's feedback) + GitHub backup
+
+James's post-playtest asks: costs invisible on card choices/shop, relic effects unclear, statuses/intents unexplained, multi-hits animate as one lump, scene screens should feature the family art big, bosses should read BIG. Response: a full **StS legibility audit** — the list of everything Slay the Spire does to keep the player informed, with our version of each:
+
+| # | What StS does | RL2's version |
+|---|---|---|
+| 1 | Intent icons + damage numbers over enemies | ✓ intent bubble with live damage (×N shown); **NEW: tap any intent → plain-kid-English explanation of the next move**; Coach tip on first fight ("Those bubbles show each enemy's next move!") |
+| 2 | Hover tooltips on every buff/debuff | ✓ **tap any status chip → explanation toast** (tablets can't hover); full glossary in 📖 |
+| 3 | Keyword tooltips (Exhaust, Innate, X-cost) | ✓ 📖 "How to read the game" modal: map icons, card keywords, all statuses — reachable from map top bar AND combat ℹ️ |
+| 4 | Modified damage shown green/red on cards | ✓ **live card text marks buffed values green, weakened red** (Strength/Weak/Dex/Frail) |
+| 5 | Card cost always visible when choosing | ✓ **mini-card component with cost badge + full text everywhere**: fight rewards, shop (with price tags + can't-afford graying), deck/draw/discard lists (cost column) |
+| 6 | Relic/potion tooltips everywhere | ✓ shop relic/snack buttons show effect text; map pins toast; **combat ℹ️ lists all your treasures + snacks with texts** |
+| 7 | Draw/discard/exhaust piles inspectable | ✓ draw + discard always; **♻️ exhaust pile button appears once something exhausts** |
+| 8 | Per-hit damage numbers on multi-hit attacks | ✓ **engine logs every resolved hit; UI floats each hit staggered ~170ms** — a ×4 flurry or an X-cost spin visibly lands as separate hits; fully-blocked hits float "🛡️ Blocked!" |
+| 9 | Potion click → use menu (no misclicks) | ✓ **snack tap → confirm modal with effect text** (Eat it now / Save it) |
+| 10 | Bosses/elites visually distinct | ✓ **"👑 BOSS" / "💀 BIG TROUBLE" ribbons, gold/red auras, bigger frames + art** |
+| 11 | Map node icons learnable | ✓ tap any non-reachable spot → identifies itself; map legend in 📖 |
+| 12 | Energy orb prominent | ✓ + tap → explanation |
+| 13 | Turn state obvious | ✓ END TURN flips to "👀 ENEMY TURN…" during the sequenced phase |
+
+Plus: **scene banners** — Dad's Farm Supply now IS a big painted Dad-in-his-shop header (same for Granny's porch, Rusty, Coach's boon, the tractor skip, and every event scene), title overlaid, choices beneath.
+
+**Backup**: repo pushed to private GitHub (`jmoranii/rolfe-legends-2`) at James's request — he's the only viewer until delivery; public + Pages remains a Phase-6 decision.
+
+**Tests**: unit 1163 · e2e 62/62 both engines · balance untouched ("balance seems good" — James).
+
 ## 2026-07-31 · SHIP-READY — GOAL.md definition of done MET
 
 All five phases complete in one autonomous session (Phases 1–5, ~6 hours wall-clock, generation batches in background throughout).

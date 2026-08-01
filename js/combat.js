@@ -25,6 +25,9 @@ export function blockValue(base, hero) {
 function incomingMult(target) { return (target.vulnerable || 0) > 0 ? 1.5 : 1; }
 
 // Deal attack-typed damage to a creature. Returns actual HP lost.
+// Every resolved hit is appended to state.log so the UI can show EACH hit of a
+// multi-hit card/intent separately (X-cost spins, ×N flurries) — including
+// fully-blocked hits ("Blocked!").
 export function dealDamage(state, target, amount, { attacker = null, isAttack = true } = {}) {
   if (!target || target.hp <= 0 || target.gone) return 0;
   let dmg = Math.floor(amount * (isAttack ? incomingMult(target) : 1));
@@ -32,6 +35,11 @@ export function dealDamage(state, target, amount, { attacker = null, isAttack = 
   const absorbed = Math.min(target.block || 0, dmg);
   target.block = (target.block || 0) - absorbed;
   dmg -= absorbed;
+  state.log.push({
+    t: dmg > 0 ? 'dmg' : (absorbed > 0 ? 'blocked' : 'miss'),
+    target: target === state.hero ? 'hero' : state.enemies.indexOf(target),
+    amount: dmg, absorbed,
+  });
   if (dmg > 0) {
     target.hp -= dmg;
     if (target.onDamaged) target.onDamaged(target, state, dmg);

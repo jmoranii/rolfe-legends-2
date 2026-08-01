@@ -216,8 +216,51 @@ h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); letter-spac
 .map-start-hint { position: absolute; width: 100%; text-align: center; font-weight: 900; text-shadow: 0 1px 4px rgba(0,0,0,.6); animation: hintbob .9s infinite; z-index: 2; }
 
 /* ---------- shared bits ---------- */
-.reward-card { border: 3px solid #b9a97c; border-radius: 14px; background: #fdf6e3; color: #333; padding: 12px; margin: 6px; cursor: pointer; text-align: center; width: 128px; display: inline-block; vertical-align: top; }
+.reward-card { border: 3px solid #b9a97c; border-radius: 14px; background: #fdf6e3; color: #333; padding: 12px; margin: 6px; cursor: pointer; text-align: center; width: 128px; display: inline-block; vertical-align: top; position: relative; }
 .reward-row { text-align: center; }
+.mini-card { padding: 14px 8px 8px; }
+.mini-card .cost { position: absolute; top: -9px; left: -9px; background: #b8860b; color: #fff; border: 2px solid #ffd23f; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: .95rem; }
+.mini-card .art { font-size: 1.9rem; }
+.mini-card .mc-name { font-size: .85rem; }
+.mini-card .mc-text { font-size: .68rem; margin-top: 3px; }
+.mini-card .price-tag { margin-top: 6px; background: #2e6b34; color: #fff; border-radius: 8px; font-weight: 900; font-size: .8rem; padding: 2px 8px; display: inline-block; }
+.mini-card.cant-afford { filter: grayscale(.75); opacity: .55; cursor: default; }
+.mini-card.cant-afford .price-tag { background: #a33327; }
+.mini-card.type-attack { background: #fde8e0; }
+.mini-card.type-skill { background: #e2eefc; }
+.mini-card.type-power { background: #f3e5ff; }
+
+/* card-value previews: buffed numbers pop green, weakened pop red (StS trick) */
+.val-up { color: #1c8a3a; }
+.val-down { color: #c0392b; }
+
+/* two-line buy buttons: name+price, effect text underneath */
+.btn.two-line small { display: block; font-weight: 600; font-size: .74rem; opacity: .85; margin-top: 2px; }
+
+/* scene banners: the person/place fills the top of the screen */
+.scene-screen { padding: 0; }
+.scene-banner { position: relative; height: 34vh; min-height: 210px; max-height: 330px; overflow: hidden; flex-shrink: 0; }
+.scene-banner .scene-banner-art { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 5rem; }
+.scene-banner .scene-banner-art img { width: 100%; height: 100%; object-fit: cover; object-position: center 22%; }
+.scene-banner-shade { position: absolute; inset: 0; background: linear-gradient(rgba(0,0,0,.18) 0%, transparent 30%, transparent 55%, rgba(0,0,0,.55) 100%); }
+.scene-banner-title { position: absolute; left: 0; right: 0; bottom: 8px; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,.8); font-size: 1.4rem; z-index: 1; }
+.scene-body { flex: 1; overflow-y: auto; padding: 10px 12px max(12px, env(safe-area-inset-bottom)); }
+.gold-line { margin-bottom: 8px; }
+
+/* boss & elite presence: ribbons + aura so the big fights READ big */
+.enemy.boss-foe { border-width: 4px; border-color: #ffd23f; box-shadow: 0 0 22px rgba(255, 210, 63, .45); padding-top: 18px; }
+.enemy.elite-foe { border-color: #d9736b; box-shadow: 0 0 14px rgba(217, 90, 80, .4); padding-top: 16px; }
+.enemy.boss-foe::before, .enemy.elite-foe::before {
+  content: '👑 BOSS'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+  background: #b8860b; color: #fff; border: 2px solid #ffd23f; border-radius: 9px;
+  font-size: .62rem; font-weight: 900; padding: 1px 8px; letter-spacing: .05em; white-space: nowrap; z-index: 2;
+}
+.enemy.elite-foe::before { content: '💀 BIG TROUBLE'; background: #7a2f28; border-color: #d9736b; }
+.enemy.boss-foe .nm { font-size: .82rem; color: #ffd23f; }
+
+/* readable modal list rows (deck, treasures, glossary) */
+.deck-line { margin: 5px 0; line-height: 1.35; }
+.deck-cost { display: inline-block; min-width: 34px; font-weight: 900; color: #ffd23f; }
 
 .modal-veil { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: flex; align-items: center; justify-content: center; z-index: 40; }
 .modal { background: #22304a; border-radius: 16px; padding: 18px; max-width: 460px; width: 92%; max-height: 82vh; overflow-y: auto; color: #f4efe6; }

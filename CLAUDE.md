@@ -39,4 +39,4 @@ A kid opens the game, picks himself as the hero, and every run down the randomiz
 
 ## Privacy & publishing
 
-Local git only until James's explicit go. RL1 precedent: public repo + Pages was authorized, but the go is per-project — ask at ship time.
+Private GitHub remote `jmoranii/rolfe-legends-2` authorized by James Fri 2026-08-01 (his backup; sole viewer). PUBLIC + Pages deploy remains a separate go at delivery time — RL1 precedent: public repo + Pages was authorized, but the go is per-project.

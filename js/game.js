@@ -68,6 +68,21 @@ function modal(title, buildFn, { dismissable = true } = {}) {
 }
 function actCls() { return run ? `act-${run.act}` : 'plain'; }
 
+// A stop screen with the person/place as a big painted banner (Dad in his
+// shop, Granny on her porch…), title overlaid, choices beneath.
+function sceneScreen(artPath, emoji, titleText) {
+  const s = screen(actCls());
+  s.classList.add('scene-screen');
+  const banner = el('div', 'scene-banner');
+  banner.appendChild(artImg(artPath, emoji, 'scene-banner-art'));
+  banner.appendChild(el('div', 'scene-banner-shade'));
+  banner.appendChild(el('h2', 'scene-banner-title', titleText));
+  s.appendChild(banner);
+  const body = el('div', 'scene-body');
+  s.appendChild(body);
+  return body;
+}
+
 // ---------- drop-in art (PNG with emoji fallback) ----------
 const missingArt = new Set();
 function artImg(path, emoji, cls = '') {
@@ -274,9 +289,7 @@ function startRun(heroId) {
 }
 
 function showBoon() {
-  const s = screen('act-1');
-  s.appendChild(artImg('assets/ui/portrait_coach.png', '🧢', 'scene-art'));
-  s.appendChild(el('h2', '', 'Coach James'));
+  const s = sceneScreen('assets/ui/portrait_coach.png', '🧢', 'Coach James');
   s.appendChild(el('div', 'speaker-line', '"Big day, kid. The farm\'s counting on you. Take one of these before you head out."'));
   const rng = makeRng(run.seed ^ 777);
   for (const boon of R.coachBoons(run, rng)) {
@@ -288,13 +301,13 @@ function showBoon() {
 
 // ---------- the map (StS node graph) ----------
 const NODE_META = {
-  fight: { ico: '⚔️', name: 'Trouble' },
-  elite: { ico: '💀', name: 'BIG Trouble' },
-  boss: { ico: '👑', name: 'THE BOSS' },
-  shop: { ico: '🛒', name: "Dad's Shop" },
-  rest: { ico: '🍪', name: "Granny's Porch" },
-  event: { ico: '❓', name: 'Something…' },
-  treasure: { ico: '🐕', name: 'Rusty!' },
+  fight: { ico: '⚔️', name: 'Trouble', desc: "Something's bothering the farm. Fight it!" },
+  elite: { ico: '💀', name: 'BIG Trouble', desc: 'A serious foe — big risk, and it drops a Farm Treasure.' },
+  boss: { ico: '👑', name: 'THE BOSS', desc: 'The big one at the top of the map.' },
+  shop: { ico: '🛒', name: "Dad's Farm Supply", desc: 'Spend gold on cards, treasures, and snacks.' },
+  rest: { ico: '🍪', name: "Granny Rockie's Porch", desc: 'Cookies (heal) or Practice (upgrade a card).' },
+  event: { ico: '❓', name: 'Something Happens…', desc: 'You never know, out in the fields.' },
+  treasure: { ico: '🐕', name: 'Here Comes Rusty!', desc: 'He brings you a Farm Treasure. Good boy.' },
 };
 
 const ROW_H = 96;          // px per floor
@@ -330,9 +343,11 @@ function showMap() {
   }
   const deckBtn = el('button', 'pilebtn', `🎴 ${run.deck.length}`);
   deckBtn.onclick = () => showDeckModal(run.deck);
+  const helpBtn = el('button', 'pilebtn', '📖');
+  helpBtn.onclick = showHelpModal;
   const menuBtn = el('button', 'pilebtn', '⚙️');
   menuBtn.onclick = showSettings;
-  shelf.append(deckBtn, menuBtn);
+  shelf.append(deckBtn, helpBtn, menuBtn);
   bar.appendChild(shelf);
   s.appendChild(bar);
 
@@ -395,6 +410,9 @@ function showMap() {
     if (isReach) {
       if (node.type === 'elite') eliteReachable = true;
       d.onclick = () => { sfx.tap(); const res = R.enterMapNode(run, id); if (res) enterNode(res); };
+    } else {
+      // any spot identifies itself on tap (kids learn the icons by poking)
+      d.onclick = () => toast(`${meta.ico} ${meta.name} — ${NODE_META[node.type].desc}`, 2600);
     }
     canvas.appendChild(d);
     if (run.pos === id) currentEl = d;
@@ -430,9 +448,7 @@ function enterNode(node) {
 }
 
 function showSkipped() {
-  const s = screen(actCls());
-  s.appendChild(el('div', 'event-emoji', '🚜'));
-  s.appendChild(el('h2', '', 'The tractor rumbles past it all.'));
+  const s = sceneScreen('assets/events/tractor_ride.png', '🚜', 'The tractor rumbles past it all.');
   s.appendChild(el('div', 'speaker-line', '"Told ya I was headed this way." — Poppa Flaj'));
   const b = el('button', 'btn', 'Onward! →');
   b.onclick = showMap;
@@ -449,23 +465,53 @@ function startCombatUI(enemyKeys, kind) {
   selectedCard = null;
   prevSnap = null;
   renderCombat();
+  coachTip('intent', "Those bubbles show each enemy's next move!");
 }
+
+// Every status is tap-to-explain (kids can't hover) — see the delegated
+// click handler at boot.
+const STATUS_INFO = {
+  block: '🛡️ Block: soaks up that much damage, then wears off next turn.',
+  strength: '💪 Strength: every attack hits that much harder.',
+  tempStr: '💪⏳ Temporary Strength: extra attack damage this turn only.',
+  dexterity: '🩰 Dexterity: block cards give that much MORE Block.',
+  poison: '☠️ Poison: takes that much damage at the start of its turn, then shrinks by 1.',
+  weak: '😩 Weak: its attacks deal 25% LESS damage.',
+  vulnerable: '💔 Vulnerable: takes 50% MORE damage from attacks.',
+  frail: '🦴 Frail: block cards give 25% less Block.',
+  thorns: '🌵 Thorns: anyone who attacks it takes that much damage back.',
+  intangible: '👻 Intangible: takes at most 1 damage from ANYTHING right now.',
+  focus: '😆 Giggle Power: all floating diapers get that much stronger.',
+};
 
 function statusChips(cr) {
   const chips = [];
-  if (cr.block) chips.push(`🛡️${cr.block}`);
-  if (cr.strength) chips.push(`💪${cr.strength}`);
-  if (cr.tempStr) chips.push(`💪${cr.tempStr}⏳`);
-  if (cr.dexterity) chips.push(`🩰${cr.dexterity}`);
-  if (cr.poison) chips.push(`☠️${cr.poison}`);
-  if (cr.weak) chips.push(`😩${cr.weak}`);
-  if (cr.vulnerable) chips.push(`💔${cr.vulnerable}`);
-  if (cr.frail) chips.push(`🦴${cr.frail}`);
-  if (cr.thorns) chips.push(`🌵${cr.thorns}`);
-  if (cr.intangible) chips.push('👻');
-  if (cr.focus) chips.push(`😆${cr.focus}`);
-  return chips.map((c) => `<span class="chip">${c}</span>`).join('');
+  const add = (k, label) => chips.push(`<span class="chip" data-status="${k}">${label}</span>`);
+  if (cr.block) add('block', `🛡️${cr.block}`);
+  if (cr.strength) add('strength', `💪${cr.strength}`);
+  if (cr.tempStr) add('tempStr', `💪${cr.tempStr}⏳`);
+  if (cr.dexterity) add('dexterity', `🩰${cr.dexterity}`);
+  if (cr.poison) add('poison', `☠️${cr.poison}`);
+  if (cr.weak) add('weak', `😩${cr.weak}`);
+  if (cr.vulnerable) add('vulnerable', `💔${cr.vulnerable}`);
+  if (cr.frail) add('frail', `🦴${cr.frail}`);
+  if (cr.thorns) add('thorns', `🌵${cr.thorns}`);
+  if (cr.intangible) add('intangible', '👻');
+  if (cr.focus) add('focus', `😆${cr.focus}`);
+  return chips.join('');
 }
+
+const INTENT_KIND_INFO = {
+  attack: (name, dmg) => `⚔️ Next move — ${name}: it will attack you for ${dmg} after your turn!`,
+  defend: (name) => `🛡️ Next move — ${name}: it will protect itself with Block.`,
+  buff: (name) => `⬆️ Next move — ${name}: it will power itself (or its friends) up.`,
+  debuff: (name) => `🌀 Next move — ${name}: it will hit YOU with something nasty.`,
+  sleep: (name) => `😴 ${name} — it isn't doing anything… yet. (Attacking it will wake it up!)`,
+  flee: (name) => `🪽 Next move — ${name}: it's about to run away!`,
+  summon: (name) => `➕ Next move — ${name}: it will call in friends.`,
+  countdown: (name) => `⏳ ${name}: something BIG is charging up. The number is the countdown.`,
+  special: (name) => `✨ Next move — ${name}.`,
+};
 
 function intentLabel(state, e) {
   const it = e.intent;
@@ -473,10 +519,23 @@ function intentLabel(state, e) {
   if (it.dmg != null) {
     const p = C.intentPreview(state, e);
     const t = p.times > 1 ? `×${p.times}` : '';
-    return `<span class="intent attack">⚔️ ${p.per}${t}</span>`;
+    const total = p.per * p.times;
+    return `<span class="intent attack" data-intent="attack" data-name="${it.name}" data-dmg="${p.per}${t} (${total} total)">⚔️ ${p.per}${t}</span>`;
   }
   const icons = { defend: '🛡️', buff: '⬆️', debuff: '🌀', sleep: '😴', flee: '🪽', summon: '➕', countdown: '⏳', special: '✨' };
-  return `<span class="intent ${it.kind}">${icons[it.kind] || '❔'} ${it.name}</span>`;
+  return `<span class="intent ${it.kind}" data-intent="${it.kind}" data-name="${it.name}">${icons[it.kind] || '❔'} ${it.name}</span>`;
+}
+
+// mini card used anywhere the player is CHOOSING or BUYING a card — always
+// shows cost, name, and full text (James's readability pass, Fri 2026-08-01)
+function miniCard(info, { extraCls = '', price = null } = {}) {
+  const cost = info.cost;
+  const d = el('div', `reward-card mini-card rarity-${info.rarity} type-${info.type} ${extraCls}`);
+  d.innerHTML = `${cost === null ? '' : `<div class="cost">${cost === 'X' ? 'X' : cost}</div>`}
+    <div class="art">${info.emoji}</div><b class="mc-name">${info.name}${info.upgraded ? '+' : ''}</b>
+    <div class="ctx mc-text">${cardText(info, false)}</div>
+    ${price != null ? `<div class="price-tag">💰${price}</div>` : ''}`;
+  return d;
 }
 
 function snapCombat(st) {
@@ -494,28 +553,41 @@ function floaty(target, text, cls) {
 }
 
 // Compare current combat state to prevSnap and decorate the fresh DOM with
-// floaties + shakes. Called at the end of every renderCombat.
+// floaties + shakes. HP-loss floaties come from the engine's per-hit damage
+// log so a ×3 flurry or an X-cost spin visibly lands as 3 separate hits
+// (staggered), not one lump. Called at the end of every renderCombat.
+let lastLogIdx = 0;
 function animateDiffs(s, enemyEls, heroEl) {
   const st = combat;
-  if (!prevSnap || !st) { prevSnap = st ? snapCombat(st) : null; return; }
+  if (!prevSnap || !st) {
+    prevSnap = st ? snapCombat(st) : null;
+    lastLogIdx = st ? st.log.length : 0;
+    return;
+  }
   const prev = prevSnap;
+  // per-hit events since last render → staggered floaties (multi-hit clarity)
+  const events = st.log.slice(lastLogIdx);
+  lastLogIdx = st.log.length;
+  let delay = 0;
+  for (const ev of events) {
+    const target = ev.target === 'hero' ? heroEl : enemyEls[ev.target];
+    if (!target) continue;
+    const show = () => {
+      if (ev.t === 'dmg') { floaty(target, `-${ev.amount}`, 'dmg'); target.classList.remove('shake'); void target.offsetWidth; target.classList.add('shake'); }
+      else if (ev.t === 'blocked') floaty(target, '🛡️ Blocked!', 'blk');
+    };
+    if (REDUCED || delay === 0) show();
+    else setTimeout(show, delay);
+    delay += 170;
+  }
   st.enemies.forEach((e, i) => {
     const elx = enemyEls[i];
     const p = prev.enemies[i];
     if (!elx || !p) return;
-    if (e.hp < p.hp) {
-      floaty(elx, `-${p.hp - e.hp}`, 'dmg');
-      elx.classList.add('shake');
-    }
     if (e.hp <= 0 && !p.dead) elx.classList.add('dying');
     if (e.block > p.block) floaty(elx, `🛡️+${e.block - p.block}`, 'blk');
   });
-  if (st.hero.hp < prev.heroHp) {
-    floaty(heroEl, `-${prev.heroHp - st.hero.hp}`, 'dmg');
-    heroEl && heroEl.classList.add('shake');
-  } else if (st.hero.hp > prev.heroHp) {
-    floaty(heroEl, `+${st.hero.hp - prev.heroHp}`, 'heal');
-  }
+  if (st.hero.hp > prev.heroHp) floaty(heroEl, `+${st.hero.hp - prev.heroHp}`, 'heal');
   if (st.hero.block > prev.heroBlock) floaty(heroEl, `🛡️+${st.hero.block - prev.heroBlock}`, 'blk');
   prevSnap = snapCombat(st);
 }
@@ -535,7 +607,7 @@ function renderCombat(actedEnemy = null) {
   st.enemies.forEach((e, i) => {
     if (e.gone || e.fled) { enemyEls[i] = null; return; }
     const dead = e.hp <= 0;
-    const d = el('div', `enemy${dead ? ' dead' : ''}${e.isBoss ? ' boss-foe' : ''}`);
+    const d = el('div', `enemy${dead ? ' dead' : ''}${e.isBoss ? ' boss-foe' : ''}${e.isElite && !e.isBoss ? ' elite-foe' : ''}`);
     const face = artImg(`assets/enemies/${e.artKey}.png`, e.emoji, 'face');
     d.appendChild(face);
     d.insertAdjacentHTML('beforeend', `<div class="nm">${e.name}</div>
@@ -583,14 +655,23 @@ function renderCombat(actedEnemy = null) {
   strip.appendChild(orb);
   inner.appendChild(strip);
 
-  // snacks
+  // snacks (tap → confirm with the effect text; no more mystery misclicks)
   if (st.snacks.length) {
     const bar = el('div', 'snackbar');
     st.snacks.forEach((id, i) => {
-      const b = el('button', 'snack', C.SNACKS[id].emoji);
-      b.title = C.SNACKS[id].name;
+      const sn = C.SNACKS[id];
+      const b = el('button', 'snack', sn.emoji);
       b.disabled = st.phase === 'enemy';
-      b.onclick = () => { sfx.heal(); C.useSnack(st, i); afterAction(); };
+      b.onclick = () => modal(null, (m, close) => {
+        m.appendChild(el('div', 'event-emoji', sn.emoji));
+        m.appendChild(el('h2', '', sn.name));
+        m.appendChild(el('p', 'subtitle', sn.text));
+        const use = el('button', 'btn gold', `${sn.emoji} Eat it now!`);
+        use.onclick = () => { close(); sfx.heal(); C.useSnack(st, i); afterAction(); };
+        const keep = el('button', 'btn secondary', '🎒 Save it for later');
+        keep.onclick = close;
+        m.append(use, keep);
+      });
       bar.appendChild(b);
     });
     inner.appendChild(bar);
@@ -627,10 +708,18 @@ function renderCombat(actedEnemy = null) {
   drawB.onclick = () => showDeckModal(st.draw, 'Draw pile (shuffled)');
   const discB = el('button', 'pilebtn', `🗑️ ${st.discard.length}`);
   discB.onclick = () => showDeckModal(st.discard, 'Discard pile');
+  bottom.append(drawB, discB);
+  if (st.exhaust.length) {
+    const exB = el('button', 'pilebtn', `♻️ ${st.exhaust.length}`);
+    exB.onclick = () => showDeckModal(st.exhaust, 'Used up this fight (Exhaust)');
+    bottom.append(exB);
+  }
   const endB = el('button', 'endturn', st.phase === 'enemy' ? '👀 ENEMY TURN…' : 'END TURN ▶');
   endB.disabled = st.phase === 'enemy';
   endB.onclick = () => { sfx.turn(); selectedCard = null; runEnemyPhase(); };
-  bottom.append(drawB, discB, endB);
+  const infoB = el('button', 'pilebtn', 'ℹ️');
+  infoB.onclick = showStuffModal;
+  bottom.append(endB, infoB);
   inner.appendChild(bottom);
 
   animateDiffs(s, enemyEls, strip);
@@ -659,7 +748,9 @@ function runEnemyPhase() {
   setTimeout(step, REDUCED ? 0 : 380);
 }
 
-// Fill {d}/{b}/{n} in card text. `live` applies current strength/dex previews.
+// Fill {d}/{b}/{n} in card text. `live` applies current strength/dex/weak/frail
+// previews — a modified number is highlighted green (boosted) or red (reduced),
+// the StS trick that makes buffs *visibly* matter.
 function cardText(info, live = false) {
   const fx = info.fx || [];
   const dmgOp = fx.find((o) => o.dmg != null);
@@ -669,8 +760,12 @@ function cardText(info, live = false) {
   const nVal = statusOp ? Math.abs(statusOp.status.n)
     : info.pn != null ? info.pn
     : nOp ? (nOp.selfStr ?? nOp.selfDex ?? nOp.tempStr ?? nOp.draw ?? nOp.energy ?? (nOp.addCard && nOp.addCard.n)) : '?';
-  const dVal = dmgOp ? (live && combat ? C.attackValue(dmgOp.dmg, combat.hero) : dmgOp.dmg) : (info.base ?? '?');
-  const bVal = blockOp ? (live && combat ? C.blockValue(blockOp.block, combat.hero) : blockOp.block) : (info.pn ?? '?');
+  const mark = (liveVal, baseVal) => {
+    if (!live || !combat || liveVal === baseVal) return liveVal;
+    return `<b class="${liveVal > baseVal ? 'val-up' : 'val-down'}">${liveVal}</b>`;
+  };
+  const dVal = dmgOp ? (live && combat ? mark(C.attackValue(dmgOp.dmg, combat.hero), dmgOp.dmg) : dmgOp.dmg) : (info.base ?? '?');
+  const bVal = blockOp ? (live && combat ? mark(C.blockValue(blockOp.block, combat.hero), blockOp.block) : blockOp.block) : (info.pn ?? '?');
   return (info.text || '').replace('{d}', dVal).replace('{b}', bVal).replace('{n}', nVal);
 }
 function renderCardText(info) { return cardText(info, true); }
@@ -778,8 +873,7 @@ function showReward(rewards, result, kind) {
     s.appendChild(el('p', 'subtitle', '<b>Pick a new card:</b>'));
     const row = el('div', 'reward-row');
     for (const id of rewards.cards) {
-      const info = cardInfo(makeCard(id));
-      const d = el('div', `reward-card rarity-${info.rarity}`, `<div class="art" style="font-size:1.8rem">${info.emoji}</div><b style="font-size:.85rem">${info.name}</b><div class="ctx" style="font-size:.68rem">${staticCardText(id)}</div>`);
+      const d = miniCard(cardInfo(makeCard(id)));
       d.onclick = () => { sfx.play(); run.deck.push(makeCard(id)); finishReward(kind); };
       row.appendChild(d);
     }
@@ -789,8 +883,6 @@ function showReward(rewards, result, kind) {
   skip.onclick = () => finishReward(kind);
   s.appendChild(skip);
 }
-
-function staticCardText(id) { return cardText(CARDS[id], false); }
 
 function finishReward(kind) {
   if (kind === 'boss') {
@@ -810,28 +902,29 @@ function finishReward(kind) {
 
 // ---------- shop / rest / event / treasure ----------
 function showShop(shop) {
-  const s = screen(actCls());
-  s.appendChild(artImg('assets/events/shop_jacob.png', '🛒', 'scene-art'));
-  s.appendChild(el('h2', '', "Dad's Farm Supply"));
+  const s = sceneScreen('assets/events/shop_jacob.png', '🛒', "Dad's Farm Supply");
   s.appendChild(el('div', 'speaker-line', '"Hey bud. Take a look around — everything a farm defender needs."'));
-  s.appendChild(el('p', 'subtitle', `💰 ${run.gold}`));
-  shop.cards.forEach((item, i) => {
-    const info = CARDS[item.id];
-    const b = el('button', 'btn secondary', `${info.emoji} ${info.name} — 💰${item.price}`);
-    b.disabled = run.gold < item.price;
-    b.onclick = () => { if (R.shopBuyCard(run, shop, i)) { sfx.gold(); saveRun(); showShop(shop); } };
-    s.appendChild(b);
-  });
+  s.appendChild(el('p', 'subtitle gold-line', `Your gold: 💰 <b>${run.gold}</b>`));
+  if (shop.cards.length) {
+    const row = el('div', 'reward-row');
+    shop.cards.forEach((item, i) => {
+      const d = miniCard(cardInfo(makeCard(item.id)), { price: item.price });
+      if (run.gold < item.price) d.classList.add('cant-afford');
+      else d.onclick = () => { if (R.shopBuyCard(run, shop, i)) { sfx.gold(); saveRun(); showShop(shop); } };
+      row.appendChild(d);
+    });
+    s.appendChild(row);
+  }
   if (shop.relic) {
     const rl = RELICS[shop.relic.id];
-    const b = el('button', 'btn gold', `${rl.emoji} ${rl.name} — 💰${shop.relic.price}`);
+    const b = el('button', 'btn gold two-line', `${rl.emoji} ${rl.name} — 💰${shop.relic.price}<small>${rl.text}</small>`);
     b.disabled = run.gold < shop.relic.price;
     b.onclick = () => { if (R.shopBuyRelic(run, shop)) { sfx.relic(); saveRun(); showShop(shop); } };
     s.appendChild(b);
   }
   if (shop.snack) {
     const sn = C.SNACKS[shop.snack.id];
-    const b = el('button', 'btn secondary', `${sn.emoji} ${sn.name} — 💰${shop.snack.price}`);
+    const b = el('button', 'btn secondary two-line', `${sn.emoji} ${sn.name} — 💰${shop.snack.price}<small>${sn.text}</small>`);
     b.disabled = run.gold < shop.snack.price || run.snacks.length >= run.snackSlots;
     b.onclick = () => { if (R.shopBuySnack(run, shop)) { sfx.gold(); saveRun(); showShop(shop); } };
     s.appendChild(b);
@@ -850,9 +943,7 @@ function showShop(shop) {
 }
 
 function showRest() {
-  const s = screen(actCls());
-  s.appendChild(artImg('assets/events/rest_granny.png', '🍪', 'scene-art'));
-  s.appendChild(el('h2', '', "Granny Rockie's Porch"));
+  const s = sceneScreen('assets/events/rest_granny.png', '🍪', "Granny Rockie's Porch");
   s.appendChild(el('div', 'speaker-line', '"There\'s my little legend. Cookies, or shall we practice that one move?"'));
   const cookies = el('button', 'btn', `🍪 Cookies (heal ${Math.floor(run.maxHp * 0.3)} HP)`);
   cookies.onclick = () => { sfx.heal(); const h = R.restCookies(run); toast(`❤️ +${h} HP. Granny hugs you.`); saveRun(); showMap(); };
@@ -868,9 +959,7 @@ function showRest() {
 
 function showEvent(key) {
   const ev = EVENTS[key];
-  const s = screen(actCls());
-  s.appendChild(artImg(`assets/events/${key}.png`, ev.emoji, 'scene-art'));
-  s.appendChild(el('h2', '', ev.name));
+  const s = sceneScreen(`assets/events/${key}.png`, ev.emoji, ev.name);
   s.appendChild(el('div', 'speaker-line', ev.line));
   const rng = makeRng(run.seed ^ run.floor * 991 ^ 0xE1E);
   for (const choice of ev.choices) {
@@ -897,9 +986,7 @@ function showEvent(key) {
 }
 
 function showTreasure(relicId) {
-  const s = screen(actCls());
-  s.appendChild(artImg('assets/events/treasure_rusty.png', '🐕', 'scene-art'));
-  s.appendChild(el('h2', '', 'Here comes Rusty!'));
+  const s = sceneScreen('assets/events/treasure_rusty.png', '🐕', 'Here comes Rusty!');
   if (relicId) {
     const rl = RELICS[relicId];
     R.onRelicGained(run, relicId);
@@ -920,7 +1007,54 @@ function showDeckModal(cards, title = 'My Deck') {
     if (!cards.length) m.appendChild(el('p', 'subtitle', '(empty)'));
     for (const c of cards) {
       const info = cardInfo(c);
-      m.appendChild(el('p', '', `${info.emoji} <b>${info.name}</b> <span style="opacity:.7;font-size:.8rem">${staticCardText(c.id)}</span>`));
+      const cost = info.cost === null ? '—' : (info.cost === 'X' ? 'X⚡' : `${info.cost}⚡`);
+      m.appendChild(el('p', 'deck-line', `<span class="deck-cost">${cost}</span> ${info.emoji} <b>${info.name}${c.up ? '+' : ''}</b> <span style="opacity:.7;font-size:.8rem">${cardText(info, false)}</span>`));
+    }
+  });
+}
+
+// ---------- "what's all this?" — inspect + glossary (tap, not hover) ----------
+function showStuffModal() {
+  modal('🎒 Your stuff', (m, close) => {
+    m.appendChild(el('p', 'subtitle', '<b>Farm Treasures</b>'));
+    for (const rid of run.relics) {
+      const rl = RELICS[rid];
+      m.appendChild(el('p', 'deck-line', `${rl.emoji} <b>${rl.name}</b> <span style="opacity:.75;font-size:.8rem">${rl.text}</span>`));
+    }
+    if (run.snacks.length) {
+      m.appendChild(el('p', 'subtitle', '<b>Snacks</b>'));
+      for (const sid of run.snacks) {
+        const sn = C.SNACKS[sid];
+        m.appendChild(el('p', 'deck-line', `${sn.emoji} <b>${sn.name}</b> <span style="opacity:.75;font-size:.8rem">${sn.text}</span>`));
+      }
+    }
+    const help = el('button', 'btn secondary', '📖 What do the words mean?');
+    help.onclick = () => { close(); showHelpModal(); };
+    m.appendChild(help);
+  });
+}
+
+const KEYWORD_INFO = [
+  ['⚡ Energy', 'Cards cost ⚡ to play. You get 3 fresh ⚡ every turn.'],
+  ['♻️ Exhaust', 'After you play it, that card is used up for the rest of the FIGHT.'],
+  ['✋ Innate', 'Always shows up in your opening hand.'],
+  ['❎ X cost', 'Spends ALL your ⚡ — the more you spend, the bigger it gets.'],
+  ['🎯 Intent bubble', "The bubble under each enemy shows its NEXT move. ⚔️ + a number = how hard it'll hit you."],
+];
+
+function showHelpModal() {
+  modal('📖 How to read the game', (m) => {
+    m.appendChild(el('p', 'subtitle', '<b>Map stops</b>'));
+    for (const [type, meta] of Object.entries(NODE_META)) {
+      m.appendChild(el('p', 'deck-line', `${meta.ico} <b>${meta.name}</b> <span style="opacity:.75;font-size:.8rem">${meta.desc}</span>`));
+    }
+    m.appendChild(el('p', 'subtitle', '<b>Words on cards</b>'));
+    for (const [k, v] of KEYWORD_INFO) {
+      m.appendChild(el('p', 'deck-line', `<b>${k}</b> <span style="opacity:.75;font-size:.8rem">${v}</span>`));
+    }
+    m.appendChild(el('p', 'subtitle', '<b>Buffs & debuffs (tap any icon in a fight!)</b>'));
+    for (const v of Object.values(STATUS_INFO)) {
+      m.appendChild(el('p', 'deck-line', `<span style="font-size:.85rem">${v}</span>`));
     }
   });
 }
@@ -1017,6 +1151,22 @@ music.arm();
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 }
+// tap-to-explain, everywhere (kids can't hover): status chips, intent bubbles,
+// the energy orb
+document.addEventListener('click', (ev) => {
+  if (ev.target.closest && ev.target.closest('.enemy.targetable')) return; // targeting taps = attacks, not tooltips
+  const chip = ev.target.closest && ev.target.closest('.chip[data-status]');
+  if (chip && STATUS_INFO[chip.dataset.status]) { toast(STATUS_INFO[chip.dataset.status], 2800); return; }
+  const it = ev.target.closest && ev.target.closest('.intent[data-intent]');
+  if (it) {
+    const kind = it.dataset.intent;
+    const fn = INTENT_KIND_INFO[kind];
+    if (fn) toast(fn(it.dataset.name || 'its move', it.dataset.dmg || ''), 3200);
+    return;
+  }
+  const orb = ev.target.closest && ev.target.closest('.energy-orb');
+  if (orb) toast('⚡ Energy: playing cards costs ⚡. You get 3 fresh ⚡ every turn.', 2800);
+});
 // #credits-<hero> previews an ending anytime (dev/testing; harmless for kids)
 const creditsPreview = /^#credits-(wyatt|aaron|liam|both)$/.exec(location.hash);
 if (creditsPreview) creditsRoll(creditsPreview[1], { el, artImg, sfx, REDUCED }, () => showTitle());
