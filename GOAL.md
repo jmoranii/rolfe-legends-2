@@ -7,7 +7,7 @@ You are working in `~/code/rolfe-legends-2`. Read `CLAUDE.md` (constitution) and
 1. **Green before every commit**: `node test/test.mjs` + `node test/selfplay.mjs 150` + e2e. Never commit red. Commit granularly with clear messages.
 2. **Content rules from CLAUDE.md hold absolutely**: no curse/status named "Chores"; first names only; Poppa Flaj / Granny Rockie; Liam stays a **zero-hint secret** (nothing visible anywhere pre-unlock — audit every new screen for leaks).
 3. **Anything needing James's judgment goes in `REVIEW.md`** (create it): new family-cameo dialogue lines, art rerolls you're unsure of, anthem lyric drafts, any design deviation. Don't block on it — make your best call, log it for his pass.
-4. **Family reference photos** live in `assets/ref-photos/` (gitignored — never commit photos). If a needed photo is missing (Liam's likely is), note it in REVIEW.md and generate a non-likeness placeholder version of that art meanwhile; regenerate when the photo appears.
+4. **Family reference photos**: RL1's full set survives at `~/code/rolfe-legends/assets/ref-photos/` (Wyatt, Aaron, Tory, Jacob, Brody, Chelsea, Sean, Kim, James, Rusty, the llama, the pets) — copy what you need into this repo's `assets/ref-photos/` (gitignored — never commit photos). RL1's *finished art* (`~/code/rolfe-legends/assets/cards|ui|backgrounds/`) is also fair game: reuse portraits directly where the same character appears (Granny Rockie, Coach James, Rusty, Goldie) or as style anchors. **Known gap: there is no Liam reference photo anywhere.** Policy for any missing reference: do the best possible without it, ship it, and record it in REVIEW.md's **Gaps & Personalization report** (see Definition of done).
 5. Keep a running `PROGRESS.md`: phase, what's done, what's next, current harness numbers. Update it every commit.
 
 ## Phase 1 — UI polish & game feel (do this first; it changes how everything else reads)
@@ -63,4 +63,8 @@ When a mechanic choice is ambiguous, resolve it by asking: *what does StS do, an
 
 ## Definition of done
 
-All five phases complete; 3 heroes in the 35–55% band; unit + selfplay + Chromium e2e + WebKit e2e all green; art and music present for every hook (or listed in REVIEW.md as awaiting a ref photo); REVIEW.md contains everything awaiting James — including the **publish checklist** (public repo y/n, Pages deploy, README, delivery plan) which is his to execute. Stop there.
+All five phases complete; 3 heroes in the 35–55% band; unit + selfplay + Chromium e2e + WebKit e2e all green; art and music present for **every** hook (best-effort versions where references were missing — no empty slots); and REVIEW.md contains everything awaiting James:
+
+- **Gaps & Personalization report** (required section): every place the result would improve with a reference photo (Liam above all) or with James's personal input — inside jokes, a detail about a family member, a phrase they actually say, farm specifics the vault doesn't know. For each gap: what was shipped instead, what input is wanted, and exactly what would be regenerated once it arrives.
+- Draft cameo lines / anthem lyrics for his approval pass.
+- The **publish checklist** (public repo y/n, Pages deploy, README, delivery plan) — his to execute. Stop there.
