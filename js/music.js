@@ -44,7 +44,7 @@ function getEl(name) {
   let e = els.get(name);
   if (!e) {
     const audio = new Audio(`assets/audio/${name}.mp3`);
-    audio.loop = true;
+    audio.loop = !name.startsWith('anthem_'); // anthems play once (credits use the playhead as the clock)
     audio.preload = 'auto';
     audio.volume = 0;
     audio.dataset.track = name;

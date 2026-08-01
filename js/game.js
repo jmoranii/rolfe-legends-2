@@ -11,6 +11,8 @@ import * as R from './run.js';
 import { MAP_FLOORS, BOSS_ID } from './map.js';
 import { sfx, setEnabled as setSfx, isEnabled as sfxOn } from './sfx.js';
 import * as music from './music.js';
+import { creditsRoll } from './credits.js';
+import { encodeFarmCode, decodeFarmCode } from './farmcode.js';
 
 const $app = document.getElementById('app');
 const SAVE_KEY = 'rl2_run';
@@ -179,12 +181,69 @@ function showSettings() {
     mus.onclick = () => { music.setEnabled(!music.isEnabled()); mus.textContent = `🎵 Music: ${music.isEnabled() ? 'ON' : 'OFF'}`; };
     const sx = el('button', 'btn', `🔔 Sounds: ${sfxOn() ? 'ON' : 'OFF'}`);
     sx.onclick = () => { setSfx(!sfxOn()); sx.textContent = `🔔 Sounds: ${sfxOn() ? 'ON' : 'OFF'}`; };
+    const fc = el('button', 'btn gold', '🔑 Secret Farm Code');
+    fc.onclick = () => { close(); showFarmCode(); };
+    const a2hs = el('button', 'btn secondary', '📲 Put it on your home screen');
+    a2hs.onclick = () => { close(); showA2HS(); };
     const reset = el('button', 'btn danger', '🗑️ Abandon current run');
     reset.onclick = () => { clearSave(); run = null; close(); showTitle(); };
-    m.append(mus, sx, reset);
+    m.append(mus, sx, fc, a2hs, reset);
     m.appendChild(el('p', 'subtitle', 'Rolfe Legends 2 · made with love by Uncle James'));
   });
 }
+
+// ---------- the Secret Farm Code (save backup / restore) ----------
+function showFarmCode() {
+  const saved = run || R.deserializeRun(localStorage.getItem(SAVE_KEY));
+  const code = encodeFarmCode(loadProfile(), saved);
+  modal('🔑 Secret Farm Code', (m, close) => {
+    m.appendChild(el('p', 'subtitle', 'Your whole farm story in one magic code. Copy it somewhere safe, or type one in to bring a farm back.'));
+    const out = document.createElement('textarea');
+    out.className = 'farmcode-box';
+    out.readOnly = true;
+    out.value = code;
+    m.appendChild(out);
+    const copy = el('button', 'btn', '📋 Copy my code');
+    copy.onclick = () => {
+      out.select();
+      const done = () => { copy.textContent = '✅ Copied!'; setTimeout(() => { copy.textContent = '📋 Copy my code'; }, 1600); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(code).then(done, () => { document.execCommand('copy'); done(); });
+      else { document.execCommand('copy'); done(); }
+    };
+    m.appendChild(copy);
+    const inBox = document.createElement('textarea');
+    inBox.className = 'farmcode-box';
+    inBox.placeholder = 'Paste a Farm Code here…';
+    m.appendChild(inBox);
+    const restore = el('button', 'btn gold', '🚜 Restore this farm');
+    restore.onclick = () => {
+      const decoded = decodeFarmCode(inBox.value);
+      if (!decoded) { toast('🤔 That code doesn\'t look right. Check for missing bits!'); return; }
+      saveProfile(decoded.profile);
+      if (decoded.run) { run = decoded.run; saveRun(); } else { clearSave(); run = null; }
+      sfx.win();
+      toast('🌾 Farm restored!');
+      close();
+      showTitle();
+    };
+    m.appendChild(restore);
+  });
+}
+
+function showA2HS() {
+  modal('📲 Home screen', (m) => {
+    if (deferredInstall) {
+      const b = el('button', 'btn gold', '⬇️ Install the game');
+      b.onclick = () => { deferredInstall.prompt(); deferredInstall = null; };
+      m.appendChild(b);
+    }
+    m.appendChild(el('p', '', '<b>iPad / iPhone (Safari):</b> tap the Share button <span style="font-size:1.1em">⬆️</span>, then <b>"Add to Home Screen"</b>.'));
+    m.appendChild(el('p', '', '<b>Android (Chrome):</b> tap the ⋮ menu, then <b>"Add to home screen"</b>.'));
+    m.appendChild(el('p', 'subtitle', 'Then the farm gets its own icon — and works even with no internet.'));
+  });
+}
+let deferredInstall = null;
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredInstall = e; });
 
 // ---------- hero select & boon ----------
 function showHeroSelect() {
@@ -901,9 +960,28 @@ function showDefeat() {
 function showVictory() {
   const heroId = run.hero;
   const p = loadProfile();
+  const firstWin = !(p.wins[heroId] > 0);
   p.wins[heroId] = (p.wins[heroId] || 0) + 1;
   saveProfile(p);
   clearSave();
+  // THE CROWN — first win per hero rolls the synced-lyric anthem credits;
+  // winning with BOTH big brothers unlocks the bonus finale on top.
+  const bothNow = p.wins.aaron > 0 && p.wins.wyatt > 0 && !p.bonusSeen;
+  const rollBonus = () => {
+    if (bothNow) {
+      p.bonusSeen = true;
+      saveProfile(p);
+      creditsRoll('both', { el, artImg, sfx, REDUCED }, () => showCrownScreen(heroId));
+    } else {
+      showCrownScreen(heroId);
+    }
+  };
+  if (firstWin) creditsRoll(heroId, { el, artImg, sfx, REDUCED }, rollBonus);
+  else rollBonus();
+}
+
+function showCrownScreen(heroId) {
+  const p = loadProfile();
   music.play(`anthem_${heroId}`);
   const s = screen('act-1');
   s.appendChild(el('div', 'crown', '👑'));
@@ -919,13 +997,12 @@ function showVictory() {
     liam: '"Thunder and Lightning met THE BLOWOUT. The storm has not stopped running. LIAM THE LITTLE!" ⛈️🍼',
   };
   s.appendChild(el('div', 'speaker-line', VICTORY_LINES[heroId]));
-  const both = p.wins.aaron > 0 && p.wins.wyatt > 0;
-  if (both && !p.bonusSeen) {
-    p.bonusSeen = true;
-    saveProfile(p);
-    s.appendChild(el('div', 'speaker-line', '🏆 <b>BOTH LEGENDS HAVE DEFENDED THE FARM!</b><br>Rusty barks twice. Goldie nods, once. Somewhere, the ducks are cheering.<br><i>(A proper double-legend celebration is coming in an update…)</i>'));
+  if (p.wins.aaron > 0 && p.wins.wyatt > 0) {
+    s.appendChild(el('div', 'speaker-line', '🏆 <b>BOTH LEGENDS HAVE DEFENDED THE FARM!</b><br>Rusty barks twice. Goldie nods, once. Somewhere, the ducks are cheering.'));
   }
-  s.appendChild(el('p', 'subtitle', '🎵 Victory anthem + credits sequence coming soon — this crown screen is the placeholder.'));
+  const again = el('button', 'btn secondary', '🎬 Watch your credits again');
+  again.onclick = () => creditsRoll(heroId, { el, artImg, sfx, REDUCED }, () => showCrownScreen(heroId));
+  s.appendChild(again);
   const b = el('button', 'btn', '🌱 Play Again');
   b.onclick = () => { run = null; showHeroSelect(); };
   s.appendChild(b);
@@ -937,7 +1014,13 @@ function showVictory() {
 
 // ---------- boot ----------
 music.arm();
-showTitle();
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+// #credits-<hero> previews an ending anytime (dev/testing; harmless for kids)
+const creditsPreview = /^#credits-(wyatt|aaron|liam|both)$/.exec(location.hash);
+if (creditsPreview) creditsRoll(creditsPreview[1], { el, artImg, sfx, REDUCED }, () => showTitle());
+else showTitle();
 
 // e2e/debug handle
 window.__RL2 = { get run() { return run; }, get combat() { return combat; }, R, C, showTitle };

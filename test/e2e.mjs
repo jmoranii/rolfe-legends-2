@@ -1,13 +1,13 @@
 // RL2 e2e smoke: title → hero select → boon → map → fight → play cards → outcome →
-// reward → map → save/reload. Drives the real UI headless. Run:
+// reward → map → save/reload → farm code → service worker. Drives the real UI
+// headless in BOTH engines (the boys' tablets are Safari). Run:
 //   python3 -m http.server 8199 &   (repo root)
-//   npm i playwright + npx playwright install chromium (anywhere on PATH), then:
+//   npm i (playwright is PINNED at 1.60.0 in package.json), then:
 //   node test/e2e.mjs
-// NOTE: WebKit is skipped for now — this Mac only has Playwright's frozen
-// mac14 WebKit build (webkit_mac14_arm64_special-2251), which hangs against
-// current playwright. To re-enable Safari-engine coverage, pin the playwright
-// package version that shipped that build (RL1-era) and add webkit back to the
-// suite list at the bottom. Missing-asset 404s are by-design (drop-in art/music).
+// WEBKIT PIN: this Mac (macOS 14) only has Playwright's frozen mac14 WebKit
+// build (webkit_mac14_arm64_special-2251). playwright ≥1.61 hangs against it
+// (probe: 20s+ no launch); 1.60.0 drives it fine (~2s). Do not bump playwright
+// past 1.60.x on this machine. Missing-asset 404s are by-design (drop-in layers).
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const { webkit, chromium } = require('playwright');
@@ -102,6 +102,28 @@ async function runSuite(browserType, name) {
     ok(true, `${name}: continue restores map`);
   }
 
+  // the Secret Farm Code: copy out, tamper rejected, restore round-trips
+  await page.locator('.pilebtn', { hasText: '⚙️' }).click();
+  await page.locator('.btn', { hasText: 'Farm Code' }).click();
+  await page.waitForSelector('.farmcode-box');
+  const code = await page.locator('.farmcode-box').first().inputValue();
+  ok(code.startsWith('FARM2-'), `${name}: farm code shown`);
+  await page.locator('.farmcode-box').nth(1).fill('FARM2-nonsense-abc');
+  await page.locator('.btn', { hasText: 'Restore this farm' }).click();
+  ok(await page.locator('.toast').count() >= 1, `${name}: bad code politely rejected`);
+  await page.locator('.farmcode-box').nth(1).fill(code);
+  await page.locator('.btn', { hasText: 'Restore this farm' }).click();
+  await page.waitForSelector('.title-logo');
+  ok(await page.locator('.btn', { hasText: 'Continue' }).count() === 1, `${name}: farm code restores the run`);
+
+  // offline shell: the service worker registers
+  const swReady = await page.evaluate(() =>
+    Promise.race([
+      navigator.serviceWorker.ready.then(() => true),
+      new Promise((res) => setTimeout(() => res(false), 4000)),
+    ])).catch(() => false);
+  ok(swReady, `${name}: service worker registered`);
+
   ok(errors.length === 0, `${name}: zero console errors${errors.length ? ' — ' + errors[0].slice(0, 120) : ''}`);
   await browser.close();
 }
@@ -186,9 +208,32 @@ async function liamUnlock() {
   await browser.close();
 }
 
+// credits preview: the synced-lyric ending scaffold (silent/wall-clock path)
+async function creditsPreview() {
+  const browser = await chromium.launch();
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  await page.goto(BASE + '/#credits-wyatt', { waitUntil: 'load' });
+  await page.waitForSelector('.credits');
+  ok(await page.locator('.credits-big').count() >= 1, 'credits: intro slide renders');
+  ok((await page.textContent('.credits-big')).includes('WYATT'), 'credits: hero named');
+  ok(await page.locator('.credits-skip').count() === 1, 'credits: skippable');
+  await page.locator('.credits-skip').click();
+  await page.waitForSelector('.credits-continue');
+  ok((await page.textContent('.credits-crew')).includes('Uncle James'), 'credits: crew card on finale');
+  await page.locator('.credits-continue').click();
+  await page.waitForSelector('.title-logo');
+  ok(true, 'credits: continue returns to title');
+  ok(errors.length === 0, `credits: zero page errors${errors.length ? ' — ' + errors[0].slice(0, 120) : ''}`);
+  await browser.close();
+}
+
 try {
   await runSuite(chromium, 'chromium');
+  await runSuite(webkit, 'webkit');
   await liamUnlock();
+  await creditsPreview();
   await deepRun();
 } catch (e) {
   ok(false, 'suite crashed: ' + e.message);

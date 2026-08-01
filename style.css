@@ -240,6 +240,7 @@ h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); letter-spac
 @keyframes coachin { from { opacity: 0; transform: translateX(-50%) translateY(14px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 
 .speaker-line { background: rgba(0,0,0,.3); border-left: 5px solid #ffd23f; border-radius: 10px; padding: 12px; margin: 10px auto; max-width: 420px; font-style: italic; }
+.farmcode-box { width: 100%; min-height: 74px; margin: 8px 0; border-radius: 10px; border: 2px solid #55575e; background: #1a2436; color: #f4efe6; font-family: monospace; font-size: .7rem; padding: 8px; resize: vertical; user-select: text; -webkit-user-select: text; }
 .event-emoji { font-size: 3.4rem; text-align: center; margin: 10px 0; }
 
 .crown { font-size: 4.5rem; text-align: center; animation: crownpulse 1.6s infinite; }
@@ -260,8 +261,48 @@ h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); letter-spac
 .orb:nth-child(5) { animation-delay: 1.6s; }
 @keyframes orbbob { 50% { transform: translateY(-5px); } }
 
+/* ---------- victory credits (the crown roll) ---------- */
+.credits { position: fixed; inset: 0; z-index: 90; background: #101826; overflow: hidden; display: flex; flex-direction: column; }
+.credits-bg { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity .5s ease; filter: brightness(.6); }
+.credits-stage { position: absolute; inset: 0 0 120px 0; display: flex; align-items: center; justify-content: center; }
+.credits-slide { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px; text-align: center; }
+.credits-slide.enter-right { animation: slidein .6s ease; }
+.credits-slide.exit-left { animation: slideout .6s ease forwards; }
+@keyframes slidein { from { opacity: 0; transform: translateX(70px); } to { opacity: 1; transform: none; } }
+@keyframes slideout { to { opacity: 0; transform: translateX(-90px); } }
+.credits-crown { font-size: 4rem; animation: crownpulse 1.6s infinite; }
+.credits-crown.small { font-size: 2.4rem; }
+.credits-big { font-size: 3rem; font-weight: 900; color: #ffd23f; letter-spacing: .06em; text-shadow: 0 4px 14px rgba(0,0,0,.6); }
+.credits-sub { font-size: 1.1rem; color: #fff; font-weight: 700; text-shadow: 0 2px 6px rgba(0,0,0,.6); }
+.credits-intro { color: #f4efe6; font-size: 1rem; line-height: 1.6; max-width: 340px; text-shadow: 0 2px 6px rgba(0,0,0,.7); }
+.credits-intro .ci { opacity: 0; animation: ciin .7s ease forwards; }
+.credits-intro .ci-1 { animation-delay: .4s; font-size: 1.3rem; font-weight: 900; }
+.credits-intro .ci-2 { animation-delay: 1.6s; }
+.credits-intro .ci-3 { animation-delay: 3s; }
+@keyframes ciin { to { opacity: 1; } }
+.ci-go { display: inline-block; animation: hintbob .8s infinite; }
+.credits-portrait { display: flex; width: 200px; height: 200px; border-radius: 22px; overflow: hidden; border: 4px solid #ffd23f; box-shadow: 0 10px 34px rgba(0,0,0,.6); font-size: 5rem; align-items: center; justify-content: center; background: rgba(0,0,0,.3); }
+.credits-portrait.hero { border-color: #fff; width: 220px; height: 220px; }
+.credits-portrait.in-pop { animation: portraitpop .5s ease; }
+@keyframes portraitpop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.credits-titlecard { background: rgba(0,0,0,.55); border-radius: 14px; padding: 10px 22px; }
+.credits-titlecard .cn { font-size: 1.5rem; font-weight: 900; color: #ffd23f; }
+.credits-titlecard .ct { font-size: .95rem; color: #fff; opacity: .9; }
+.credits-crew { color: #f4efe6; line-height: 1.7; font-size: 1rem; text-shadow: 0 2px 6px rgba(0,0,0,.7); }
+.credits-crew .dim { opacity: .6; font-size: .8rem; }
+.credits-caption { position: absolute; left: 0; right: 0; bottom: 26px; display: grid; place-items: center; min-height: 84px; padding: 0 16px; opacity: 0; }
+.credits-caption.show { opacity: 1; }
+.cap-inner { background: rgba(0,0,0,.6); border-radius: 14px; padding: 10px 16px; max-width: 480px; text-align: center; font-size: 1.15rem; font-weight: 800; line-height: 1.5; }
+.cap-inner .cw { color: rgba(255,255,255,.4); transition: color .12s; }
+.cap-inner .cw.lit { color: #ffd23f; text-shadow: 0 0 12px #ffd23f66; }
+.credits-skip { position: absolute; top: max(12px, env(safe-area-inset-top)); right: 12px; background: rgba(0,0,0,.45); color: #fff; border: none; border-radius: 10px; padding: 8px 12px; font-weight: 700; cursor: pointer; z-index: 3; opacity: .75; }
+.credits-continue { position: absolute; left: 50%; transform: translateX(-50%); bottom: max(20px, env(safe-area-inset-bottom)); width: auto; padding: 14px 34px; z-index: 3; }
+.credits-hint { position: absolute; left: 50%; transform: translateX(-50%); bottom: 130px; color: #ffd23f; font-weight: 900; animation: hintbob .8s infinite; text-shadow: 0 2px 8px rgba(0,0,0,.8); z-index: 3; }
+
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
+  .credits-intro .ci { opacity: 1; }
+  .credits-caption { opacity: 1; }
 }
 @media (min-width: 700px) {
   .card { flex-basis: 118px; }

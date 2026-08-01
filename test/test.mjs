@@ -7,6 +7,8 @@ import { EVENTS, EVENT_KEYS } from '../js/events.js';
 import * as C from '../js/combat.js';
 import * as R from '../js/run.js';
 import { generateActMap, reachableIds, validateMap, MAP_FLOORS, TREASURE_FLOOR, REST_FLOOR, BOSS_ID } from '../js/map.js';
+import { parseLrc } from '../js/credits.js';
+import { encodeFarmCode, decodeFarmCode } from '../js/farmcode.js';
 
 let passed = 0, failed = 0;
 const fails = [];
@@ -771,6 +773,63 @@ for (const key of Object.keys(ENEMIES)) {
   C.dealDamage(state, state.enemies[0], 999, { attacker: state.hero });
   R.applyCombatResult(run, state);
   eq(run.hp, 60, 'big breakfast heals 10 after fight');
+}
+
+// ---------- the Secret Farm Code ----------
+{
+  const profile = { wins: { wyatt: 3, aaron: 1, liam: 0 }, bonusSeen: true, liamUnlocked: true };
+  const run = freshRun('wyatt', 909);
+  run.gold = 231; run.act = 2; run.deck.push(makeCard('sting_shot'));
+  const code = encodeFarmCode(profile, run);
+  ok(code.startsWith('FARM2-'), 'farm code has the FARM2 prefix');
+  const back = decodeFarmCode(code);
+  ok(back, 'farm code decodes');
+  eq(back.profile.wins.wyatt, 3, 'wins survive the round-trip');
+  ok(back.profile.bonusSeen && back.profile.liamUnlocked, 'flags survive');
+  ok(back.run && back.run.gold === 231 && back.run.act === 2, 'current run survives');
+  eq(back.run.deck.length, run.deck.length, 'deck survives');
+  ok(back.run.map && back.run.map.nodes, 'map survives');
+  // no run
+  const solo = decodeFarmCode(encodeFarmCode(profile, null));
+  ok(solo && solo.run === null, 'profile-only code round-trips');
+  // tamper: flip a payload char → checksum rejects
+  const mid = 20 + Math.floor((code.length - 24) / 2);
+  const tampered = code.slice(0, mid) + (code[mid] === 'A' ? 'B' : 'A') + code.slice(mid + 1);
+  eq(decodeFarmCode(tampered), null, 'tampered code rejected');
+  eq(decodeFarmCode('FARM2-garbage-xyz'), null, 'garbage rejected');
+  eq(decodeFarmCode('hello'), null, 'non-code rejected');
+  eq(decodeFarmCode(''), null, 'empty rejected');
+  // liam wins imply unlock even if flag dropped
+  const p2 = decodeFarmCode(encodeFarmCode({ wins: { liam: 1 }, bonusSeen: false, liamUnlocked: false }, null));
+  ok(p2.profile.liamUnlocked, 'liam wins imply his unlock');
+}
+
+// ---------- credits LRC parsing ----------
+{
+  // suno-cli timed-lyrics --lrc: one word per line, blank line = phrase break,
+  // section markers carry their time to the next bare word (real capture)
+  const lrc = '[00:10.61] [Verse]\nOut \n[00:11.21] in \n[00:11.45] Rolfe \n[00:12.62] glows\n\n[00:13.31] Trouble \n[00:13.80] came\n\n\n[00:20.25] [Verse 2]\nMom \n[00:21.18] packed';
+  const lines = parseLrc(lrc);
+  eq(lines.length, 3, 'lrc: three phrases parsed');
+  eq(lines[0].t, 10.61, 'lrc: section time carries to first word');
+  eq(lines[0].words[0].w, 'Out', 'lrc: bare word captured');
+  eq(lines[0].words[0].t, 10.61, 'lrc: bare word inherits section time');
+  eq(lines[0].words[2].w, 'Rolfe', 'lrc: timed word text');
+  eq(lines[0].words[2].t, 11.45, 'lrc: timed word time');
+  eq(lines[0].words.length, 4, 'lrc: section tag not shown as a word');
+  eq(lines[2].words[0].w, 'Mom', 'lrc: verse 2 first word');
+  eq(lines[2].words[0].t, 20.25, 'lrc: verse 2 inherits marker time');
+  // enhanced word-tag format still tolerated
+  const enh = parseLrc('[00:15.56] <00:15.56> Out <00:15.88> in <00:16.00> Rolfe');
+  eq(enh[0].words.length, 3, 'enhanced lrc words');
+  eq(enh[0].words[2].t, 16.00, 'enhanced lrc word time');
+  // plain line-level fallback spreads words
+  const plain = parseLrc('[00:10.00] hello there world');
+  eq(plain.length, 1, 'plain lrc parsed');
+  eq(plain[0].words.length, 3, 'plain lrc words spread');
+  ok(plain[0].words[2].t > plain[0].words[0].t, 'plain lrc word times increase');
+  eq(parseLrc(''), null, 'empty lrc → null');
+  eq(parseLrc(null), null, 'null lrc → null');
 }
 
 // ---------- data integrity ----------

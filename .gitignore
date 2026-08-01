@@ -3,3 +3,7 @@ node_modules/
 assets/ref-photos/
 assets/art-log.txt
 assets/batch-out.txt
+assets/audio/other-takes/
+assets/audio/gen-logs/
+assets/audio/tmp_*/
+media/shots-raw/
