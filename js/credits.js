@@ -25,9 +25,9 @@ const CAST = [
 ];
 
 const HERO_SCENES = {
-  wyatt: { re: /^wyatt/i, art: 'assets/ui/portrait_wyatt.jpg', emoji: '⚡', name: 'WYATT', title: 'The Speedy' },
+  wyatt: { re: /^(wyatt|whyatt)/i, art: 'assets/ui/portrait_wyatt.jpg', emoji: '⚡', name: 'WYATT', title: 'The Speedy' },
   aaron: { re: /^aaron/i, art: 'assets/ui/portrait_aaron.jpg', emoji: '🌪️', name: 'AARON', title: 'The Strong · The Lil Tornado' },
-  liam: { re: /^liam/i, art: 'assets/ui/portrait_liam.jpg', emoji: '🍼', name: 'LIAM', title: 'The Little' },
+  liam: { re: /^(liam|leeum)/i, art: 'assets/ui/portrait_liam.jpg', emoji: '🍼', name: 'LIAM', title: 'The Little' },
 };
 
 const FINALES = {
@@ -37,9 +37,23 @@ const FINALES = {
   both: { big: 'WYATT & AARON', sub: 'The Legends of Rolfe' },
 };
 
-// caption remaps: if Suno mispronounces/mis-times a word, remap its display
-// text here without touching the audio (RL1 trick). Filled after listening.
-const REMAP = {};
+// caption remaps: Suno mispronounced "Wyatt" and "Liam" (James, Sat 2026-08-02),
+// so the anthems SING phonetic spellings (Whyatt, Leeum) while the captions
+// display the real names — the RL1 trick, generalized.
+const REMAP = [
+  [/^whyatt/i, 'Wyatt'],
+  [/^leeum/i, 'Liam'],
+];
+function remapWord(w) {
+  for (const [re, name] of REMAP) {
+    if (re.test(w)) {
+      const letters = w.replace(/[^A-Za-z]/g, '');
+      const repl = letters === letters.toUpperCase() ? name.toUpperCase() : name;
+      return w.replace(/[A-Za-z]+/, repl);
+    }
+  }
+  return w;
+}
 
 // untimed fallback lines per anthem (used when the .lrc is missing: wall clock,
 // one line every few seconds — the show still works offline/pre-music)
@@ -121,7 +135,7 @@ export function deriveBeats(lines, heroId) {
   // the both-finale shows the brothers TOGETHER — either name summons the duo
   // (separately they'd fall inside each other's cooldown: "Wyatt quick and Aaron strong")
   const heroes = heroId === 'both'
-    ? [{ re: /^(wyatt|aaron)/i, kind: 'duo', name: 'WYATT & AARON', title: 'The Legends of Rolfe' }]
+    ? [{ re: /^(wyatt|whyatt|aaron)/i, kind: 'duo', name: 'WYATT & AARON', title: 'The Legends of Rolfe' }]
     : [HERO_SCENES[heroId]];
   for (const line of lines) {
     for (const { w, t } of line.words) {
@@ -265,7 +279,7 @@ export function creditsRoll(heroId, deps, onDone) {
         const inner = el('div', 'cap-inner');
         capWords = lines[li].words.map(({ w, t: wt }) => {
           const s = el('span', 'cw');
-          s.textContent = (REMAP[w] || w) + ' ';
+          s.textContent = remapWord(w) + ' ';
           inner.appendChild(s);
           return { s, wt };
         });

@@ -80,7 +80,7 @@ h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); letter-spac
 .enemy.targetable { border-color: #ffd23f; box-shadow: 0 0 12px #ffd23f88; animation: targetpulse 1s infinite; }
 @keyframes targetpulse { 50% { box-shadow: 0 0 20px #ffd23fcc; } }
 .enemy.dead { opacity: .25; pointer-events: none; }
-.enemy.dying { animation: die .5s ease forwards; }
+.enemy.dying { animation: die calc(var(--fx, 1) * .5s) ease forwards; }
 @keyframes die { to { opacity: .25; transform: scale(.85) rotate(4deg); filter: grayscale(1); } }
 .enemy .face { display: flex; width: 74px; height: 74px; margin: 0 auto; border-radius: 12px; overflow: hidden; font-size: 2.1rem; }
 .enemy .face.art-emoji { overflow: visible; }
@@ -95,7 +95,7 @@ h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); letter-spac
 .intent.sleep, .intent.flee, .intent.countdown, .intent.summon { color: #cfd8dc; }
 
 .hpbar { height: 8px; background: rgba(0,0,0,.5); border-radius: 5px; margin-top: 5px; overflow: hidden; }
-.hpbar > div { height: 100%; background: #e4574a; border-radius: 5px; transition: width .35s ease; }
+.hpbar > div { height: 100%; background: #e4574a; border-radius: 5px; transition: width calc(var(--fx, 1) * .4s) ease; }
 .hpnum { font-size: .72rem; font-weight: 700; }
 .chips { display: flex; gap: 3px; flex-wrap: wrap; justify-content: center; margin-top: 3px; min-height: 14px; }
 .chip { font-size: .66rem; background: rgba(0,0,0,.4); color: #fff; border-radius: 6px; padding: 1px 5px; font-weight: 700; }
@@ -119,18 +119,24 @@ h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); letter-spac
 
 /* damage / heal / block floaties */
 .floaty {
-  position: absolute; top: 8%; font-size: 1.25rem; font-weight: 900; pointer-events: none; z-index: 30;
-  text-shadow: 0 2px 4px rgba(0,0,0,.5); animation: floatup .85s ease-out forwards;
+  position: absolute; top: 8%; font-size: 1.55rem; font-weight: 900; pointer-events: none; z-index: 30;
+  text-shadow: 0 2px 5px rgba(0,0,0,.6); animation: floatup .95s ease-out forwards;
 }
 .floaty.dmg { color: #ff6b5a; }
+.floaty.dmg.big { font-size: 2.3rem; color: #ff4530; text-shadow: 0 0 14px #ff453088, 0 2px 5px rgba(0,0,0,.7); }
 .floaty.heal { color: #7ae87a; }
-.floaty.blk { color: #8fd0ff; font-size: 1rem; }
-@keyframes floatup { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-42px); } }
+.floaty.blk { color: #8fd0ff; font-size: 1.05rem; }
+@keyframes floatup {
+  0% { opacity: 0; transform: translateY(8px) scale(.6); }
+  14% { opacity: 1; transform: translateY(-2px) scale(1.18); }
+  28% { transform: translateY(-8px) scale(1); }
+  100% { opacity: 0; transform: translateY(-78px) scale(.95); }
+}
 
-.shake { animation: shake .35s; }
+.shake { animation: shake calc(var(--fx, 1) * .3s); }
 @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
-.lunge { animation: lunge .4s ease; }
-@keyframes lunge { 35% { transform: translateY(14px) scale(1.1); } }
+.lunge { animation: lunge calc(var(--fx, 1) * .38s) ease; }
+@keyframes lunge { 35% { transform: translateY(18px) scale(1.14); } }
 
 /* ---------- hand (fanned) ---------- */
 .hand { display: flex; gap: 6px; overflow-x: auto; overflow-y: visible; padding: 16px 2px 10px; min-height: 152px; align-items: flex-end; }
@@ -165,8 +171,8 @@ h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); letter-spac
 .reward-card.rarity-rare { border-color: #e0a93e; box-shadow: 0 0 12px #e0a93e77; }
 
 /* played-card fly-away ghost */
-.card-ghost { position: fixed; z-index: 80; pointer-events: none; transition: transform .42s ease-in, opacity .42s ease-in; background: #fdf6e3; color: #333; border-radius: 12px; border: 3px solid #ffd23f; padding: 6px; text-align: center; }
-.card-ghost.fly { transform: translateY(-46vh) scale(.55) rotate(6deg); opacity: 0; }
+.card-ghost { position: fixed; z-index: 80; pointer-events: none; transition-property: transform, opacity; transition-timing-function: ease-in; background: #fdf6e3; color: #333; border-radius: 12px; border: 3px solid #ffd23f; padding: 6px; text-align: center; }
+.card-ghost.fly { transform: translate(var(--fly-x, 0px), var(--fly-y, -46vh)) scale(.42) rotate(7deg); opacity: .08; }
 
 .target-hint { text-align: center; font-weight: 900; color: #ffd23f; text-shadow: 0 1px 3px rgba(0,0,0,.6); animation: hintbob .8s infinite; }
 @keyframes hintbob { 50% { transform: translateY(-4px); } }

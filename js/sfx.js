@@ -40,4 +40,16 @@ export const sfx = {
   relic: () => { [660, 880, 1100].forEach((f, i) => tone(f, 0.14, 'sine', 0.12, i * 0.09)); },
   quack: () => { tone(280, 0.09, 'sawtooth', 0.18); tone(220, 0.12, 'sawtooth', 0.14, 0.09); },
   turn: () => tone(392, 0.1, 'triangle', 0.1),
+
+  // ---- per-card-family voices (cause-and-effect pass, Sat 2026-08-02) ----
+  slash: () => { tone(750, 0.05, 'sawtooth', 0.12); tone(320, 0.13, 'sawtooth', 0.15, 0.03); },       // single hit
+  slashTick: (i = 0) => tone(480 + (i % 5) * 90, 0.05, 'square', 0.11),                               // one hit of a flurry
+  shield: () => { tone(170, 0.16, 'triangle', 0.2); tone(85, 0.22, 'sine', 0.13, 0.02); },            // block THUNK
+  shieldClink: () => { tone(1100, 0.05, 'triangle', 0.12); tone(700, 0.09, 'triangle', 0.1, 0.03); }, // fully blocked
+  poison: () => { tone(340, 0.11, 'sine', 0.12); tone(270, 0.11, 'sine', 0.12, 0.09); tone(210, 0.16, 'sine', 0.13, 0.18); }, // bubbly downward
+  debuff: () => { tone(420, 0.12, 'sawtooth', 0.1); tone(300, 0.14, 'sawtooth', 0.1, 0.09); tone(210, 0.18, 'sawtooth', 0.1, 0.19); },
+  powerUp: () => { [262, 330, 392, 523].forEach((f, i) => tone(f, 0.11, 'triangle', 0.13, i * 0.06)); }, // power comes online
+  sparkle: () => { [1047, 1319, 1568].forEach((f, i) => tone(f, 0.07, 'sine', 0.09, i * 0.04)); },    // draw / energy
+  pop: () => { tone(520, 0.05, 'square', 0.16); tone(260, 0.09, 'sine', 0.12, 0.03); },               // diaper floats/pops
+  boom: () => { tone(90, 0.35, 'sawtooth', 0.2); tone(55, 0.5, 'sine', 0.18, 0.05); tone(180, 0.15, 'square', 0.1, 0.02); }, // BLOWOUT / huge hit
 };

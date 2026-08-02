@@ -9,7 +9,7 @@ mkdir -p assets/audio/gen-logs
 
 gen_track() { # track title [extra args...]
   local track="$1" title="$2"; shift 2
-  if [ -f "assets/audio/$track.mp3" ]; then echo "=== $track already done"; return 0; fi
+  if [ -f "assets/originals/audio/$track.mp3" ]; then echo "=== $track already done"; return 0; fi
   local tmp="assets/audio/tmp_$track"
   mkdir -p "$tmp"
   # transient "hcaptcha never finished loading" config_errors cost 0 credits — retry
@@ -26,7 +26,8 @@ gen_track() { # track title [extra args...]
   local f
   f=$(ls "$tmp" | /usr/bin/grep "${id:0:8}" | head -1)
   if [ -z "$f" ]; then echo "!!! $track FAILED (take-1 file ${id:0:8} not downloaded)"; return 1; fi
-  mv "$tmp/$f" "assets/audio/$track.mp3"
+  mkdir -p assets/originals/audio
+  mv "$tmp/$f" "assets/originals/audio/$track.mp3"
   # take 2 parked (gitignored), never shipped — standing keep-take-1 rule
   mkdir -p assets/audio/other-takes
   for rest in "$tmp"/*; do [ -f "$rest" ] && mv "$rest" "assets/audio/other-takes/$track-take2.mp3"; done
@@ -46,6 +47,7 @@ gen_track anthem_aaron "Aaron the Strong" --tags "stomp rock kids victory anthem
 gen_track anthem_liam "Liam the Little" --tags "silly bouncy kids song, ukulele, tuba, playful, upbeat, giggly, children's music" --exclude "sad, slow, rock, heavy" --lyrics-file "$LY/liam.txt" || FAILS=1
 gen_track anthem_both "Legends of Rolfe" --tags "triumphant country pop finale, brass, gang vocals, joyful, kids victory anthem, big singalong ending" --exclude "sad, slow" --lyrics-file "$LY/both.txt" || FAILS=1
 
+./assets/optimize-audio.sh >/dev/null && echo "(optimize-audio refreshed deployed 128kbps copies)"
 echo "=== music batch complete (fails=$FAILS)"
 ls -la assets/audio/*.mp3
 exit $FAILS

@@ -22,7 +22,14 @@ const PROFILE_KEY = 'rl2_profile';
 const TIPS_KEY = 'rl2_tips';
 
 const REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const STEP_MS = REDUCED ? 30 : 620;   // enemy-turn sequencing beat
+// Animation pacing: 'slow' (default — big, readable cause-and-effect for
+// learning) or 'fast' (settings toggle, once the game is understood).
+const ANIM_KEY = 'rl2_anim';
+let animMode = localStorage.getItem(ANIM_KEY) || 'slow';
+function fxScale() { return REDUCED ? 0.01 : (animMode === 'fast' ? 0.55 : 1.35); }
+function stepMs() { return REDUCED ? 30 : (animMode === 'fast' ? 420 : 950); }  // enemy-turn beat
+function applyFxScale() { document.documentElement.style.setProperty('--fx', String(REDUCED ? 0.01 : fxScale())); }
+applyFxScale();
 
 let run = null;
 let combat = null;
@@ -233,13 +240,22 @@ function showSettings() {
     mus.onclick = () => { music.setEnabled(!music.isEnabled()); mus.textContent = `🎵 Music: ${music.isEnabled() ? 'ON' : 'OFF'}`; };
     const sx = el('button', 'btn', `🔔 Sounds: ${sfxOn() ? 'ON' : 'OFF'}`);
     sx.onclick = () => { setSfx(!sfxOn()); sx.textContent = `🔔 Sounds: ${sfxOn() ? 'ON' : 'OFF'}`; };
+    const animLabel = () => `🎬 Animations: ${animMode === 'slow' ? 'SLOW & CLEAR' : 'FAST'}`;
+    const anim = el('button', 'btn', animLabel());
+    anim.onclick = () => {
+      animMode = animMode === 'slow' ? 'fast' : 'slow';
+      localStorage.setItem(ANIM_KEY, animMode);
+      applyFxScale();
+      anim.textContent = animLabel();
+      toast(animMode === 'fast' ? '🎬 Fast animations — for pros!' : '🎬 Slow & clear — see every hit land.');
+    };
     const fc = el('button', 'btn gold', '🔑 Secret Farm Code');
     fc.onclick = () => { close(); showFarmCode(); };
     const a2hs = el('button', 'btn secondary', '📲 Put it on your home screen');
     a2hs.onclick = () => { close(); showA2HS(); };
     const reset = el('button', 'btn danger', '🗑️ Abandon current run');
     reset.onclick = () => { clearSave(); run = null; close(); showTitle(); };
-    m.append(mus, sx, fc, a2hs, reset);
+    m.append(mus, sx, anim, fc, a2hs, reset);
     m.appendChild(el('p', 'subtitle', 'Rolfe Legends 2 · made with love by Uncle James'));
   });
 }
@@ -622,9 +638,11 @@ function snapCombat(st) {
 function floaty(target, text, cls) {
   if (!target || REDUCED) return;
   const f = el('span', `floaty ${cls}`, text);
-  f.style.left = `${30 + Math.random() * 40}%`;
+  f.style.left = `${22 + Math.random() * 46}%`;
+  const ms = Math.round(950 * fxScale());
+  f.style.animationDuration = `${ms}ms`;
   target.appendChild(f);
-  setTimeout(() => f.remove(), 900);
+  setTimeout(() => f.remove(), ms + 60);
 }
 
 // Compare current combat state to prevSnap and decorate the fresh DOM with
@@ -644,6 +662,7 @@ function animateDiffs(s, enemyEls, heroEl) {
   const events = st.log.slice(lastLogIdx);
   lastLogIdx = st.log.length;
   let delay = 0;
+  const stagger = Math.max(90, Math.round(190 * fxScale()));
   for (const ev of events) {
     if (ev.t === 'addCard') {
       const card = CARDS[ev.id];
@@ -656,18 +675,28 @@ function animateDiffs(s, enemyEls, heroEl) {
     if (ev.t === 'evoke') {
       const orbRow = s.querySelector && s.querySelector('.orb-row');
       const d = DIAPERS[ev.orb];
-      if (orbRow && d) floaty(orbRow, `${d.emoji} POP!`, 'heal');
+      if (orbRow && d) { floaty(orbRow, `${d.emoji} POP!`, 'heal'); if (ev.orb === 'blowout') sfx.boom(); else sfx.pop(); }
       continue;
     }
     const target = ev.target === 'hero' ? heroEl : enemyEls[ev.target];
     if (!target) continue;
+    const hitIdx = delay / stagger;
     const show = () => {
-      if (ev.t === 'dmg') { floaty(target, `-${ev.amount}`, 'dmg'); target.classList.remove('shake'); void target.offsetWidth; target.classList.add('shake'); }
-      else if (ev.t === 'blocked') floaty(target, '🛡️ Blocked!', 'blk');
+      if (ev.t === 'dmg') {
+        floaty(target, `-${ev.amount}`, 'dmg' + (ev.amount >= 12 ? ' big' : ''));
+        target.classList.remove('shake'); void target.offsetWidth; target.classList.add('shake');
+        if (ev.target === 'hero') sfx.hurt();
+        else if (ev.amount >= 15) sfx.boom();
+        else if (ev.amount >= 8) sfx.slash();
+        else sfx.slashTick(hitIdx);
+      } else if (ev.t === 'blocked') {
+        floaty(target, '🛡️ Blocked!', 'blk');
+        sfx.shieldClink();
+      }
     };
     if (REDUCED || delay === 0) show();
     else setTimeout(show, delay);
-    delay += 170;
+    delay += stagger;
   }
   st.enemies.forEach((e, i) => {
     const elx = enemyEls[i];
@@ -706,7 +735,7 @@ function renderCombat(actedEnemy = null) {
       ${dead ? '' : intentLabel(st, e)}`);
     if (!dead && selectedCard && cardWantsTarget(selectedCard)) {
       d.classList.add('targetable');
-      d.onclick = () => playSelected(e);
+      d.onclick = () => playSelected(e, d);
     }
     if (e === actedEnemy) d.classList.add('lunge');
     row.appendChild(d);
@@ -834,14 +863,13 @@ function runEnemyPhase() {
     const actor = C.stepEnemyAction(combat);
     if (combat.over) return setTimeout(afterAction, REDUCED ? 0 : 500);
     if (actor) {
-      sfx.attack();
       renderCombat(actor);
-      setTimeout(step, STEP_MS);
+      setTimeout(step, stepMs());
     } else {
       renderCombat();      // new hero turn drawn
     }
   };
-  setTimeout(step, REDUCED ? 0 : 380);
+  setTimeout(step, REDUCED ? 0 : Math.round(stepMs() * 0.5));
 }
 
 // Fill {d}/{b}/{n} in card text. `live` applies current strength/dex/weak/frail
@@ -870,7 +898,9 @@ function cardWantsTarget(c) {
   return C.cardNeedsTarget(cardInfo(c)) && C.livingEnemies(combat).length > 1;
 }
 
-function flyCard(cardEl) {
+// the played card physically travels to what it affects — attacks fly at the
+// enemy, skills/powers fly to YOU (cause-and-effect pass)
+function flyCard(cardEl, targetEl) {
   if (REDUCED || !cardEl) return;
   const r = cardEl.getBoundingClientRect();
   const ghost = cardEl.cloneNode(true);
@@ -878,9 +908,33 @@ function flyCard(cardEl) {
   ghost.style.left = `${r.left}px`;
   ghost.style.top = `${r.top}px`;
   ghost.style.width = `${r.width}px`;
+  let dx = 0, dy = -window.innerHeight * 0.45;
+  if (targetEl) {
+    const t = targetEl.getBoundingClientRect();
+    dx = t.left + t.width / 2 - (r.left + r.width / 2);
+    dy = t.top + t.height / 2 - (r.top + r.height / 2);
+  }
+  ghost.style.setProperty('--fly-x', `${dx}px`);
+  ghost.style.setProperty('--fly-y', `${dy}px`);
+  const ms = Math.round(520 * fxScale());
+  ghost.style.transitionDuration = `${ms}ms`;
   document.body.appendChild(ghost);
   requestAnimationFrame(() => ghost.classList.add('fly'));
-  setTimeout(() => ghost.remove(), 480);
+  setTimeout(() => ghost.remove(), ms + 40);
+}
+
+// every card family has a voice: single slash vs flurry ticks vs shield THUNK
+// vs poison bubble vs power-up chord (damage itself sounds per-hit via events)
+function playCardSound(info) {
+  const fx = info.fx || [];
+  if (info.type === 'power') return sfx.powerUp();
+  if (fx.some((o) => o.channel) || ['double_trouble', 'uppies'].includes(info.special)) return sfx.pop();
+  if (fx.some((o) => o.status && o.status.k === 'poison')) return sfx.poison();
+  if (fx.some((o) => o.status && ['weak', 'vulnerable', 'frail'].includes(o.status.k)) && info.type !== 'attack') return sfx.debuff();
+  if (fx.some((o) => o.block != null)) return sfx.shield();
+  if (fx.some((o) => o.draw || o.energy)) return sfx.sparkle();
+  if (info.type === 'attack') return; // per-hit sounds arrive with the damage events
+  return sfx.play();
 }
 
 function onCardTap(c, cardEl) {
@@ -897,19 +951,23 @@ function onCardTap(c, cardEl) {
     return;
   }
   selectedCard = null;
-  sfx.play();
-  flyCard(cardEl);
+  const info = cardInfo(c);
+  playCardSound(info);
+  const targetEl = info.type === 'attack'
+    ? document.querySelector('.enemy:not(.dead)')
+    : document.querySelector('.hero-strip');
+  flyCard(cardEl, targetEl);
   const target = C.livingEnemies(combat)[0];
   C.playCard(combat, c, target);
   afterAction();
 }
 
-function playSelected(enemy) {
+function playSelected(enemy, enemyEl) {
   const c = selectedCard;
   selectedCard = null;
-  sfx.attack();
+  playCardSound(cardInfo(c));
   const selEl = document.querySelector('.card.selected');
-  flyCard(selEl);
+  flyCard(selEl, enemyEl || document.querySelector('.enemy.targetable'));
   C.playCard(combat, c, enemy);
   afterAction();
 }

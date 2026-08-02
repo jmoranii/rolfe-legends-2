@@ -2,6 +2,13 @@
 
 Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 300`.
 
+## 2026-08-02 · Card feel system + anthem pronunciation fix
+
+- **Cause-and-effect pass** (James's round-4 ask): played cards physically FLY to what they affect (attacks → the enemy, skills/powers → you); damage floaties bigger with an impact pop (12+ = huge red, 15+ = boom sound); every card family has its own voice (single slash / flurry ticks / shield THUNK / poison bubble / power-up chord / diaper pop / BLOWOUT boom) with per-hit sounds synced to per-hit floaties.
+- **Animation pacing**: default is SLOW & CLEAR (~1.35× longer, ~950ms enemy beats) for learning; ⚙️ Settings → "🎬 Animations: FAST" once they've got it. Driven by a --fx CSS var + JS scale so every shake/lunge/fly/floaty obeys one knob. prefers-reduced-motion still wins.
+- **Anthem names fixed**: Suno mispronounced Wyatt + Liam → anthem_wyatt/anthem_liam/anthem_both regenerated singing "Whyatt"/"Leeum" while the karaoke captions remap to the real spellings (RL1 trick, verified live: audio sings Whyatt at t=17s, caption reads "Wyatt laced up…"). Beat triggers match both spellings. ~30 credits.
+- sw cache v5 · unit 1163 · e2e 65/65 both engines.
+
 ## 2026-08-02 · Liam legibility audit + junk-card & elite-reward visibility
 
 James's round-3 playtest notes, all fixed:
