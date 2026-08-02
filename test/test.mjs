@@ -604,6 +604,27 @@ for (const key of Object.keys(ENEMIES)) {
   ok(R.ENCOUNTERS[3].boss.some((b) => b.includes('thunder') && b.includes('lightning')), 'act 3 boss pool has the pair');
 }
 
+// ---------- tick-damage attribution (UI reads these to explain WHY) ----------
+{
+  const { state } = combatVs(['gopher'], { hero: 'wyatt' });
+  const e = state.enemies[0];
+  C.applyStatus(state, e, 'poison', 5);
+  state.log.length = 0;
+  C.endTurn(state);
+  ok(state.log.some((ev) => ev.t === 'dmg' && ev.src === 'poison'), 'poison ticks carry src=poison');
+  const { state: s2 } = combatVs(['crow'], { hero: 'liam' });
+  C.channelOrb(s2, 'stinky');
+  s2.log.length = 0;
+  C.endTurn(s2);
+  ok(s2.log.some((ev) => (ev.t === 'dmg' || ev.t === 'blocked') && ev.src === 'stinky'), 'stinky zaps carry src=stinky');
+  const { state: s3 } = combatVs(['barn_spider']);
+  s3.hero.thorns = 3;
+  s3.enemies[0].intent = { name: 'Bite', kind: 'attack', dmg: 5 };
+  s3.log.length = 0;
+  C.endTurn(s3);
+  ok(s3.log.some((ev) => ev.src === 'thorns'), 'thorns recoil carries src=thorns');
+}
+
 // ---------- steppable enemy phase (UI sequencing = endTurn semantics) ----------
 {
   const { state } = combatVs(['gopher', 'crow'], { seed: 55 });

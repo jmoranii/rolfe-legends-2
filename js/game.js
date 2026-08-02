@@ -645,6 +645,38 @@ function floaty(target, text, cls) {
   setTimeout(() => f.remove(), ms + 60);
 }
 
+// a little emoji projectile from cause → target (diaper zaps, etc.)
+function flingEmoji(fromEl, toEl, emoji) {
+  if (REDUCED || !fromEl || !toEl) return 0;
+  const a = fromEl.getBoundingClientRect();
+  const b = toEl.getBoundingClientRect();
+  const f = el('span', 'fling', emoji);
+  f.style.left = `${a.left + a.width / 2}px`;
+  f.style.top = `${a.top + a.height / 2}px`;
+  const ms = Math.round(430 * fxScale());
+  f.style.transitionDuration = `${ms}ms`;
+  document.body.appendChild(f);
+  requestAnimationFrame(() => {
+    f.style.transform = `translate(${b.left + b.width / 2 - (a.left + a.width / 2)}px, ${b.top + b.height / 2 - (a.top + a.height / 2)}px) scale(1.35)`;
+    f.style.opacity = '0.15';
+  });
+  setTimeout(() => f.remove(), ms + 40);
+  return ms;
+}
+
+// tick-damage attribution: WHY that number just happened (James's ask —
+// poison and diaper zaps were mystery damage after END TURN)
+const SRC_FX = {
+  poison: { ico: '☠️', cls: 'poison', sound: () => sfx.poison(), flash: 'poison-flash' },
+  stinky: { ico: '💩', cls: 'dmg', sound: () => sfx.pop(), fromOrb: 'stinky' },
+  blowout: { ico: '🌋', cls: 'dmg big', sound: () => sfx.boom(), fromOrb: 'blowout' },
+  thorns: { ico: '🌵', cls: 'dmg', sound: () => sfx.slashTick(2) },
+  hailstone: { ico: '🧊', cls: 'dmg', sound: () => sfx.shieldClink() },
+  constrict: { ico: '🌊', cls: 'dmg', sound: () => sfx.debuff() },
+  ivy: { ico: '🌿', cls: 'poison', sound: () => sfx.poison() },
+  effort: { ico: '😮‍💨', cls: 'dmg', sound: () => {} },
+};
+
 // Compare current combat state to prevSnap and decorate the fresh DOM with
 // floaties + shakes. HP-loss floaties come from the engine's per-hit damage
 // log so a ×3 flurry or an X-cost spin visibly lands as 3 separate hits
@@ -662,6 +694,7 @@ function animateDiffs(s, enemyEls, heroEl) {
   const events = st.log.slice(lastLogIdx);
   lastLogIdx = st.log.length;
   let delay = 0;
+  let sawOrbBlock = false;
   const stagger = Math.max(90, Math.round(190 * fxScale()));
   for (const ev of events) {
     if (ev.t === 'addCard') {
@@ -670,6 +703,13 @@ function animateDiffs(s, enemyEls, heroEl) {
         const pile = ev.to === 'draw' ? 'shuffled into your DRAW pile' : ev.to === 'hand' ? 'jammed into your hand' : 'tossed onto your DISCARD pile';
         toast(`${card.emoji} ${ev.n > 1 ? ev.n + '× ' : ''}${card.name} got ${pile}! (It vanishes after the fight.)`, 3000);
       }
+      continue;
+    }
+    if (ev.t === 'orbblock') {
+      const orbEl = s.querySelector && s.querySelector('.orb[data-orb="fresh"]');
+      if (orbEl && heroEl) flingEmoji(orbEl, heroEl, '🩲');
+      floaty(heroEl, `🩲 +${ev.amount} 🛡️`, 'blk');
+      sawOrbBlock = true;
       continue;
     }
     if (ev.t === 'evoke') {
@@ -681,14 +721,31 @@ function animateDiffs(s, enemyEls, heroEl) {
     const target = ev.target === 'hero' ? heroEl : enemyEls[ev.target];
     if (!target) continue;
     const hitIdx = delay / stagger;
+    const srcFx = ev.src && SRC_FX[ev.src];
     const show = () => {
       if (ev.t === 'dmg') {
-        floaty(target, `-${ev.amount}`, 'dmg' + (ev.amount >= 12 ? ' big' : ''));
-        target.classList.remove('shake'); void target.offsetWidth; target.classList.add('shake');
-        if (ev.target === 'hero') sfx.hurt();
-        else if (ev.amount >= 15) sfx.boom();
-        else if (ev.amount >= 8) sfx.slash();
-        else sfx.slashTick(hitIdx);
+        if (srcFx) {
+          // attributed tick: emoji-prefixed floaty in the source's color, the
+          // source flings itself at the target, poison flashes the victim green
+          let wait = 0;
+          if (srcFx.fromOrb) {
+            const orbEl = document.querySelector(`.orb[data-orb="${srcFx.fromOrb}"]`);
+            wait = flingEmoji(orbEl, target, srcFx.ico);
+          }
+          setTimeout(() => {
+            floaty(target, `${srcFx.ico} -${ev.amount}`, srcFx.cls + (ev.amount >= 12 ? ' big' : ''));
+            target.classList.remove('shake'); void target.offsetWidth; target.classList.add('shake');
+            if (srcFx.flash) { target.classList.remove(srcFx.flash); void target.offsetWidth; target.classList.add(srcFx.flash); }
+            srcFx.sound();
+          }, REDUCED ? 0 : wait);
+        } else {
+          floaty(target, `-${ev.amount}`, 'dmg' + (ev.amount >= 12 ? ' big' : ''));
+          target.classList.remove('shake'); void target.offsetWidth; target.classList.add('shake');
+          if (ev.target === 'hero') sfx.hurt();
+          else if (ev.amount >= 15) sfx.boom();
+          else if (ev.amount >= 8) sfx.slash();
+          else sfx.slashTick(hitIdx);
+        }
       } else if (ev.t === 'blocked') {
         floaty(target, '🛡️ Blocked!', 'blk');
         sfx.shieldClink();
@@ -706,7 +763,7 @@ function animateDiffs(s, enemyEls, heroEl) {
     if (e.block > p.block) floaty(elx, `🛡️+${e.block - p.block}`, 'blk');
   });
   if (st.hero.hp > prev.heroHp) floaty(heroEl, `+${st.hero.hp - prev.heroHp}`, 'heal');
-  if (st.hero.block > prev.heroBlock) floaty(heroEl, `🛡️+${st.hero.block - prev.heroBlock}`, 'blk');
+  if (!sawOrbBlock && st.hero.block > prev.heroBlock) floaty(heroEl, `🛡️+${st.hero.block - prev.heroBlock}`, 'blk');
   prevSnap = snapCombat(st);
 }
 

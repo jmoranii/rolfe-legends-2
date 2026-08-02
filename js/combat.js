@@ -28,7 +28,7 @@ function incomingMult(target) { return (target.vulnerable || 0) > 0 ? 1.5 : 1; }
 // Every resolved hit is appended to state.log so the UI can show EACH hit of a
 // multi-hit card/intent separately (X-cost spins, ×N flurries) — including
 // fully-blocked hits ("Blocked!").
-export function dealDamage(state, target, amount, { attacker = null, isAttack = true } = {}) {
+export function dealDamage(state, target, amount, { attacker = null, isAttack = true, src = null } = {}) {
   if (!target || target.hp <= 0 || target.gone) return 0;
   let dmg = Math.floor(amount * (isAttack ? incomingMult(target) : 1));
   if (target.intangible && isAttack) dmg = Math.min(dmg, 1);
@@ -38,7 +38,7 @@ export function dealDamage(state, target, amount, { attacker = null, isAttack = 
   state.log.push({
     t: dmg > 0 ? 'dmg' : (absorbed > 0 ? 'blocked' : 'miss'),
     target: target === state.hero ? 'hero' : state.enemies.indexOf(target),
-    amount: dmg, absorbed,
+    amount: dmg, absorbed, src,
   });
   if (dmg > 0) {
     target.hp -= dmg;
@@ -54,7 +54,7 @@ export function dealDamage(state, target, amount, { attacker = null, isAttack = 
   }
   // thorns hit back on attack contact
   if (isAttack && attacker && dmg + absorbed > 0 && (target.thorns || 0) > 0 && attacker.hp > 0) {
-    dealDamage(state, attacker, target.thorns, { isAttack: false });
+    dealDamage(state, attacker, target.thorns, { isAttack: false, src: 'thorns' });
   }
   if (target.hp <= 0 && target !== state.hero) handleEnemyDeath(state, target);
   return dmg;
@@ -94,7 +94,7 @@ export function applyStatus(state, target, k, n) {
 function tickPoison(state, creature) {
   const p = creature.poison || 0;
   if (p > 0) {
-    dealDamage(state, creature, p, { isAttack: false });
+    dealDamage(state, creature, p, { isAttack: false, src: 'poison' });
     creature.poison = p - 1;
   }
 }
@@ -117,7 +117,7 @@ export function drawCards(state, n) {
     const c = state.draw.pop();
     state.hand.push(c);
     const info = cardInfo(c);
-    if (info.onDrawDmg) dealDamage(state, state.hero, info.onDrawDmg, { isAttack: false });
+    if (info.onDrawDmg) dealDamage(state, state.hero, info.onDrawDmg, { isAttack: false, src: 'ivy' });
     // Waltzing Weasel confusion: randomize cost as drawn
     if (state.flags.confused && info.cost !== null && info.cost !== 'X') {
       state.costOverride[c.uid] = state.rng.int(4);
@@ -183,7 +183,7 @@ export function evokeOrb(state, times = 1) {
   for (let t = 0; t < times; t++) {
     if (orb.type === 'stinky') {
       for (const e of randomTargets(state, h.powers.max_stink)) {
-        dealDamage(state, e, DIAPERS.stinky.evoke + h.focus, { isAttack: false });
+        dealDamage(state, e, DIAPERS.stinky.evoke + h.focus, { isAttack: false, src: 'stinky' });
       }
     } else if (orb.type === 'fresh') {
       h.block += DIAPERS.fresh.evoke + h.focus;
@@ -193,7 +193,7 @@ export function evokeOrb(state, times = 1) {
       const live = livingEnemies(state);
       if (live.length) {
         const weakest = live.slice().sort((a, b) => a.hp - b.hp)[0];
-        dealDamage(state, weakest, orb.stored, { isAttack: false });
+        dealDamage(state, weakest, orb.stored, { isAttack: false, src: 'blowout' });
       }
     }
   }
@@ -213,10 +213,11 @@ function orbTurnEnd(state) {
     if (state.over) break;
     if (orb.type === 'stinky') {
       for (const e of randomTargets(state, h.powers.max_stink)) {
-        dealDamage(state, e, DIAPERS.stinky.passive + h.focus, { isAttack: false });
+        dealDamage(state, e, DIAPERS.stinky.passive + h.focus, { isAttack: false, src: 'stinky' });
       }
     } else if (orb.type === 'fresh') {
       h.block += DIAPERS.fresh.passive + h.focus;
+      state.log.push({ t: 'orbblock', amount: DIAPERS.fresh.passive + h.focus });
     } else if (orb.type === 'blowout') {
       orb.stored += DIAPERS.blowout.passive + h.focus;
     }
@@ -314,7 +315,7 @@ export function startHeroTurn(state) {
   if (h.powers.tornado_form) applyStatus(state, h, 'strength', h.powers.tornado_form);
   if (h.powers.ball_machine) addCardToCombat(state, 'soccer_ball', 1, 'hand');
   tickPoison(state, h);
-  if (state.flags.constrict) dealDamage(state, h, state.flags.constrict, { isAttack: false });
+  if (state.flags.constrict) dealDamage(state, h, state.flags.constrict, { isAttack: false, src: 'constrict' });
   checkCombatEnd(state);
   if (state.over) return;
   drawCards(state, HAND_SIZE);
@@ -443,7 +444,7 @@ function runEffects(state, info, target) {
     if (op.draw) drawCards(state, op.draw);
     if (op.discard) state.pendingDiscard += op.discard;
     if (op.energy) h.energy += op.energy;
-    if (op.loseHp) dealDamage(state, h, op.loseHp, { isAttack: false });
+    if (op.loseHp) dealDamage(state, h, op.loseHp, { isAttack: false, src: 'effort' });
     if (op.selfStr) h.strength += op.selfStr;
     if (op.selfDex) h.dexterity += op.selfDex;
     if (op.tempStr) h.tempStr += op.tempStr;
@@ -503,7 +504,7 @@ export function beginEnemyPhase(state) {
   // Hailstones in hand burn
   for (const c of [...state.hand]) {
     const info = cardInfo(c);
-    if (info.endTurnDmg) dealDamage(state, h, info.endTurnDmg, { isAttack: false });
+    if (info.endTurnDmg) dealDamage(state, h, info.endTurnDmg, { isAttack: false, src: 'hailstone' });
   }
   if (h.powers.tough_skin) h.block += h.powers.tough_skin;
   orbTurnEnd(state);
