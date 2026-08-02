@@ -574,6 +574,64 @@ for (const key of Object.keys(ENEMIES)) {
   ok(DIAPERS.snack.name === 'Snack Time', "Liam's Snack Time diaper untouched");
 }
 
+// ---------- BELLY FLOP! + true-Claw Sticky Hands + shop/rest expansion (James, Sun 2026-08-02) ----------
+{
+  // Body Slam: damage equals current Block (Strength still applies on top)
+  const run = freshRun('aaron', 31);
+  const state = C.startCombat(run, ['flooding_creek'], makeRng(31));
+  state.hero.block = 12;
+  forceHand(state, ['belly_flop']);
+  const e = state.enemies[0];
+  const hp0 = e.hp;
+  C.playCard(state, state.hand[0], e);
+  eq(hp0 - e.hp, 12, 'BELLY FLOP! deals damage equal to Block');
+  state.hero.block = 12; state.hero.strength = 3; state.hero.energy = 3;
+  forceHand(state, ['belly_flop']);
+  const hp1 = e.hp;
+  C.playCard(state, state.hand[0], e);
+  eq(hp1 - e.hp, 15, 'Strength stacks on top of the flop');
+  const up = cardInfo({ id: 'belly_flop', uid: 1, up: true });
+  eq(up.cost, 0, 'BELLY FLOP!+ costs 0 (StS Body Slam mirror)');
+}
+{
+  // Claw: every play makes ALL copies stronger, fight-scoped
+  const run = freshRun('liam', 32);
+  const state = C.startCombat(run, ['flooding_creek'], makeRng(32));
+  forceHand(state, ['sticky_hands', 'sticky_hands', 'sticky_hands']);
+  const e = state.enemies[0];
+  let hp = e.hp;
+  C.playCard(state, state.hand[0], e);
+  eq(hp - e.hp, 4, 'first Sticky Hands deals base 4');
+  hp = e.hp;
+  C.playCard(state, state.hand[0], e);
+  eq(hp - e.hp, 6, 'second play got +2 STICKIER');
+  hp = e.hp;
+  C.playCard(state, state.hand[0], e);
+  eq(hp - e.hp, 8, 'third play +4 — the whole family scales');
+  const s2 = C.startCombat(run, ['gopher'], makeRng(33));
+  ok(!s2.grown.sticky_hands, 'stickiness resets between fights');
+}
+{
+  // shop: 8 cards + 2 treasures, buying one leaves the other
+  const run = freshRun('wyatt', 34);
+  run.gold = 999;
+  const shop = R.makeShop(run, makeRng(34));
+  eq(shop.relics.length, 2, 'shop offers 2 farm treasures');
+  ok(shop.relics[0].id !== shop.relics[1].id, 'the two treasures differ');
+  const id0 = shop.relics[0].id, id1 = shop.relics[1].id;
+  ok(R.shopBuyRelic(run, shop, 0), 'buy the first treasure');
+  ok(run.relics.includes(id0), 'bought treasure joins the run');
+  ok(shop.relics.length === 1 && shop.relics[0].id === id1, 'the other stays for sale');
+  // Granny's third option: store a card at her house
+  const d0 = run.deck.length;
+  const uid = run.deck[0].uid;
+  ok(R.restStore(run, uid), "Granny stores a card");
+  ok(run.deck.length === d0 - 1 && !run.deck.some((c) => c.uid === uid), 'card left the deck for good');
+  const solo = freshRun('wyatt', 35);
+  solo.deck = [solo.deck[0]];
+  ok(!R.restStore(solo, solo.deck[0].uid), 'never strands a kid with an empty deck');
+}
+
 // ---------- alternate bosses ----------
 {
   // Mud King splits into two mediums at half HP (Slime Boss)
@@ -737,7 +795,7 @@ for (const key of Object.keys(ENEMIES)) {
   run.gold = 500;
   const rng = makeRng(21);
   const shop = R.makeShop(run, rng);
-  eq(shop.cards.length, 5, 'shop stocks 5 cards');
+  eq(shop.cards.length, 8, 'shop stocks 8 cards');
   const d0 = run.deck.length;
   ok(R.shopBuyCard(run, shop, 0), 'buy card');
   eq(run.deck.length, d0 + 1, 'card added to deck');

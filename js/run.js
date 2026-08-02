@@ -185,12 +185,13 @@ export function applyCombatResult(run, combatState) {
 // ---------- shop (Jacob's Farm Supply) ----------
 
 export function makeShop(run, rng) {
-  const cards = cardDraft(run, rng, 5).map((id) => ({
+  // 8 cards + 2 treasures (James, Sun 2026-08-02: richer stock fills the hole snacks left)
+  const cards = cardDraft(run, rng, 8).map((id) => ({
     id, price: Math.round(RARITY_GOLD[CARDS[id].rarity] * (0.9 + rng.random() * 0.2)),
   }));
-  const rp = relicPool(run.relics);
-  const relic = rp.length ? { id: rng.pick(rp), price: rng.range(143, 157) } : null;
-  return { cards, relic, removePrice: 75, removed: false };
+  const relics = rng.shuffle(relicPool(run.relics)).slice(0, 2)
+    .map((id) => ({ id, price: rng.range(143, 157) }));
+  return { cards, relics, removePrice: 75, removed: false };
 }
 
 export function shopBuyCard(run, shop, i) {
@@ -201,11 +202,12 @@ export function shopBuyCard(run, shop, i) {
   shop.cards.splice(i, 1);
   return true;
 }
-export function shopBuyRelic(run, shop) {
-  if (!shop.relic || run.gold < shop.relic.price) return false;
-  run.gold -= shop.relic.price;
-  run.relics.push(shop.relic.id);
-  shop.relic = null;
+export function shopBuyRelic(run, shop, i = 0) {
+  const item = shop.relics[i];
+  if (!item || run.gold < item.price) return false;
+  run.gold -= item.price;
+  run.relics.push(item.id);
+  shop.relics.splice(i, 1);
   return true;
 }
 export function shopRemoveCard(run, shop, cardUid) {
@@ -219,6 +221,16 @@ export function shopRemoveCard(run, shop, cardUid) {
 }
 
 // ---------- rest (Granny Rockie's porch) ----------
+
+// Granny keeps a card safe at her house — free removal, the rest-site third
+// option (James, Sun 2026-08-02: "store some of your things at her house")
+export function restStore(run, cardUid) {
+  if (run.deck.length <= 1) return false;
+  const i = run.deck.findIndex((c) => c.uid === cardUid);
+  if (i < 0) return false;
+  run.deck.splice(i, 1);
+  return true;
+}
 
 export function restCookies(run) {
   const heal = Math.floor(run.maxHp * 0.3);

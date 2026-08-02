@@ -281,6 +281,7 @@ export function startCombat(run, enemyKeys, rng, { kind = 'fight' } = {}) {
     turn: 0, over: false, won: false,
     attacksThisTurn: 0, skillsThisTurn: 0, cardsThisTurn: 0,
     pendingDiscard: 0, costOverride: {}, flags: {},
+    grown: {}, // per-fight shared card growth (Sticky Hands = Claw scaling), keyed by card id
     goldRecovered: 0, log: [],
     phase: 'hero', queue: [],
   };
@@ -430,7 +431,9 @@ function runEffects(state, info, target) {
   for (const op of info.fx) {
     if (op.dmg != null) {
       const times = op.times || 1;
-      const strapped = attackValue(op.dmg, h);
+      // grows (Claw): every copy shares the fight-long bonus · dmgFromBlock (Body Slam)
+      const grown = info.grows ? (state.grown[info.id] || 0) : 0;
+      const strapped = attackValue(op.dmg + grown + (op.dmgFromBlock ? h.block : 0), h);
       // Pen Nib mirror (Slingshot): every 10th attack CARD doubles its damage
       let mult = 1;
       if (hasRelic(state, 'slingshot')) {
@@ -466,6 +469,10 @@ function runEffects(state, info, target) {
     }
   }
   state.pendingDiscard = Math.min(state.pendingDiscard, state.hand.length);
+  if (info.grows) {
+    state.grown[info.id] = (state.grown[info.id] || 0) + info.grows;
+    state.log.push({ t: 'grow', id: info.id, n: info.grows, total: state.grown[info.id] });
+  }
 }
 
 // UI/selfplay resolve a pending discard by choosing a hand card.

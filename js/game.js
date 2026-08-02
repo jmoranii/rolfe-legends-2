@@ -908,6 +908,13 @@ function animateDiffs(s, enemyEls, heroEl) {
       if (pin) { pin.classList.remove('proc'); void pin.offsetWidth; pin.classList.add('proc'); }
       continue;
     }
+    if (ev.t === 'grow') {
+      // the whole family of copies just got stronger — announce it (Claw joy)
+      const card = CARDS[ev.id];
+      if (card) floaty(heroEl, `${card.emoji} ${card.name}s +${ev.n}!`, 'formshift');
+      sfx.powerUp();
+      continue;
+    }
     if (ev.t === 'orbblock') {
       const orbEl = s.querySelector && s.querySelector('.orb[data-orb="fresh"]');
       if (orbEl && heroEl) flingEmoji(orbEl, heroEl, '🩲');
@@ -1168,9 +1175,14 @@ function cardText(info, live = false) {
     if (!live || !combat || liveVal === baseVal) return liveVal;
     return `<b class="${liveVal > baseVal ? 'val-up' : 'val-down'}">${liveVal}</b>`;
   };
-  const dVal = dmgOp ? (live && combat ? mark(C.attackValue(dmgOp.dmg, combat.hero), dmgOp.dmg) : dmgOp.dmg) : (info.base ?? '?');
+  const grownBonus = info.grows && live && combat ? (combat.grown[info.id] || 0) : 0;
+  const dVal = dmgOp ? (live && combat ? mark(C.attackValue(dmgOp.dmg + grownBonus, combat.hero), dmgOp.dmg) : dmgOp.dmg) : (info.base ?? '?');
   const bVal = blockOp ? (live && combat ? mark(C.blockValue(blockOp.block, combat.hero), blockOp.block) : blockOp.block) : (info.pn ?? '?');
-  const body = (info.text || '').replace('{d}', dVal).replace('{b}', bVal).replace('{n}', nVal);
+  let body = (info.text || '').replace('{d}', dVal).replace('{b}', bVal).replace('{n}', nVal);
+  // Belly Flop's number IS your Block — show it live so the payoff is visible before the play
+  if (dmgOp && dmgOp.dmgFromBlock && live && combat) {
+    body += ` <b class="val-up">(${C.attackValue(dmgOp.dmg + combat.hero.block, combat.hero)} right now!)</b>`;
+  }
   // "Innate" is invisible jargon on the card face, and a card can *become* innate on
   // upgrade (Ball Machine+), so spell it out here rather than in each card's text —
   // that way the line can never drift out of sync with the flag.
@@ -1486,13 +1498,13 @@ function showShop(shop) {
     });
     s.appendChild(row);
   }
-  if (shop.relic) {
-    const rl = RELICS[shop.relic.id];
-    const b = el('button', 'btn gold two-line', `${rl.emoji} ${rl.name} — 💰${shop.relic.price}<small>${rl.text}</small>`);
-    b.disabled = run.gold < shop.relic.price;
-    b.onclick = () => { if (R.shopBuyRelic(run, shop)) { sfx.relic(); saveRun(); showShop(shop); } };
+  shop.relics.forEach((item, i) => {
+    const rl = RELICS[item.id];
+    const b = el('button', 'btn gold two-line', `${rl.emoji} ${rl.name} — 💰${item.price}<small>${rl.text}</small>`);
+    b.disabled = run.gold < item.price;
+    b.onclick = () => { if (R.shopBuyRelic(run, shop, i)) { sfx.relic(); saveRun(); showShop(shop); } };
     s.appendChild(b);
-  }
+  });
   if (!shop.removed) {
     const b = el('button', 'btn secondary', `✂️ Remove a card from your deck — 💰${shop.removePrice}`);
     b.disabled = run.gold < shop.removePrice;
@@ -1508,7 +1520,7 @@ function showShop(shop) {
 
 function showRest() {
   const s = sceneScreen('assets/events/rest_granny.jpg', '🍪', "Granny Rockie's Porch");
-  s.appendChild(el('div', 'speaker-line', '"There\'s my little legend. Cookies, or shall we practice that one move?"'));
+  s.appendChild(el('div', 'speaker-line', '"There\'s my little legend. Cookies, practice that one move — or want me to keep something safe for you?"'));
   const cookies = el('button', 'btn', `🍪 Cookies (heal ${Math.floor(run.maxHp * 0.3)} HP)`);
   cookies.onclick = () => { sfx.heal(); const h = R.restCookies(run); toast(`❤️ +${h} HP. Granny hugs you.`); saveRun(); showMap(); };
   s.appendChild(cookies);
@@ -1519,6 +1531,12 @@ function showRest() {
     if (R.restPractice(run, c.uid)) { sfx.relic(); toast(`⭐ ${CARDS[c.id].name}+ learned!`, 2400); saveRun(); showMap(); }
   });
   s.appendChild(practice);
+  const store = el('button', 'btn secondary', "🏠 Store a card at Granny's (out of your deck for good)");
+  store.disabled = run.deck.length <= 1;
+  store.onclick = () => pickCardModal('Granny will keep which card safe?', run.deck, (c) => {
+    if (R.restStore(run, c.uid)) { sfx.play(); toast(`🏠 ${CARDS[c.id].name} is safe on Granny's shelf.`, 2400); saveRun(); showMap(); }
+  });
+  s.appendChild(store);
 }
 
 function showEvent(key) {

@@ -17,7 +17,7 @@ if (!Number.isFinite(RUNS) || RUNS < 1) { console.log(`RAIL FAIL: bad run count 
 // static card pick scores (rough tier list; the harness measures, we tune data)
 const PICK = {
   // aaron
-  quick_jab: 7, hay_swing: 6, one_two: 5, heavy_haul: 6, iron_wave: 6, shake_it_off: 7,
+  quick_jab: 7, hay_swing: 6, one_two: 5, heavy_haul: 6, iron_wave: 6, belly_flop: 6, shake_it_off: 7,
   grit: 4, flex: 4, uppercut: 7, game_face: 7, all_out: 8, back_off: 6, tornado_spin: 7,
   pumped_up: 8, tough_skin: 7, tornado_form: 9, stone_wall: 8, fortify: 6,
   // wyatt
@@ -73,7 +73,9 @@ function playTurn(state) {
       const costN = cost === 'X' ? state.hero.energy : cost;
       if (info.type === 'power') s = 10; // powers early
       const fx = info.fx || [];
-      const dmg = fx.filter((o) => o.dmg != null).reduce((t, o) => t + C.attackValue(o.dmg, state.hero) * (o.times || 1) * (o.allEnemies ? enemies.length : 1), 0)
+      // perceived per-op damage mirrors the engine: Belly Flop reads its Block, Sticky Hands its fight bonus
+      const opDmg = (o) => o.dmg + (o.dmgFromBlock ? state.hero.block : 0) + (info.grows ? (state.grown[info.id] || 0) : 0);
+      const dmg = fx.filter((o) => o.dmg != null).reduce((t, o) => t + C.attackValue(opDmg(o), state.hero) * (o.times || 1) * (o.allEnemies ? enemies.length : 1), 0)
         + (info.special === 'heavy_haul' ? info.base + state.hero.strength * info.strMult : 0)
         + (info.special === 'tornado_spin' ? info.base * state.hero.energy * enemies.length : 0)
         + (info.special === 'bicycle_kick' ? info.base * Math.max(1, state.attacksThisTurn) : 0);
@@ -184,7 +186,7 @@ function simulateRun(heroId, seed) {
       }
     } else if (node.type === 'shop') {
       const shop = node.shop;
-      if (shop.relic && run.gold >= shop.relic.price) R.shopBuyRelic(run, shop);
+      if (shop.relics.length && run.gold >= shop.relics[0].price) R.shopBuyRelic(run, shop, 0);
       for (let i = 0; i < shop.cards.length; i++) {
         if ((PICK[shop.cards[i].id] ?? 0) >= 7 && run.gold >= shop.cards[i].price) { R.shopBuyCard(run, shop, i); break; }
       }
@@ -193,9 +195,14 @@ function simulateRun(heroId, seed) {
     } else if (node.type === 'rest') {
       if (run.hp < run.maxHp * 0.72) R.restCookies(run);
       else {
-        const target = run.deck.find((c) => !c.up && (PICK[c.id] ?? 0) >= 7) || run.deck.find((c) => !c.up);
-        if (target) R.restPractice(run, target.uid);
-        else R.restCookies(run);
+        // healthy: stash a junk card at Granny's first, otherwise upgrade
+        const junk = run.deck.find((c) => ['homework', 'poison_ivy'].includes(c.id));
+        if (junk && run.deck.length > 1) R.restStore(run, junk.uid);
+        else {
+          const target = run.deck.find((c) => !c.up && (PICK[c.id] ?? 0) >= 7) || run.deck.find((c) => !c.up);
+          if (target) R.restPractice(run, target.uid);
+          else R.restCookies(run);
+        }
       }
     } else if (node.type === 'event') {
       playEvent(run, node.event, rng);

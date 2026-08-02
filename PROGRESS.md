@@ -2,6 +2,16 @@
 
 Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 300`.
 
+## 2026-08-02 · BELLY FLOP! + true-Claw Sticky Hands + richer shop & porch (James's round)
+
+- **BELLY FLOP!** 💦 (Aaron, =Body Slam, common): deal damage equal to your Block; 1⚡ → FREE upgraded. Pairs with Fortify the Barn (Barricade). New engine op `dmgFromBlock`; the card face shows the live number ("(14 right now!)").
+- **Sticky Hands is now a real Claw**: new generic `grows` mechanic — a per-fight shared bonus pool keyed by card id; every play makes ALL copies +2, numbers tick up green on every card face, "🍯 Sticky Handses +2!" floaty per play. Resets between fights (unit-tested 4→6→8).
+- **Shop widened** (filling the snack hole): **8 cards** (was 5) and **2 Farm Treasures to pick between** (was 1); buying one leaves the other on the shelf.
+- **Granny's porch third option**: 🏠 Store a card at Granny's — free removal, guarded so a kid can never empty their deck. Selfplay bot stashes junk cards there when healthy.
+- Harness fidelity: the bot now *understands* both mechanics (perceives Belly Flop as its Block, Sticky as base+bonus) — without that, Aaron measured 3pts low on a pure artifact.
+- Post-change winrates (150/hero, still NOT rebalanced): **Aaron 35.3 · Wyatt 53.3 · Liam 44.7** (Sticky buff visible: Liam +4). Aaron is the low hero post-snack-cut — first candidate for the balance pass.
+- sw cache v9 · unit 1312 · e2e 72/72 both engines.
+
 ## 2026-08-02 · Snacks CUT + screen wake lock (James's calls)
 
 - **Consumable snacks removed entirely** — James: "more complexity than value." Full sweep: engine (SNACKS/useSnack gone), fight-reward drops, shop stock, Coach boon, Mom's juice-box event choice, Lunchbox relic (Potion Belt) retired, belt UI (now just FARM TREASURES), map shelf, Your-stuff modal, tip library, selfplay policies, DESIGN/README/REVIEW docs. Old mid-run saves load clean (snack fields scrubbed, Lunchbox stripped on deserialize). **Liam's Snack Time diaper is a different system and stays** (his Plasma orb — it's in his anthem).

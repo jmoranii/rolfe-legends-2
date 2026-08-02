@@ -57,8 +57,8 @@ James removed consumable snacks entirely (more complexity than value for the boy
 ## Map events (family cameos; lines James-approved)
 
 Mom's Care Package (heal 20% / remove a curse) · Poppa Flaj's Tractor Ride (skip next floor) · Uncle Brody's Garage (upgrade a card) · Aunt Chelsea's Kitchen (heal 25% / remove a card) · The Duck Pond (a **Duck** ally card joins the run) · Goldie's Gate (relic; 50% she spits: lose 5 HP; "Goldie says nothing. Goldie knows.") · Coach James's Pep Talk (+5 max HP / remove curse / 50 gold) · The Old Well (coin-toss gamble).
-Rest site = **Granny Rockie's porch**: Cookies (heal 30% max) or Practice (upgrade a card).
-Shop = **Jacob's Farm Supply** (Dad): cards, relic, card removal.
+Rest site = **Granny Rockie's porch**: Cookies (heal 30% max) · Practice (upgrade a card) · **Store a card at Granny's** (free removal — added Sun 2026-08-02 alongside the snack cut).
+Shop = **Jacob's Farm Supply** (Dad): 8 cards, 2 Farm Treasures (pick), card removal (was 5 cards / 1 relic pre-snack-cut; widened Sun 2026-08-02).
 Treasure = **Rusty** trots up with a relic in his mouth.
 Start boon = **Coach James** (Neow): pick 1 of 3 modest boosts.
 

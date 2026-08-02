@@ -40,6 +40,12 @@ Tuned by the harness into the 35–55% band (500 runs/hero: **Aaron 49.8 · Wyat
 
 **Coach James onboarding tips** (Phase 1, ≤12 words each): "Pick your path — you can see the whole climb." · "💀 is BIG trouble… and big treasure. Your call." · "Farm Treasures work the whole run. Collect them!" · ~~"Snacks are one-time saves…"~~ (snacks cut Sun 2026-08-02) · Defeat screen: "Runs end — that's the game. You keep everything you learned. 💪"
 
+## ✍️ New cards + Granny's third option (Sun 2026-08-02 — your word pass)
+
+- **BELLY FLOP!** 💦 (Aaron, =Body Slam, common): "SPLAT! Deal damage equal to your Block." Cost 1, upgrade → FREE. Card face shows the live number ("(14 right now!)") so the payoff is visible before the play.
+- **Sticky Hands** 🍯 now a true Claw: "Deal 4 damage. Every play makes ALL Sticky Hands +2 STICKIER this fight!" — numbers tick up green on every copy, "🍯 Sticky Handses +2!" floaty on each play. ⚖️ deviation: base 4/6 vs StS Claw's 3/5 (kept our pre-existing numbers).
+- **Granny's new line**: "There's my little legend. Cookies, practice that one move — or want me to keep something safe for you?" · Store flow: "🏠 [Card] is safe on Granny's shelf."
+
 ## ✍️ Act story cards (Sat 2026-08-01 — your word pass)
 
 Full-screen interstitials before each act (you asked for the story beats). Current copy:
