@@ -1,0 +1,13 @@
+=== BATCH PASS 1 01:13:06 ===
+=== 01:13:06 actcard1 → assets/originals/actcards/actcard1.png (1024x1536, q=high)
+    done: actcard1
+=== 01:14:24 actcard2 → assets/originals/actcards/actcard2.png (1024x1536, q=high)
+    done: actcard2
+=== 01:15:35 actcard3 → assets/originals/actcards/actcard3.png (1024x1536, q=high)
+    done: actcard3
+(optimize-art.sh refreshed the deployed JPEGs)
+
+generated: 3 — actcard1 actcard2 actcard3
+skipped:   66
+FAILED:    0 — none
+=== BATCH COMPLETE pass 1 ===

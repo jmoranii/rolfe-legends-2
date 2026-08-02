@@ -442,6 +442,23 @@ $CSTYLE
 
 Subject: the llama from the attached reference photo. She stands perfectly square in front of a closed wooden farm gate at golden hour, blocking it completely, staring directly at the viewer with unreadable calm. Behind the gate, something faintly glints. Goldie says nothing. Goldie knows."
 
+# ================= ACT STORY-CARD ART (vertical, per-act narrative) =========
+
+gen actcard1 assets/originals/actcards/actcard1.png 1024x1536 - "Vertical image, 2:3 ratio, 1024x1536.
+$SCENE
+
+Scene: a morning cornfield where something is clearly WRONG in the most storybook way — in the middle of the tall corn stands an old pumpkin-headed scarecrow, slightly crooked, arms out, looking VERY suspicious, as if it moved a second ago and froze. A few crows circle overhead and a gopher pokes out of the dirt path in the foreground. Golden morning light, long shadows. Trouble is stirring out in the corn. Kid-safe, funny-ominous. The lower third is calmer (text will overlay)."
+
+gen actcard2 assets/originals/actcards/actcard2.png 1024x1536 - "Vertical image, 2:3 ratio, 1024x1536.
+$SCENE2
+
+Scene: a barnyard at amber-violet dusk — a caper in progress: three raccoon bandits sneak on tiptoe in a comical conga line toward a wooden duck coop, the leader shushing the others with a finger to its lips, while a row of unsuspecting white ducks settles in for the night inside. First stars overhead, warm barn light. Playful heist energy, kid-safe. The lower third is calmer (text will overlay)."
+
+gen actcard3 assets/originals/actcards/actcard3.png 1024x1536 - "Vertical image, 2:3 ratio, 1024x1536.
+$SCENE3
+
+Scene: night on the farm as THE storm rolls in — an enormous dramatic storm front swallowing the sky, and on the horizon the huge silhouette of a tornado touching down, lit from inside by lightning. Wind-bent crops, leaves streaming past, the farmhouse below with one brave warm window glowing. Epic, awe-inspiring, storybook not scary. The lower third is calmer (text will overlay)."
+
 # ============================= REPORT =======================================
 
 if [ "$MODE" = "list" ]; then

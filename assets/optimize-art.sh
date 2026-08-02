@@ -32,6 +32,10 @@ for p in portrait_wyatt portrait_aaron portrait_liam portrait_coach; do
   emit "$ORIG/ui/$p.png" "assets/ui/$p.jpg" 512
 done
 emit "$ORIG/ui/title.png" "assets/ui/title.jpg" 1024
+for f in "$ORIG"/actcards/*.png; do
+  [ -e "$f" ] || continue
+  emit "$f" "assets/backgrounds/$(basename "${f%.png}").jpg" 1536
+done
 for f in "$ORIG"/backgrounds/*.png; do
   [ -e "$f" ] || continue
   emit "$f" "assets/backgrounds/$(basename "${f%.png}").jpg" 1024

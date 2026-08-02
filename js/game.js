@@ -155,7 +155,7 @@ function actArtUrls(act) {
   return urls;
 }
 function prefetchActBundle(act) {
-  prefetch([...actArtUrls(act), `assets/audio/map${act}.mp3`, 'assets/audio/battle.mp3']);
+  prefetch([...actArtUrls(act), `assets/backgrounds/actcard${act}.jpg`, `assets/audio/map${act}.mp3`, 'assets/audio/battle.mp3']);
 }
 
 // ---------- title ----------
@@ -1071,7 +1071,7 @@ function showActCard(act, onDone) {
   const card = ACT_CARDS[act];
   const s = screen(`act-${act}`);
   s.classList.add('act-card');
-  s.appendChild(bgLayer(`assets/backgrounds/battle${act}.jpg`, 'battle-bg'));
+  s.appendChild(bgLayer(`assets/backgrounds/actcard${act}.jpg`, 'battle-bg'));
   const inner = el('div', 'act-card-inner');
   inner.appendChild(el('div', 'act-card-kicker', `ACT ${act}`));
   inner.appendChild(el('div', 'event-emoji', info.emoji));
@@ -1231,17 +1231,26 @@ function showEvent(key) {
 function showTreasure(relicId) {
   const s = sceneScreen('assets/events/treasure_rusty.jpg', '🐕', 'Here comes Rusty!');
   if (relicId) {
-    const rl = RELICS[relicId];
+    // two beats: the tease, then the big pulsing FARM TREASURE reveal —
+    // same ritual as elite/boss drops (James: treasure rooms should feel cooler)
     R.onRelicGained(run, relicId);
-    s.appendChild(el('div', 'speaker-line', `He trots up, tail wagging, something in his mouth. …It's ${rl.emoji} <b>${rl.name}</b>!<br><i>${rl.text}</i>`));
-    sfx.relic();
-    coachTip('relic', 'Farm Treasures work the whole run. Collect them!');
+    s.appendChild(el('div', 'speaker-line', 'He trots up, tail wagging like mad — there\'s something in his mouth, and he is VERY proud of it.'));
+    const b = el('button', 'btn gold', '🎁 What did you bring?!');
+    b.onclick = () => {
+      coachTip('relic', 'Farm Treasures work the whole run. Collect them!');
+      showRelicPop(relicId, () => {
+        toast('🐕 GOOD BOY, Rusty!', 2200);
+        saveRun();
+        showMap();
+      });
+    };
+    s.appendChild(b);
   } else {
     s.appendChild(el('div', 'speaker-line', 'He trots up, tail wagging. It\'s… a very good stick. He keeps it. Good boy anyway.'));
+    const b = el('button', 'btn', 'Good boy!! →');
+    b.onclick = () => { saveRun(); showMap(); };
+    s.appendChild(b);
   }
-  const b = el('button', 'btn', 'Good boy!! →');
-  b.onclick = () => { saveRun(); showMap(); };
-  s.appendChild(b);
 }
 
 // ---------- deck & card pickers ----------
@@ -1469,6 +1478,7 @@ window.__RL2 = {
       if (type === 'defeat') { run.floor = 5; return showDefeat(); }
       if (type === 'victory') return showVictory();
       if (type === 'refresh') return afterAction();
+      if (type === 'actcard') { run.act = arg || 1; return showActCard(run.act, showMap); }
     },
   },
 };
