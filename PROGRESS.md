@@ -2,6 +2,15 @@
 
 Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 300`.
 
+## 2026-08-01 · Story & spectacle pass (James's playtest round 2)
+
+- **In-scene family art**: all nine RL1-reused portraits regenerated (same gouache, now *doing the thing*) — Rusty carries the mystery bundle, Granny offers the cookie plate from her rocker, Dad works his shop counter, Flaj pats the tractor seat, Mom holds out the care package, Brody wrenches, Chelsea ladles, Coach fist-bumps, Goldie blocks the gate. RL1 versions parked in originals/rl1-reused.
+- **Decision support**: every stop screen (shop/rest/events/boon) now shows ❤️ HP · 💰 gold · a My Deck browser — heal-vs-upgrade and buy-vs-skip decisions have the facts in view.
+- **Boss victory drama**: new `victory.mp3` fanfare sting (Suno, 5.6s, one-shot) + BOSS DEFEATED confetti splash → rewards → **FARM TREASURE popup** (Keys to the Tractor gets a real reveal, not a toast) → act story card → next act.
+- **Act story cards**: full-screen interstitials before each act (copy in REVIEW.md for James's word pass); act 2 emoji 🌇→🦆.
+- **Landscape**: manifest orientation "any"; tablet landscape gets banner-beside-choices scene layout + wider combat stage; short phone-landscape shows a friendly "turn your screen tall-ways" overlay. Portrait phone unchanged.
+- Tests: unit 1163 · e2e 64/64 both engines (act-card flow covered).
+
 ## 2026-08-01 · Loading strategy: predictive prefetch + 128kbps audio
 
 James asked how content growth affects load time. Decision (his sign-off): **no loading screen — lazy foundation + predictive prefetch**.

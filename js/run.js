@@ -13,7 +13,7 @@ export const ACTS = 3;
 
 export const ACT_INFO = {
   1: { name: 'The Far Fields', emoji: '🌅', time: 'morning' },
-  2: { name: 'The Barnyard', emoji: '🌇', time: 'dusk' },
+  2: { name: 'The Barnyard', emoji: '🦆', time: 'dusk' },
   3: { name: 'The Storm', emoji: '🌩️', time: 'night' },
 };
 

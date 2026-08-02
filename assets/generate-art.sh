@@ -393,6 +393,55 @@ $SCENE2
 
 Scene: a rusty farm burn barrel at dusk with a small cheerful fire crackling inside, sparks rising like fireflies into the amber-violet sky, a stack of old papers and a wooden stool beside it, the silhouette of a barn far behind. Cozy end-of-day ritual energy — the warm kind of letting go."
 
+# ================= FAMILY SCENE ART (in-scene, replaces RL1 reuse) ==========
+# James's call Sat 2026-08-01: same style, but every RL1 character shown DOING
+# the thing their screen is about. RL1 portraits parked in originals/rl1-reused.
+
+gen treasure_rusty assets/originals/events/treasure_rusty.png 1024x1024 rusty "Square image, 1024x1024.
+$CSTYLE
+
+Subject: the farm dog from the attached reference photo, clearly recognizable. He trots proudly straight toward the viewer down a golden field path, tail mid-wag, ears bouncing, carrying a small mysterious burlap bundle tied with twine in his mouth — something clearly special is inside. The happiest delivery dog alive."
+
+gen rest_granny assets/originals/events/rest_granny.png 1024x1024 kim "Square image, 1024x1024.
+$STYLE
+
+Subject: the grandmother from the attached reference photo, clearly recognizable. She sits in a rocking chair on her cozy farmhouse porch at golden hour, holding out a plate of fresh warm chocolate-chip cookies toward the viewer, a quilt over the porch rail and a warm lantern glowing beside her. The most inviting porch in the county."
+
+gen shop_jacob assets/originals/events/shop_jacob.png 1024x1024 jacob "Square image, 1024x1024.
+$STYLE
+
+Subject: the dad from the attached reference photo, clearly recognizable. He stands welcoming behind the wooden counter of his farm-supply shop, shelves stacked with seed bags, rope, lanterns and tools behind him, one hand presenting the goods like a proud shopkeeper. Everything a farm defender needs."
+
+gen tractor_ride assets/originals/events/tractor_ride.png 1024x1024 sean "Square image, 1024x1024.
+$STYLE
+
+Subject: the grandfather from the attached reference photo, clearly recognizable. He sits up on his faithful old red tractor in golden evening light, grinning and patting the empty seat beside him — hop on, he's headed that way anyhow. A long dirt path winds ahead through the fields."
+
+gen care_package assets/originals/events/care_package.png 1024x1024 tory "Square image, 1024x1024.
+$STYLE
+
+Subject: the mom from the attached reference photo, clearly recognizable. THE MOST IMPORTANT ELEMENT: with both hands she holds out toward the viewer a big woven picnic basket overflowing with wrapped sandwiches, a juice box and a bottle of sunscreen — the basket is front and center in the frame. She smiles a warm but no-arguments 'you WILL eat something' smile, farmhouse porch and morning light behind her. The best care package on earth."
+
+gen brody_garage assets/originals/events/brody_garage.png 1024x1024 brody "Square image, 1024x1024.
+$STYLE
+
+Subject: the uncle from the attached reference photo, clearly recognizable. He stands in his garage at dusk, wrench raised in one hand, leaning on a workbench covered in parts and tools, grinning with 'REAL TALK, let's soup this thing UP' energy. Warm light spills across the doorway."
+
+gen chelsea_kitchen assets/originals/events/chelsea_kitchen.png 1024x1024 chelsea "Square image, 1024x1024.
+$STYLE
+
+Subject: the aunt from the attached reference photo, clearly recognizable. She stands in a warm farmhouse kitchen ladling steaming soup from a big pot, fresh bread on the wooden table, golden window light, a kind 'sit down and warm up' smile. The coziest kitchen for miles."
+
+gen pep_talk assets/originals/events/pep_talk.png 1024x1024 james "Square image, 1024x1024.
+$STYLE
+
+Subject: the coach from the attached reference photo, clearly recognizable, wearing a ball cap. He crouches to kid-eye-level on a morning farm field, clipboard tucked under one arm, holding out a fist for a fist bump with an encouraging grin. The pep talk that makes you feel ten feet tall."
+
+gen goldie_gate assets/originals/events/goldie_gate.png 1024x1024 llama "Square image, 1024x1024.
+$CSTYLE
+
+Subject: the llama from the attached reference photo. She stands perfectly square in front of a closed wooden farm gate at golden hour, blocking it completely, staring directly at the viewer with unreadable calm. Behind the gate, something faintly glints. Goldie says nothing. Goldie knows."
+
 # ============================= REPORT =======================================
 
 if [ "$MODE" = "list" ]; then

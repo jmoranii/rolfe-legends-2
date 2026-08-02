@@ -34,7 +34,11 @@ async function runSuite(browserType, name) {
   await page.locator('.hero-card', { hasText: 'Wyatt' }).click();
   await page.waitForSelector('.speaker-line');
   ok((await page.textContent('h2')).includes('Coach'), `${name}: coach boon screen`);
-  await page.locator('.btn').first().click();
+  await page.locator('.scene-body .btn').first().click();
+  // act story card interstitial
+  await page.waitForSelector('.act-card');
+  ok((await page.textContent('.act-card-name')).includes('FAR FIELDS'), `${name}: act 1 story card`);
+  await page.locator('.act-card .btn').click();
 
   // map: a real node graph — many spots, drawn edges, reachable starts pulsing
   await page.waitForSelector('.map-node');
@@ -193,7 +197,9 @@ async function liamUnlock() {
   await page.locator('.btn', { hasText: 'New Adventure' }).click();
   ok(await page.locator('.hero-card').count() === 3, 'liam: 3 heroes after unlock');
   await page.locator('.hero-card', { hasText: 'Liam' }).click();
-  await page.locator('.btn').first().click(); // boon
+  await page.locator('.scene-body .btn').first().click(); // boon
+  await page.waitForSelector('.act-card');
+  await page.locator('.act-card .btn').click();
   await page.waitForSelector('.map-node');
   await page.locator('.map-node').first().click();
   await page.waitForSelector('.enemy');

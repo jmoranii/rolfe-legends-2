@@ -81,6 +81,17 @@ function sceneScreen(artPath, emoji, titleText) {
   banner.appendChild(el('h2', 'scene-banner-title', titleText));
   s.appendChild(banner);
   const body = el('div', 'scene-body');
+  // decision support: healing/removing/buying decisions need your HP and your
+  // deck in view (James's playtest note)
+  if (run) {
+    const strip = el('div', 'scene-status');
+    strip.appendChild(el('span', 'scene-stat', `❤️ ${run.hp}/${run.maxHp}`));
+    strip.appendChild(el('span', 'scene-stat', `💰 ${run.gold}`));
+    const deckB = el('button', 'pilebtn', `🎴 My Deck (${run.deck.length})`);
+    deckB.onclick = () => showDeckModal(run.deck);
+    strip.appendChild(deckB);
+    body.appendChild(strip);
+  }
   s.appendChild(body);
   return body;
 }
@@ -320,7 +331,7 @@ function showBoon() {
   const rng = makeRng(run.seed ^ 777);
   for (const boon of R.coachBoons(run, rng)) {
     const b = el('button', 'btn', boon.label);
-    b.onclick = () => { sfx.relic(); boon.apply(run, rng); saveRun(); showMap(); };
+    b.onclick = () => { sfx.relic(); boon.apply(run, rng); saveRun(); showActCard(1, showMap); };
     s.appendChild(b);
   }
 }
@@ -461,7 +472,7 @@ function showMap() {
 
   prefetchActBundle(run.act);
   if (eliteReachable) prefetch(['assets/audio/elite.mp3']);
-  if (run.floor >= 8) prefetch(['assets/audio/boss.mp3']);
+  if (run.floor >= 8) prefetch(['assets/audio/boss.mp3', 'assets/audio/victory.mp3']);
   if (run.floor >= 10 && run.act < R.ACTS) prefetchActBundle(run.act + 1);
 }
 
@@ -889,7 +900,78 @@ function combatWon() {
   const rewards = R.fightRewards(run, combatKind, rng);
   run.gold += rewards.gold;
   saveRun();
-  showReward(rewards, result, combatKind);
+  if (combatKind === 'boss') {
+    const bossName = st.enemies.filter((e) => e.isBoss).map((e) => e.name).join(' & ') || 'THE BOSS';
+    showBossSplash(bossName, () => showReward(rewards, result, 'boss'));
+  } else {
+    showReward(rewards, result, combatKind);
+  }
+}
+
+// the act boss goes down: fanfare, confetti, THEN the loot
+function showBossSplash(bossName, onDone) {
+  music.play('victory');
+  const s = screen(actCls());
+  s.classList.add('boss-splash');
+  if (!REDUCED) {
+    const confetti = el('div', 'confetti-layer');
+    for (let i = 0; i < 60; i++) {
+      const c = el('span', 'confetto', ['🎉', '🎊', '⭐', '🌾', '🦆'][i % 5]);
+      c.style.left = `${(i * 137) % 100}%`;
+      c.style.animationDelay = `${(i % 20) * 0.14}s`;
+      c.style.fontSize = `${0.8 + (i % 4) * 0.28}rem`;
+      confetti.appendChild(c);
+    }
+    s.appendChild(confetti);
+  }
+  s.appendChild(el('div', 'crown', '👑'));
+  s.appendChild(el('h1', 'splash-big', 'BOSS DEFEATED!'));
+  s.appendChild(el('div', 'speaker-line', `<b>${bossName}</b> won't be bothering the farm again.`));
+  const b = el('button', 'btn gold', '🎉 Collect your rewards →');
+  b.onclick = onDone;
+  s.appendChild(b);
+}
+
+// a Farm Treasure deserves a moment, not a toast
+function showRelicPop(relicId, onDone) {
+  const rl = RELICS[relicId];
+  sfx.relic();
+  modal(null, (m, close) => {
+    m.classList.add('treasure-pop');
+    m.appendChild(el('div', 'crown', '👑'));
+    m.appendChild(el('h2', '', 'FARM TREASURE!'));
+    m.appendChild(el('div', 'treasure-emoji', rl.emoji));
+    m.appendChild(el('h2', 'treasure-name', rl.name));
+    m.appendChild(el('p', 'subtitle', rl.text));
+    const b = el('button', 'btn gold', 'WHOA! →');
+    b.onclick = () => { close(); onDone(); };
+    m.appendChild(b);
+  }, { dismissable: false });
+}
+
+// the story beats between acts (copy pending James's word pass — REVIEW.md)
+const ACT_CARDS = {
+  1: { sub: 'Trouble is stirring out in the corn.', line: 'Grab your gear, Legend — the Far Fields need you first!' },
+  2: { sub: 'The fields are safe… but night is falling.', line: 'Raccoons are raiding the barnyard — the ducks need you!' },
+  3: { sub: 'The sky has gone dark. The Big Twister is coming.', line: 'This is the big one. Defend the farm!' },
+};
+
+function showActCard(act, onDone) {
+  const info = R.ACT_INFO[act];
+  const card = ACT_CARDS[act];
+  const s = screen(`act-${act}`);
+  s.classList.add('act-card');
+  s.appendChild(bgLayer(`assets/backgrounds/battle${act}.jpg`, 'battle-bg'));
+  const inner = el('div', 'act-card-inner');
+  inner.appendChild(el('div', 'act-card-kicker', `ACT ${act}`));
+  inner.appendChild(el('div', 'event-emoji', info.emoji));
+  inner.appendChild(el('h1', 'act-card-name', info.name.toUpperCase()));
+  inner.appendChild(el('p', 'act-card-sub', card.sub));
+  inner.appendChild(el('div', 'speaker-line', card.line));
+  const b = el('button', 'btn gold', act === 1 ? '🌱 Let\'s go!' : '💪 Onward!');
+  b.onclick = onDone;
+  inner.appendChild(b);
+  s.appendChild(inner);
 }
 
 // ---------- rewards ----------
@@ -928,14 +1010,20 @@ function showReward(rewards, result, kind) {
 function finishReward(kind) {
   if (kind === 'boss') {
     if (run.act >= R.ACTS) return showVictory();
-    // boss relic: the jackpot
+    const proceed = () => {
+      R.advanceAct(run);
+      saveRun();
+      toast('❤️ You catch your breath between acts (+33% HP)', 2400);
+      showActCard(run.act, showMap);
+    };
+    // boss relic: the jackpot — and it gets a real reveal
     if (!run.relics.includes('keys_tractor')) {
       run.relics.push('keys_tractor');
-      toast('🔑 KEYS TO THE TRACTOR! +1 ⚡ every turn!', 2600);
-      sfx.relic();
+      showRelicPop('keys_tractor', proceed);
+    } else {
+      proceed();
     }
-    R.advanceAct(run);
-    toast(`${R.ACT_INFO[run.act].emoji} Entering ${R.ACT_INFO[run.act].name}… (+25% HP)`, 2400);
+    return;
   }
   saveRun();
   showMap();
@@ -1192,6 +1280,14 @@ music.arm();
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 }
+// phones held sideways: gentle rotate ask (pure CSS visibility; tablets unaffected)
+{
+  const rh = document.createElement('div');
+  rh.className = 'rotate-hint';
+  rh.innerHTML = '<span class="rh-icon">📱</span>Turn your screen tall-ways to play!';
+  document.body.appendChild(rh);
+}
+
 // tap-to-explain, everywhere (kids can't hover): status chips, intent bubbles,
 // the energy orb
 document.addEventListener('click', (ev) => {
@@ -1230,6 +1326,7 @@ window.__RL2 = {
       }
       if (type === 'defeat') { run.floor = 5; return showDefeat(); }
       if (type === 'victory') return showVictory();
+      if (type === 'refresh') return afterAction();
     },
   },
 };

@@ -1,0 +1,31 @@
+=== BATCH PASS 1 22:57:37 ===
+=== 22:57:37 treasure_rusty → assets/originals/events/treasure_rusty.png (1024x1024, q=high)
+    done: treasure_rusty
+=== 22:59:14 rest_granny → assets/originals/events/rest_granny.png (1024x1024, q=high)
+    done: rest_granny
+=== 23:03:10 shop_jacob → assets/originals/events/shop_jacob.png (1024x1024, q=high)
+    done: shop_jacob
+=== 23:06:54 tractor_ride → assets/originals/events/tractor_ride.png (1024x1024, q=high)
+    done: tractor_ride
+=== 23:08:34 care_package → assets/originals/events/care_package.png (1024x1024, q=high)
+    done: care_package
+./assets/generate-art.sh: line 424: but: command not found
+./assets/generate-art.sh: line 427: Warm: command not found
+./assets/generate-art.sh: line 434: unexpected EOF while looking for matching `''
+./assets/generate-art.sh: line 466: syntax error: unexpected end of file
+=== pass 1 had failures; sleeping 5m before retry ===
+=== BATCH PASS 2 23:15:34 ===
+=== 23:15:34 brody_garage → assets/originals/events/brody_garage.png (1024x1024, q=high)
+    done: brody_garage
+=== 23:17:03 chelsea_kitchen → assets/originals/events/chelsea_kitchen.png (1024x1024, q=high)
+    done: chelsea_kitchen
+=== 23:20:49 pep_talk → assets/originals/events/pep_talk.png (1024x1024, q=high)
+    done: pep_talk
+=== 23:22:14 goldie_gate → assets/originals/events/goldie_gate.png (1024x1024, q=high)
+    done: goldie_gate
+(optimize-art.sh refreshed the deployed JPEGs)
+
+generated: 4 — brody_garage chelsea_kitchen pep_talk goldie_gate
+skipped:   62
+FAILED:    0 — none
+=== BATCH COMPLETE pass 2 ===

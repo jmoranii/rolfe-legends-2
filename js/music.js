@@ -2,7 +2,7 @@
 // Tracks live at assets/audio/<name>.mp3. Missing files no-op gracefully (drop-in like art).
 // Browser autoplay policy: nothing plays until unlock() is called from a user gesture.
 
-const TRACKS = ['title', 'map1', 'map2', 'map3', 'battle', 'elite', 'boss', 'anthem_wyatt', 'anthem_aaron', 'anthem_liam', 'anthem_both'];
+const TRACKS = ['title', 'map1', 'map2', 'map3', 'battle', 'elite', 'boss', 'victory', 'anthem_wyatt', 'anthem_aaron', 'anthem_liam', 'anthem_both'];
 const VOL = 0.45;            // music sits under SFX
 const FADE_MS = 600;
 
@@ -44,7 +44,7 @@ function getEl(name) {
   let e = els.get(name);
   if (!e) {
     const audio = new Audio(`assets/audio/${name}.mp3`);
-    audio.loop = !name.startsWith('anthem_'); // anthems play once (credits use the playhead as the clock)
+    audio.loop = !name.startsWith('anthem_') && name !== 'victory'; // anthems + the victory sting play once
     audio.preload = 'auto';
     audio.volume = 0;
     audio.dataset.track = name;

@@ -347,6 +347,54 @@ h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); letter-spac
 .credits-continue { position: absolute; left: 50%; transform: translateX(-50%); bottom: max(20px, env(safe-area-inset-bottom)); width: auto; padding: 14px 34px; z-index: 3; }
 .credits-hint { position: absolute; left: 50%; transform: translateX(-50%); bottom: 130px; color: #ffd23f; font-weight: 900; animation: hintbob .8s infinite; text-shadow: 0 2px 8px rgba(0,0,0,.8); z-index: 3; }
 
+/* ---------- boss victory splash + treasure pop + act story cards ---------- */
+.boss-splash { justify-content: center; text-align: center; position: relative; }
+.splash-big { font-size: 2.4rem; color: #ffd23f; text-shadow: 0 4px 14px rgba(0,0,0,.5); letter-spacing: .04em; animation: splashin .5s ease; }
+@keyframes splashin { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.confetti-layer { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.confetto { position: absolute; top: -30px; animation: confettifall 2.8s linear infinite; }
+@keyframes confettifall {
+  from { transform: translateY(-30px) rotate(0deg); opacity: 1; }
+  to { transform: translateY(105vh) rotate(340deg); opacity: .7; }
+}
+.treasure-pop { text-align: center; border: 3px solid #ffd23f; box-shadow: 0 0 40px #ffd23f66; }
+.treasure-emoji { font-size: 4.5rem; margin: 6px 0; animation: crownpulse 1.6s infinite; }
+.treasure-name { color: #ffd23f; }
+
+.act-card { justify-content: center; position: relative; text-align: center; }
+.act-card .battle-bg.has-art { opacity: .55; }
+.act-card-inner { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 6px; }
+.act-card-kicker { font-weight: 900; letter-spacing: .35em; opacity: .95; font-size: .95rem; text-shadow: 0 1px 4px rgba(0,0,0,.5); }
+.act-card-name { font-size: 2.2rem; letter-spacing: .06em; text-shadow: 0 3px 10px rgba(0,0,0,.55); animation: splashin .5s ease; }
+.act-card-sub { font-weight: 700; text-shadow: 0 1px 4px rgba(0,0,0,.5); }
+
+/* scene decision-support strip (HP + gold + deck at every stop) */
+.scene-status { display: flex; gap: 10px; align-items: center; justify-content: center; margin: 2px 0 8px; flex-wrap: wrap; }
+.scene-stat { background: rgba(0,0,0,.3); color: #fff; border-radius: 10px; padding: 6px 12px; font-weight: 800; font-size: .9rem; }
+
+/* ---------- landscape ---------- */
+/* Phones held sideways are too short for the column layout — ask for portrait. */
+.rotate-hint { display: none; }
+@media (orientation: landscape) and (max-height: 480px) {
+  .rotate-hint {
+    display: flex; position: fixed; inset: 0; z-index: 200; background: #1a2436ee;
+    color: #f4efe6; align-items: center; justify-content: center; flex-direction: column;
+    gap: 10px; font-size: 1.2rem; font-weight: 800; text-align: center; padding: 20px;
+  }
+  .rotate-hint .rh-icon { font-size: 3rem; animation: rotatebob 1.6s ease-in-out infinite; }
+}
+@keyframes rotatebob { 50% { transform: rotate(-90deg); } }
+/* Tablets sideways have real room: banner beside choices, wider stage. */
+@media (orientation: landscape) and (min-height: 500px) {
+  .scene-screen { flex-direction: row; }
+  .scene-banner { width: 42%; height: auto; max-height: none; min-height: 0; }
+  .scene-body { flex: 1; }
+  .combat-inner, .title-inner { max-width: 900px; margin: 0 auto; width: 100%; }
+  .enemy-row { gap: 16px; }
+  .credits-portrait { width: 240px; height: 240px; }
+  .map-topbar { padding-left: 10vw; padding-right: 10vw; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
   .credits-intro .ci { opacity: 1; }

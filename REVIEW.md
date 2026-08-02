@@ -40,6 +40,20 @@ Tuned by the harness into the 35–55% band (500 runs/hero: **Aaron 49.8 · Wyat
 
 **Coach James onboarding tips** (Phase 1, ≤12 words each): "Pick your path — you can see the whole climb." · "💀 is BIG trouble… and big treasure. Your call." · "Farm Treasures work the whole run. Collect them!" · "Snacks are one-time saves — spend them when it counts." · Defeat screen: "Runs end — that's the game. You keep everything you learned. 💪"
 
+## ✍️ Act story cards (Sat 2026-08-01 — your word pass)
+
+Full-screen interstitials before each act (you asked for the story beats). Current copy:
+
+- **ACT 1 — THE FAR FIELDS**: "Trouble is stirring out in the corn." / *"Grab your gear, Legend — the Far Fields need you first!"*
+- **ACT 2 — THE BARNYARD**: "The fields are safe… but night is falling." / *"Raccoons are raiding the barnyard — the ducks need you!"*
+- **ACT 3 — THE STORM**: "The sky has gone dark. The Big Twister is coming." / *"This is the big one. Defend the farm!"* (Shows even when the alt boss pair rolls — "storm" covers Thunder & Lightning too.)
+
+Also: act 2's emoji changed 🌇→🦆 everywhere (the cityscape read wrong blown up on the card; the ducks ARE act 2).
+
+## 🎨 In-scene family art (Sat 2026-08-01 — replaced the RL1 portrait reuse)
+
+All nine RL1-reused images regenerated in the same style but *doing the thing*: Rusty trotting up with a mystery bundle in his mouth · Granny offering cookies from her porch rocker · Dad behind his shop counter · Poppa Flaj patting the tractor seat · Mom holding out the care package · Brody mid-"REAL TALK" in the garage · Chelsea ladling soup · Coach James crouched for a fist bump · Goldie blocking the gate. RL1 originals parked at `assets/originals/rl1-reused/` if you prefer any old one. Likeness check is yours (Granny/Kim newly generated from her RL1 ref photo).
+
 ## ✍️ Anthem lyrics (Phase 4 — generated, take 1 kept; your approval pass)
 
 All four are live in the game already (first-win credits). Rewrites = regenerate that anthem + re-pull its `.lrc`; the credits re-time themselves automatically.

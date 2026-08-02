@@ -4,7 +4,7 @@
   "description": "A farm roguelike adventure starring Wyatt the Speedy and Aaron the Strong. Made with love by Uncle James.",
   "start_url": ".",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "any",
   "background_color": "#1a2436",
   "theme_color": "#2e6b34",
   "icons": [
