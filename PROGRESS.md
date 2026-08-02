@@ -2,6 +2,13 @@
 
 Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 300`.
 
+## 2026-08-02 · Combat belt + the Squall's exit (fleeing ≠ dying)
+
+- **Combat belt** (shipped 798fddb, logging here): SNACKS + FARM TREASURES sit in labeled groups under the hero health bar, wrapping to extra rows as the collection grows; every treasure pin taps to explain itself, and **pins jiggle+glow the moment they proc** (engine logs `relic` events at all 15 proc sites).
+- **Flee-ers finally exit on camera.** A fled enemy used to vanish between renders — and worse, a SOLO flee-er (the act-3 Passing Squall, outlasted after 5 gusts) ended the fight with no render at all: it froze on screen while victory fired around it. Now `runEnemyPhase` renders once more when the fight ends mid-enemy-phase (which also fixes the last enemy dying to poison/thorns never playing its death animation), and fled enemies get one last render wearing `.fleeing`.
+- **Fleeing ≠ dying, on purpose.** Dying topples DOWN and drains gray; fleeing lifts OFF — a buffet against the wind, then the whole card streaks away blurring, HP bar still full (the Squall was outlasted, not beaten). Leaves and wheat scatter downwind, a filtered-noise whoosh plays (new sfx voice: a noise buffer through a swept bandpass — tones can't make wind), and the Squall gets the full gale: whole-screen lean + gold "🌬️ IT BLEW OVER!". The Magpie/Raccoon announce "💨 It got away with your 💰30!" so stolen gold reads as taken, not dropped.
+- sw cache v7 · e2e 72/72 both engines (new: solo-flee probe — the blow-away renders AND still lands on the victory beat).
+
 ## 2026-08-02 · Victory beats + Coach's tip library + a fistful of playtest fixes
 
 - **Fight wins fade out** (no more abrupt cut) into a **victory beat**: Coach James congratulates by enemy name and serves ONE tip from a ~40-tip rotating library (js/tips.js) — general strategy, hero-specific coaching (Liam's only while playing him — zero-hint safe), and one deliberately vague title-screen tease (no location/method; the egg may move someday). Sequential rotation per hero persists across sessions; unit-tested (full coverage, no cross-hero leaks, no jargon, tease stays vague).

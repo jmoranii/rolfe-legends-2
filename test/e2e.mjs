@@ -294,11 +294,45 @@ async function creditsPreview() {
   await browser.close();
 }
 
+// A flee is not a kill: the exit renders (blow-away card + counter), and a SOLO
+// flee-er ends the fight through the same final-render path the Passing Squall
+// uses — the fled enemy used to freeze unrendered while victory fired around it.
+async function fleeExit() {
+  const browser = await chromium.launch();
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  await page.goto(BASE, { waitUntil: 'load' });
+  await page.evaluate(() => { window.__RL2.dev.start('wyatt'); window.__RL2.dev.enter('fight', ['magpie']); });
+  await page.waitForSelector('.enemy');
+  // never play a card: the Magpie mugs twice, guards, then flies off on turn 4
+  for (let turn = 0; turn < 8; turn++) {
+    await zapTips(page);
+    const endB = page.locator('.endturn:not([disabled])');
+    if (await endB.count() === 0) break;
+    await endB.click();
+    for (let w = 0; w < 40; w++) {
+      await page.waitForTimeout(60);
+      if (await page.locator('.endturn:not([disabled])').count() > 0) break;
+      if (await page.locator('.endturn').count() === 0) break;
+    }
+    if (await page.locator('.endturn').count() === 0) break;
+  }
+  await zapTips(page);
+  const flees = await page.evaluate(() => window.__RL2._fleesShown || 0);
+  ok(flees >= 1, `flee: blow-away exit rendered (${flees}× )`);
+  const h2 = await page.locator('h2').first().textContent().catch(() => '');
+  ok(h2.includes('Nice work'), `flee: solo flee still lands on the victory beat (${h2.trim().slice(0, 30)})`);
+  ok(errors.length === 0, `flee: zero page errors${errors.length ? ' — ' + errors[0].slice(0, 120) : ''}`);
+  await browser.close();
+}
+
 try {
   await runSuite(chromium, 'chromium');
   await runSuite(webkit, 'webkit');
   await liamUnlock();
   await creditsPreview();
+  await fleeExit();
   await deepRun();
 } catch (e) {
   ok(false, 'suite crashed: ' + e.message);

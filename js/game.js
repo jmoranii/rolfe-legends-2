@@ -763,6 +763,60 @@ function splitInFx(enemyEl) {
   setTimeout(() => enemyEl.classList.remove('splitting-in'), ms + 60);
 }
 
+// Fleeing is NOT dying. Dying topples down and drains gray; fleeing lifts off —
+// a buffet against the gust, then the whole card streaks away on the wind. The
+// distinction is the point: the Passing Squall wasn't beaten, it was OUTLASTED
+// (and the Magpie still has your gold). A fled enemy used to simply vanish
+// between renders; now it gets one last render wearing .fleeing.
+const fleeSeen = new WeakSet();
+function fleeLine(e) {
+  if (e.key === 'passing_squall') return '🌬️ IT BLEW OVER!';
+  if (e.key === 'dust_devil') return '💨 poof';
+  if (e.stolen) return `💨 It got away with your 💰${e.stolen}!`;
+  return '💨 It got away!';
+}
+function fleeOutEl(e) {
+  fleeSeen.add(e);
+  if (window.__RL2) window.__RL2._fleesShown = (window.__RL2._fleesShown || 0) + 1; // e2e observability: reduced motion makes the exit too fast to catch in the DOM
+  const d = el('div', `enemy fleeing${e.isBoss ? ' boss-foe' : ''}${e.isElite && !e.isBoss ? ' elite-foe' : ''}`);
+  d.appendChild(artImg(`assets/enemies/${e.artKey}.jpg`, e.emoji, 'face'));
+  d.insertAdjacentHTML('beforeend', `<div class="nm">${e.name}</div>
+    <div class="hpbar"><div style="width:${Math.max(0, e.hp / e.maxHp * 100)}%"></div></div>
+    <div class="hpnum">❤️ ${Math.max(0, e.hp)}/${e.maxHp}</div>`);
+  const big = e.key === 'passing_squall'; // the act-3 outlast fight earns the full gale
+  requestAnimationFrame(() => {
+    floaty(d, fleeLine(e), big ? 'formshift' : 'windy');
+    windScatter(d, big ? 10 : 4);
+    sfx.whoosh(big);
+    if (big && !REDUCED) {
+      const app = document.getElementById('app');
+      app.classList.add('gust');
+      setTimeout(() => app.classList.remove('gust'), Math.round(950 * fxScale()));
+    }
+  });
+  return d;
+}
+
+// leaves and dust shaken loose by the departure, scattering downwind
+function windScatter(fromEl, count) {
+  if (REDUCED || !fromEl) return;
+  const a = fromEl.getBoundingClientRect();
+  const ms = Math.round(700 * fxScale());
+  for (let i = 0; i < count; i++) {
+    const f = el('span', 'fling', ['🍃', '💨', '🌾'][i % 3]);
+    f.style.left = `${a.left + a.width * (0.2 + Math.random() * 0.6)}px`;
+    f.style.top = `${a.top + a.height * (0.15 + Math.random() * 0.6)}px`;
+    f.style.transitionDuration = `${ms}ms`;
+    f.style.transitionDelay = `${Math.round(Math.random() * 180 * fxScale())}ms`;
+    document.body.appendChild(f);
+    requestAnimationFrame(() => {
+      f.style.transform = `translate(${90 + Math.random() * 190}px, ${-70 + Math.random() * 95}px) rotate(${120 + Math.random() * 240}deg) scale(${0.7 + Math.random() * 0.7})`;
+      f.style.opacity = '0';
+    });
+    setTimeout(() => f.remove(), ms + 260);
+  }
+}
+
 function floaty(target, text, cls) {
   if (!target || REDUCED) return;
   const f = el('span', `floaty ${cls}`, text);
@@ -932,7 +986,8 @@ function renderCombat(actedEnemy = null) {
   const row = el('div', 'enemy-row');
   const enemyEls = [];
   st.enemies.forEach((e, i) => {
-    if (e.gone || e.fled) { enemyEls[i] = null; return; }
+    if (e.gone || (e.fled && fleeSeen.has(e))) { enemyEls[i] = null; return; }
+    if (e.fled) { row.appendChild(fleeOutEl(e)); enemyEls[i] = null; return; }
     const dead = e.hp <= 0;
     const d = el('div', `enemy${dead ? ' dead' : ''}${e.isBoss ? ' boss-foe' : ''}${e.isElite && !e.isBoss ? ' elite-foe' : ''}`);
     if (!dead) d.insertAdjacentHTML('beforeend', `<div class="intent-slot"><span class="next-label">NEXT MOVE</span>${intentLabel(st, e)}</div>`);
@@ -1094,7 +1149,10 @@ function runEnemyPhase() {
     if (!combat) return;
     if (combat.over) return afterAction();
     const actor = C.stepEnemyAction(combat);
-    if (combat.over) return setTimeout(afterAction, REDUCED ? 0 : 500);
+    if (combat.over) {
+      renderCombat(actor); // the last exit — a death, or the Squall blowing itself out — must play before victory
+      return setTimeout(afterAction, REDUCED ? 0 : stepMs() + 250);
+    }
     if (actor) {
       renderCombat(actor);
       setTimeout(step, stepMs());

@@ -115,6 +115,20 @@ h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); letter-spac
   70%  { opacity: .8; transform: scale(.95) rotate(-14deg) translateY(10px); filter: grayscale(.7) blur(.5px); }
   100% { opacity: .12; transform: scale(.6) rotate(-38deg) translateY(60px); filter: grayscale(1) blur(4px); }
 }
+/* Fleeing is the OPPOSITE of dying: dying topples down and drains gray; fleeing
+   lifts OFF — a buffet against the wind, then the whole card streaks away,
+   blurring as it goes. Forwards-fill to nothing; the next render drops it. */
+.enemy.fleeing { animation: fleeoff calc(var(--fx, 1) * .7s) cubic-bezier(.55, 0, .85, .36) forwards; pointer-events: none; z-index: 3; }
+@keyframes fleeoff {
+  0%   { opacity: 1; transform: none; filter: none; }
+  20%  { transform: translateX(-10px) rotate(-7deg); }
+  38%  { transform: translateX(7px) rotate(5deg) scale(1.05); filter: brightness(1.15); }
+  100% { opacity: 0; transform: translateX(80vw) translateY(-48px) rotate(26deg) scale(.88); filter: blur(5px); }
+}
+/* the whole yard leans when the Squall finally lets go */
+#app.gust { animation: gustlean calc(var(--fx, 1) * .9s) ease-in-out; }
+@keyframes gustlean { 25% { transform: translateX(7px); } 62% { transform: translateX(-5px); } }
+
 /* the whole board lurches when a boss hits the dirt */
 #app.quake { animation: quake calc(var(--fx, 1) * .5s) ease; }
 @keyframes quake {
@@ -226,6 +240,7 @@ h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); letter-spac
 .floaty.heal { color: #7ae87a; }
 .floaty.blk { color: #8fd0ff; font-size: 1.05rem; }
 .floaty.poison { color: #8fd44a; text-shadow: 0 0 10px #8fd44a66, 0 2px 5px rgba(0,0,0,.6); }
+.floaty.windy { color: #cfe6ff; font-size: 1.05rem; text-shadow: 0 0 10px #cfe6ff55, 0 2px 5px rgba(0,0,0,.6); }
 .fling { position: fixed; z-index: 85; font-size: 1.6rem; pointer-events: none; transition-property: transform, opacity; transition-timing-function: ease-in; text-shadow: 0 2px 6px rgba(0,0,0,.5); }
 .enemy.poison-flash { animation: poisonflash calc(var(--fx, 1) * .55s) ease; }
 .hero-strip.poison-flash { animation: poisonflash calc(var(--fx, 1) * .55s) ease; }
