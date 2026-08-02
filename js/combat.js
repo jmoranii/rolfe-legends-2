@@ -49,6 +49,7 @@ export function dealDamage(state, target, amount, { attacker = null, isAttack = 
       if (hasRelic(state, 'rally_cap') && !state.flags.rallyCapUsed) {
         state.flags.rallyCapUsed = true;
         drawCards(state, 3);
+        relicProc(state, 'rally_cap');
       }
     }
   }
@@ -152,13 +153,14 @@ export function addCardToCombat(state, id, n, to = 'hand') {
 
 export function hasRelic(state, id) { return state.relics.includes(id); }
 
+function relicProc(state, id) { state.log.push({ t: 'relic', id }); }
 function relicCombatStart(state) {
-  if (hasRelic(state, 'grannys_thermos')) state.hero.hp = Math.min(state.hero.maxHp, state.hero.hp + 2);
-  if (hasRelic(state, 'lucky_horseshoe')) state.hero.strength += 1;
-  if (hasRelic(state, 'skipping_stone')) state.hero.dexterity += 1;
-  if (hasRelic(state, 'barbed_wire')) state.hero.thorns = (state.hero.thorns || 0) + 3;
-  if (hasRelic(state, 'fence_post')) state.hero.block += 8;
-  if (hasRelic(state, 'diaper_bag')) channelOrb(state, 'stinky');
+  if (hasRelic(state, 'grannys_thermos')) { state.hero.hp = Math.min(state.hero.maxHp, state.hero.hp + 2); relicProc(state, 'grannys_thermos'); }
+  if (hasRelic(state, 'lucky_horseshoe')) { state.hero.strength += 1; relicProc(state, 'lucky_horseshoe'); }
+  if (hasRelic(state, 'skipping_stone')) { state.hero.dexterity += 1; relicProc(state, 'skipping_stone'); }
+  if (hasRelic(state, 'barbed_wire')) { state.hero.thorns = (state.hero.thorns || 0) + 3; relicProc(state, 'barbed_wire'); }
+  if (hasRelic(state, 'fence_post')) { state.hero.block += 8; relicProc(state, 'fence_post'); }
+  if (hasRelic(state, 'diaper_bag')) { channelOrb(state, 'stinky'); relicProc(state, 'diaper_bag'); }
 }
 
 // ---------- diapers (Defect orb system; sts: Lightning/Frost/Dark/Plasma) ----------
@@ -226,19 +228,19 @@ function orbTurnEnd(state) {
 }
 
 function relicTurnStart(state) {
-  if (hasRelic(state, 'keys_tractor')) state.hero.energy += 1;
+  if (hasRelic(state, 'keys_tractor')) { state.hero.energy += 1; relicProc(state, 'keys_tractor'); }
   if (state.turn === 1) {
-    if (hasRelic(state, 'barn_lantern')) state.hero.energy += 1;
-    if (hasRelic(state, 'head_start')) drawCards(state, 2);
+    if (hasRelic(state, 'barn_lantern')) { state.hero.energy += 1; relicProc(state, 'barn_lantern'); }
+    if (hasRelic(state, 'head_start')) { drawCards(state, 2); relicProc(state, 'head_start'); }
   }
   if (hasRelic(state, 'sunflower')) {
     state.counters.sunflower = (state.counters.sunflower || 0) + 1;
-    if (state.counters.sunflower % 3 === 0) state.hero.energy += 1;
+    if (state.counters.sunflower % 3 === 0) { state.hero.energy += 1; relicProc(state, 'sunflower'); }
   }
 }
 
 function relicTurnEnd(state) {
-  if (hasRelic(state, 'old_quilt') && state.hero.block === 0) state.hero.block += 6;
+  if (hasRelic(state, 'old_quilt') && state.hero.block === 0) { state.hero.block += 6; relicProc(state, 'old_quilt'); }
 }
 
 // ---------- combat setup ----------
@@ -395,8 +397,8 @@ export function playCard(state, inst, target = null) {
   if (state.hero.powers.afterimage) state.hero.block += 1;
   // Soccer Drills / Hay Bale Toss: 3rd attack in a turn
   if (info.type === 'attack' && state.attacksThisTurn === 3) {
-    if (hasRelic(state, 'soccer_drills')) state.hero.dexterity += 1;
-    if (hasRelic(state, 'hay_bale_toss')) state.hero.strength += 1;
+    if (hasRelic(state, 'soccer_drills')) { state.hero.dexterity += 1; relicProc(state, 'soccer_drills'); }
+    if (hasRelic(state, 'hay_bale_toss')) { state.hero.strength += 1; relicProc(state, 'hay_bale_toss'); }
   }
 
   if (info.special) {
@@ -433,7 +435,7 @@ function runEffects(state, info, target) {
       let mult = 1;
       if (hasRelic(state, 'slingshot')) {
         state.counters.slingshot = (state.counters.slingshot || 0) + 1;
-        if (state.counters.slingshot % 10 === 0) mult = 2;
+        if (state.counters.slingshot % 10 === 0) { mult = 2; relicProc(state, 'slingshot'); }
       }
       for (let t = 0; t < times; t++) {
         if (op.allEnemies) {

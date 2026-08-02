@@ -833,6 +833,11 @@ function animateDiffs(s, enemyEls, heroEl) {
       }
       continue;
     }
+    if (ev.t === 'relic') {
+      const pin = document.querySelector(`.belt-pin[data-relic="${ev.id}"]`);
+      if (pin) { pin.classList.remove('proc'); void pin.offsetWidth; pin.classList.add('proc'); }
+      continue;
+    }
     if (ev.t === 'orbblock') {
       const orbEl = s.querySelector && s.querySelector('.orb[data-orb="fresh"]');
       if (orbEl && heroEl) flingEmoji(orbEl, heroEl, '🩲');
@@ -988,9 +993,13 @@ function renderCombat(actedEnemy = null) {
   strip.appendChild(orb);
   inner.appendChild(strip);
 
-  // snacks (tap → confirm with the effect text; no more mystery misclicks)
+  // the belt: labeled SNACKS + FARM TREASURES right under the health bar —
+  // pins jiggle when a treasure procs, so its work is visible (James's ask)
+  const belt = el('div', 'belt-row');
   if (st.snacks.length) {
-    const bar = el('div', 'snackbar');
+    const snackGroup = el('div', 'belt-group');
+    snackGroup.appendChild(el('div', 'belt-label', 'SNACKS'));
+    const bar = el('div', 'belt-pins');
     st.snacks.forEach((id, i) => {
       const sn = C.SNACKS[id];
       const b = el('button', 'snack', sn.emoji);
@@ -1007,8 +1016,24 @@ function renderCombat(actedEnemy = null) {
       });
       bar.appendChild(b);
     });
-    inner.appendChild(bar);
+    snackGroup.appendChild(bar);
+    belt.appendChild(snackGroup);
   }
+  if (run.relics.length) {
+    const relicGroup = el('div', 'belt-group belt-treasures');
+    relicGroup.appendChild(el('div', 'belt-label', 'FARM TREASURES'));
+    const pins = el('div', 'belt-pins');
+    for (const rid of run.relics) {
+      const rl = RELICS[rid];
+      const pin = el('button', 'relic-pin belt-pin', rl.emoji);
+      pin.dataset.relic = rid;
+      pin.onclick = () => toast(`${rl.emoji} ${rl.name}: ${rl.text}`, 2600);
+      pins.appendChild(pin);
+    }
+    relicGroup.appendChild(pins);
+    belt.appendChild(relicGroup);
+  }
+  if (belt.children.length) inner.appendChild(belt);
 
   // hand (fanned)
   const hand = el('div', 'hand');
