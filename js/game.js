@@ -26,8 +26,8 @@ const REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion:
 // learning) or 'fast' (settings toggle, once the game is understood).
 const ANIM_KEY = 'rl2_anim';
 let animMode = localStorage.getItem(ANIM_KEY) || 'slow';
-function fxScale() { return REDUCED ? 0.01 : (animMode === 'fast' ? 0.55 : 1.35); }
-function stepMs() { return REDUCED ? 30 : (animMode === 'fast' ? 420 : 950); }  // enemy-turn beat
+function fxScale() { return REDUCED ? 0.01 : (animMode === 'fast' ? 0.55 : 1.9); }
+function stepMs() { return REDUCED ? 30 : (animMode === 'fast' ? 420 : 1350); }  // enemy-turn beat
 function applyFxScale() { document.documentElement.style.setProperty('--fx', String(REDUCED ? 0.01 : fxScale())); }
 applyFxScale();
 
@@ -56,14 +56,31 @@ function el(tag, cls, html) {
 function screen(cls) {
   $app.innerHTML = '';
   document.querySelectorAll('.coach-bubble').forEach((b) => b.remove()); // tips die with their screen
+  resetTips();
+  resetTips();
   const s = el('div', `screen ${cls || 'plain'} screen-enter`);
   $app.appendChild(s);
   return s;
 }
-function toast(msg, ms = 1800) {
+let $toasts = null;
+function toast(msg, ms = 2600) {
+  if (!$toasts || !$toasts.isConnected) {
+    $toasts = el('div', 'toast-stack');
+    document.body.appendChild($toasts);
+  }
+  // duration follows reading speed (the boys read slowly): ~320ms/word,
+  // never less than the caller's ask, capped at 9s — and a tap dismisses
+  const words = String(msg).replace(/<[^>]*>/g, ' ').trim().split(/\s+/).length;
+  const dur = Math.min(9000, Math.max(ms, 2600, words * 320));
   const t = el('div', 'toast', msg);
-  document.body.appendChild(t);
-  setTimeout(() => t.remove(), ms);
+  const dismiss = () => {
+    if (!t.isConnected) return;
+    t.classList.add('gone');
+    setTimeout(() => t.remove(), 260);
+  };
+  t.onclick = dismiss;
+  $toasts.appendChild(t);
+  setTimeout(dismiss, dur);
 }
 function modal(title, buildFn, { dismissable = true } = {}) {
   const veil = el('div', 'modal-veil');
@@ -129,17 +146,35 @@ function bgLayer(path, cls = 'scene-bg') {
 
 // ---------- Coach James onboarding tips (one per moment, never twice) ----------
 function tipsSeen() { try { return JSON.parse(localStorage.getItem(TIPS_KEY)) || {}; } catch { return {}; } }
+const tipQueue = [];
+let tipActive = false;
 function coachTip(key, text) {
   const seen = tipsSeen();
   if (seen[key]) return;
   seen[key] = 1;
   localStorage.setItem(TIPS_KEY, JSON.stringify(seen));
-  const b = el('div', 'coach-bubble');
+  tipQueue.push(text);
+  pumpTips();
+}
+function pumpTips() {
+  if (tipActive || !tipQueue.length) return;
+  tipActive = true;
+  const text = tipQueue.shift();
+  const b = el('div', 'coach-bubble tappable');
   b.appendChild(artImg('assets/ui/portrait_coach.jpg', '🧢', 'coach-face'));
-  b.appendChild(el('span', 'coach-text', `<b>Coach James:</b> ${text}`));
+  b.appendChild(el('span', 'coach-text', `<b>Coach James:</b> ${text}<br><span class="tip-tap">(tap to close)</span>`));
   document.body.appendChild(b);
-  setTimeout(() => b.classList.add('gone'), 4600);
-  setTimeout(() => b.remove(), 5400);
+  const done = () => {
+    if (!b.isConnected) { tipActive = false; pumpTips(); return; }
+    b.classList.add('gone');
+    setTimeout(() => { b.remove(); tipActive = false; pumpTips(); }, 350);
+  };
+  b.onclick = done;
+  setTimeout(done, 10000);
+}
+function resetTips() {
+  tipQueue.length = 0;
+  tipActive = false;
 }
 
 // ---------- predictive prefetch bundles ----------
@@ -527,6 +562,7 @@ function startCombatUI(enemyKeys, kind) {
   selectedCard = null;
   prevSnap = null;
   renderCombat();
+  coachTip('energy', 'You get 3 ⚡ each turn. Every card costs some!');
   coachTip('intent', "Those bubbles show each enemy's next move!");
   if (kind === 'boss' && run.act === R.ACTS) {
     // a win is likely — have the ending ready the instant it happens
@@ -556,9 +592,18 @@ const STATUS_INFO = {
   focus: '😆 Giggle Power: all floating diapers get that much stronger.',
 };
 
+const SEENFX_KEY = 'rl2_seenfx';
+function seenFx() { try { return JSON.parse(localStorage.getItem(SEENFX_KEY)) || {}; } catch { return {}; } }
+function markFxSeen(k) {
+  const seen = seenFx();
+  seen[k] = 1;
+  localStorage.setItem(SEENFX_KEY, JSON.stringify(seen));
+}
+
 function statusChips(cr) {
   const chips = [];
-  const add = (k, label) => chips.push(`<span class="chip" data-status="${k}">${label}</span>`);
+  const seen = seenFx();
+  const add = (k, label) => chips.push(`<span class="chip${seen[k] ? '' : ' chip-new'}" data-status="${k}">${label}</span>`);
   if (cr.block) add('block', `🛡️${cr.block}`);
   if (cr.strength) add('strength', `💪${cr.strength}`);
   if (cr.tempStr) add('tempStr', `💪${cr.tempStr}⏳`);
@@ -586,9 +631,10 @@ const POWER_INFO = {
   birthday_boy: { emoji: '🎂', text: () => 'Birthday Boy: +1 Giggle Power at the start of every turn.' },
 };
 function powerChips(h) {
+  const seen = seenFx();
   return Object.entries(h.powers || {})
     .filter(([k, v]) => v && POWER_INFO[k])
-    .map(([k, v]) => `<span class="chip chip-power" data-power="${k}">${POWER_INFO[k].emoji}${Number.isFinite(v) ? v : ''}</span>`)
+    .map(([k, v]) => `<span class="chip chip-power${seen['p_' + k] ? '' : ' chip-new'}" data-power="${k}">${POWER_INFO[k].emoji}${Number.isFinite(v) ? v : ''}</span>`)
     .join('');
 }
 
@@ -947,7 +993,11 @@ function cardText(info, live = false) {
   };
   const dVal = dmgOp ? (live && combat ? mark(C.attackValue(dmgOp.dmg, combat.hero), dmgOp.dmg) : dmgOp.dmg) : (info.base ?? '?');
   const bVal = blockOp ? (live && combat ? mark(C.blockValue(blockOp.block, combat.hero), blockOp.block) : blockOp.block) : (info.pn ?? '?');
-  return (info.text || '').replace('{d}', dVal).replace('{b}', bVal).replace('{n}', nVal);
+  const body = (info.text || '').replace('{d}', dVal).replace('{b}', bVal).replace('{n}', nVal);
+  // "Innate" is invisible jargon on the card face, and a card can *become* innate on
+  // upgrade (Ball Machine+), so spell it out here rather than in each card's text —
+  // that way the line can never drift out of sync with the flag.
+  return info.innate ? `${body} Starts in your opening hand.` : body;
 }
 function renderCardText(info) { return cardText(info, true); }
 
@@ -1030,10 +1080,14 @@ function playSelected(enemy, enemyEl) {
 }
 
 function promptDiscard() {
-  modal(`Discard ${combat.pendingDiscard} card${combat.pendingDiscard > 1 ? 's' : ''}`, (m, close) => {
+  const fresh = new Set((combat.lastDrawn || []).length <= 2 ? combat.lastDrawn : []);
+  const n = combat.pendingDiscard;
+  modal(`Pick ${n > 1 ? n + ' cards' : 'a card'} to discard`, (m, close) => {
+    if (fresh.size) m.appendChild(el('p', 'subtitle', '✨ = the card you just drew'));
     for (const c of combat.hand) {
       const info = cardInfo(c);
-      const b = el('button', 'btn secondary', `${info.emoji} ${info.name}`);
+      const isNew = fresh.has(c.uid);
+      const b = el('button', `btn secondary two-line${isNew ? ' just-drawn' : ''}`, `${isNew ? '✨ ' : ''}${info.emoji} ${info.name}<small>${cardText(info, false)}</small>`);
       b.onclick = () => { C.resolveDiscard(combat, c); close(); afterAction(); };
       m.appendChild(b);
     }
@@ -1363,8 +1417,8 @@ function showStuffModal() {
 
 const KEYWORD_INFO = [
   ['⚡ Energy', 'Cards cost ⚡ to play. You get 3 fresh ⚡ every turn.'],
-  ['♻️ Exhaust', 'After you play it, that card is used up for the rest of the FIGHT.'],
-  ['✋ Innate', 'Always shows up in your opening hand.'],
+  ['♻️ One use per fight', 'After you play it, that card is used up until the NEXT fight.'],
+  ['✋ Starts in your opening hand', 'That card is always there on turn 1.'],
   ['❎ X cost', 'Spends ALL your ⚡ — the more you spend, the bigger it gets.'],
   ['🎯 Intent bubble', "The bubble under each enemy shows its NEXT move. ⚔️ + a number = how hard it'll hit you."],
 ];
@@ -1451,11 +1505,8 @@ function showDefeat() {
   s.appendChild(el('p', 'subtitle', `Runs end — that's the game. You keep everything you learned. 💪`));
   s.appendChild(el('p', 'subtitle', `You made it to Act ${run.act}, floor ${run.floor}.`));
   const b = el('button', 'btn', '🌱 Try Again');
-  b.onclick = showHeroSelect;
+  b.onclick = showTitle;
   s.appendChild(b);
-  const t = el('button', 'btn secondary', '🏠 Title');
-  t.onclick = showTitle;
-  s.appendChild(t);
   run = null;
 }
 
@@ -1538,11 +1589,18 @@ if ('serviceWorker' in navigator) {
 document.addEventListener('click', (ev) => {
   if (ev.target.closest && ev.target.closest('.enemy.targetable')) return; // targeting taps = attacks, not tooltips
   const chip = ev.target.closest && ev.target.closest('.chip[data-status]');
-  if (chip && STATUS_INFO[chip.dataset.status]) { toast(STATUS_INFO[chip.dataset.status], 2800); return; }
+  if (chip && STATUS_INFO[chip.dataset.status]) {
+    toast(STATUS_INFO[chip.dataset.status], 2800);
+    markFxSeen(chip.dataset.status);
+    document.querySelectorAll(`.chip[data-status="${chip.dataset.status}"]`).forEach((c) => c.classList.remove('chip-new'));
+    return;
+  }
   const pchip = ev.target.closest && ev.target.closest('.chip[data-power]');
   if (pchip && combat && POWER_INFO[pchip.dataset.power]) {
     const v = combat.hero.powers[pchip.dataset.power];
     toast(POWER_INFO[pchip.dataset.power].text(v), 3000);
+    markFxSeen('p_' + pchip.dataset.power);
+    document.querySelectorAll(`.chip[data-power="${pchip.dataset.power}"]`).forEach((c) => c.classList.remove('chip-new'));
     return;
   }
   const it = ev.target.closest && ev.target.closest('.intent[data-intent]');

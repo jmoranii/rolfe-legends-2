@@ -116,6 +116,7 @@ export function drawCards(state, n) {
     }
     const c = state.draw.pop();
     state.hand.push(c);
+    (state.lastDrawn || (state.lastDrawn = [])).push(c.uid);
     const info = cardInfo(c);
     if (info.onDrawDmg) dealDamage(state, state.hero, info.onDrawDmg, { isAttack: false, src: 'ivy' });
     // Waltzing Weasel confusion: randomize cost as drawn
@@ -304,6 +305,7 @@ function setIntent(state, e) {
 export function startHeroTurn(state) {
   if (state.over) return;
   state.turn += 1;
+  state.lastDrawn = [];
   const h = state.hero;
   if (!h.powers.fortify && state.turn > 1) h.block = 0; // turn 1 keeps combat-start block (Fence Post)
   h.energy = ENERGY_BASE;
@@ -381,6 +383,7 @@ export function playCard(state, inst, target = null) {
   const cost = effectiveCost(state, inst);
   if (cost !== 'X') state.hero.energy -= cost;
   removeFromHand(state, inst);
+  state.lastDrawn = []; // the discard prompt highlights what THIS play draws
 
   state.cardsThisTurn += 1;
   if (info.type === 'attack') state.attacksThisTurn += 1;
