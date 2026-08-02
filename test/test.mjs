@@ -833,7 +833,7 @@ for (const key of Object.keys(ENEMIES)) {
   // Suno glitch repair: a bunched cluster stamped at ~0s before a >5s cliff
   // gets re-anchored to just before the next reliable word (real instrumental
   // breaks after normally-spaced words are left alone)
-  const glitch = '[00:00.10] Out \n[00:00.20] in \n[00:00.30] Rolfe \n[00:00.40] when \n[00:00.55] glows\n\n[00:01.69] Trouble \n[00:13.86] came \n[00:14.07] where';
+  const glitch = '[00:00.10] Out \n[00:00.20] in \n[00:00.30] Rolfe \n[00:00.40] when \n[00:00.89] glows\n\n[00:01.69] Trouble \n[00:13.86] came \n[00:14.07] where';
   const rep = parseLrc(glitch);
   ok(rep[0].t > 10, 'bunched head cluster re-anchored near the singing');
   ok(rep[1].words[0].t > 12 && rep[1].words[0].t < 13.86, 'cluster tail sits just before the reliable word');
