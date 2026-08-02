@@ -15,6 +15,7 @@ import * as music from './music.js';
 import { creditsRoll } from './credits.js';
 import { encodeFarmCode, decodeFarmCode } from './farmcode.js';
 import { prefetch } from './prefetch.js';
+import { nextTip } from './tips.js';
 import { EVENT_KEYS } from './events.js';
 
 const $app = document.getElementById('app');
@@ -122,24 +123,32 @@ function sceneScreen(artPath, emoji, titleText) {
 }
 
 // ---------- drop-in art (PNG with emoji fallback) ----------
-const missingArt = new Set();
+const missingArt = new Map(); // path -> last failure time; retry after a beat
+const MISSING_RETRY_MS = 12000;
 function artImg(path, emoji, cls = '') {
   const wrap = el('span', `art-slot ${cls}`);
-  if (missingArt.has(path)) { wrap.textContent = emoji; wrap.classList.add('art-emoji'); return wrap; }
+  const failedAt = missingArt.get(path);
+  if (failedAt && Date.now() - failedAt < MISSING_RETRY_MS) {
+    wrap.textContent = emoji;
+    wrap.classList.add('art-emoji');
+    return wrap;
+  }
   const img = document.createElement('img');
   img.src = path;
   img.alt = '';
   img.draggable = false;
-  img.onerror = () => { missingArt.add(path); wrap.textContent = emoji; wrap.classList.add('art-emoji'); };
+  img.onload = () => missingArt.delete(path);
+  img.onerror = () => { missingArt.set(path, Date.now()); wrap.textContent = emoji; wrap.classList.add('art-emoji'); };
   wrap.appendChild(img);
   return wrap;
 }
 function bgLayer(path, cls = 'scene-bg') {
   const d = el('div', cls);
-  if (!missingArt.has(path)) {
+  const failedAt = missingArt.get(path);
+  if (!failedAt || Date.now() - failedAt >= MISSING_RETRY_MS) {
     const probe = new Image();
-    probe.onload = () => { d.style.backgroundImage = `url("${path}")`; d.classList.add('has-art'); };
-    probe.onerror = () => missingArt.add(path);
+    probe.onload = () => { missingArt.delete(path); d.style.backgroundImage = `url("${path}")`; d.classList.add('has-art'); };
+    probe.onerror = () => missingArt.set(path, Date.now());
     probe.src = path;
   }
   return d;
@@ -646,7 +655,7 @@ const INTENT_KIND_INFO = {
   defend: (name) => `🛡️ Next move — ${name}: it will protect itself with Block.`,
   buff: (name) => `⬆️ Next move — ${name}: it will power itself (or its friends) up.`,
   debuff: (name) => `🌀 Next move — ${name}: it will hit YOU with something nasty.`,
-  sleep: (name) => `😴 ${name} — it isn't doing anything… yet. (Attacking it will wake it up!)`,
+  sleep: (name) => `😴 ${name} — it's just… standing there. For now.`,
   flee: (name) => `🪽 Next move — ${name}: it's about to run away!`,
   summon: (name) => `➕ Next move — ${name}: it will call in friends.`,
   countdown: (name) => `⏳ ${name}: something BIG is charging up. The number is the countdown.`,

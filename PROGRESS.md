@@ -2,6 +2,17 @@
 
 Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 300`.
 
+## 2026-08-02 · Victory beats + Coach's tip library + a fistful of playtest fixes
+
+- **Fight wins fade out** (no more abrupt cut) into a **victory beat**: Coach James congratulates by enemy name and serves ONE tip from a ~40-tip rotating library (js/tips.js) — general strategy, hero-specific coaching (Liam's only while playing him — zero-hint safe), and one deliberately vague title-screen tease (no location/method; the egg may move someday). Sequential rotation per hero persists across sessions; unit-tested (full coverage, no cross-hero leaks, no jargon, tease stays vague).
+- Boss wins keep their bigger splash (now also faded into).
+- **Game Face**: costs 1, upgrade makes it FREE (James's spec; balance check deferred).
+- **Heavy Haul** upgrade was real (Str ×3→×5) but the text was frozen at "3 times" — now shows {n}.
+- **Art fallback self-heals**: one flaky image load no longer pins an enemy/scene to emoji for the whole session (12s retry window; James's "Combine switches to emoji in defensive mode" — there is no mode-swap art, that was the sticky fallback).
+- **Intent explainers describe the M.O. only** — cut counter-advice ("attacking wakes it up") per James: many answers is the point.
+- **Act cards: dark text + white outline on all acts** (light-on-white was mush on act 2).
+- **e2e self-hosts** its static server (the external one kept dying) and dismisses persistent coach bubbles at every seam; failure screenshots on outcome asserts. 1290 unit · 65/65 e2e both engines.
+
 ## 2026-08-02 · Karaoke desync bug (Aaron's credits) — found & fixed
 
 James saw "something weird with Aaron's karaoke, maybe one-time." Root cause: if the anthem started late (uncached first load / blocked autoplay), the credits' wall-clock rescue ran the captions ahead; when the song then started at 0:00 the clock jumped BACKWARD, but caption/scene indices only advanced forward → karaoke stuck seconds ahead for the whole roll. Cached second plays start instantly, hence "one-time." Fix: indices recompute from scratch every frame (both directions) and lit words un-light on resync. Repro'd the failure and verified the fix live (caption visibly ahead on wall clock → cleared on song start → back in sync at 13.6s, 3 words lit on beat). Aaron's LRC data itself audited clean (monotonic, no bunching, no stray tokens — all four anthems).

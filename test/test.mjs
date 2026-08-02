@@ -8,6 +8,7 @@ import * as C from '../js/combat.js';
 import * as R from '../js/run.js';
 import { generateActMap, reachableIds, validateMap, MAP_FLOORS, TREASURE_FLOOR, REST_FLOOR, BOSS_ID } from '../js/map.js';
 import { parseLrc } from '../js/credits.js';
+import { TIPS_GENERAL, TIPS_HERO, nextTip } from '../js/tips.js';
 import { encodeFarmCode, decodeFarmCode } from '../js/farmcode.js';
 
 let passed = 0, failed = 0;
@@ -823,6 +824,23 @@ for (const key of Object.keys(ENEMIES)) {
   // liam wins imply unlock even if flag dropped
   const p2 = decodeFarmCode(encodeFarmCode({ wins: { liam: 1 }, bonusSeen: false, liamUnlocked: false }, null));
   ok(p2.profile.liamUnlocked, 'liam wins imply his unlock');
+}
+
+// ---------- coach tip rotation ----------
+{
+  const mem = new Map();
+  const storage = { getItem: (k) => mem.get(k), setItem: (k, v) => mem.set(k, v) };
+  const poolLen = TIPS_GENERAL.length + TIPS_HERO.wyatt.length;
+  const served = new Set();
+  for (let i = 0; i < poolLen; i++) served.add(nextTip('wyatt', storage));
+  eq(served.size, poolLen, 'a full rotation serves every wyatt-pool tip exactly once');
+  ok([...served].some((t) => t.includes('title screen')), 'the vague title-screen tease is in the rotation');
+  ok(!TIPS_HERO.liam.some((t) => served.has(t)), 'liam tips never surface for wyatt');
+  ok(TIPS_HERO.wyatt.every((t) => served.has(t)), 'all wyatt tips surface for wyatt');
+  ok(TIPS_GENERAL.every((t) => served.has(t)), 'all general tips surface');
+  // no jargon leaks into the tips
+  ok(![...served].some((t) => /exhaust|innate|curse/i.test(t)), 'tips avoid jargon');
+  ok(!TIPS_GENERAL.some((t) => /goldie|llama|tap.*3|three.*tap/i.test(t)), 'egg tease stays vague (no method, no llama)');
 }
 
 // ---------- credits LRC parsing ----------

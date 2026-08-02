@@ -13,6 +13,33 @@ const require = createRequire(import.meta.url);
 const { webkit, chromium } = require('playwright');
 
 const BASE = 'http://localhost:8199';
+
+// self-host: if nothing answers on 8199, serve the repo ourselves so the
+// suite never depends on an external `python3 -m http.server` staying alive
+import http from 'http';
+import { readFile } from 'fs/promises';
+import { join, extname, dirname } from 'path';
+import { fileURLToPath } from 'url';
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.mp3': 'audio/mpeg', '.lrc': 'text/plain' };
+let ownServer = null;
+try {
+  await fetch(BASE, { signal: AbortSignal.timeout(1500) });
+} catch {
+  ownServer = http.createServer(async (req, res) => {
+    try {
+      let path = decodeURIComponent(new URL(req.url, BASE).pathname);
+      if (path.endsWith('/')) path += 'index.html';
+      const data = await readFile(join(ROOT, path));
+      res.writeHead(200, { 'Content-Type': MIME[extname(path)] || 'application/octet-stream' });
+      res.end(data);
+    } catch {
+      res.writeHead(404).end();
+    }
+  }).listen(8199);
+  console.log('(self-hosting the repo on :8199 for this run)');
+}
+
 const results = [];
 // coach tips persist until tapped (by design) and sit over the hand — dismiss
 // them like a kid would before interacting
@@ -96,10 +123,24 @@ async function runSuite(browserType, name) {
       if (await page.locator('.endturn').count() === 0) break;
     }
     const h2 = await page.locator('h2').first().textContent().catch(() => '');
-    if (h2 && (h2.includes('You did it') || h2.includes('rest up'))) break;
+    if (h2 && (h2.includes('Nice work') || h2.includes('rest up'))) break;
   }
-  const outcome = await page.locator('h2').first().textContent().catch(() => '');
-  ok(outcome.includes('You did it') || outcome.includes('rest up'), `${name}: fight reaches an outcome (${outcome.trim().slice(0, 30)})`);
+  await zapTips(page);
+  let outcome = await page.locator('h2').first().textContent().catch(() => '');
+  const outcomeOk = outcome.includes('Nice work') || outcome.includes('rest up') || outcome.includes('You did it');
+  ok(outcomeOk, `${name}: fight reaches an outcome (${outcome.trim().slice(0, 30)})`);
+  if (!outcomeOk) await page.screenshot({ path: `media/shots/e2e-fail-${name}-outcome.png` }).catch(() => {});
+
+  // Coach's victory beat: congrats + a rotating tip, then rewards
+  if (outcome.includes('Nice work')) {
+    ok(await page.locator('.tip-card').count() === 1, `${name}: coach serves a tip on the victory beat`);
+    await zapTips(page);
+    await page.locator('.btn', { hasText: 'Collect your rewards' }).click();
+    await page.waitForSelector('.reward-card, .btn');
+    await zapTips(page);
+    outcome = await page.locator('h2').first().textContent().catch(() => '');
+    ok(outcome.includes('You did it'), `${name}: rewards follow the beat`);
+  }
 
   // reward screen: pick a card if offered
   if (outcome.includes('You did it')) {
@@ -262,6 +303,7 @@ try {
 } catch (e) {
   ok(false, 'suite crashed: ' + e.message);
 }
+if (ownServer) ownServer.close();
 const pass = results.filter(([c]) => c).length;
 console.log(`\ne2e: ${pass}/${results.length} passed`);
 process.exit(pass === results.length ? 0 : 1);

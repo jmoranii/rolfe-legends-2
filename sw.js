@@ -4,12 +4,12 @@
 // Art + music = cache-first, filled lazily as fetched during play (precaching
 // the full set would punish the first visit; emoji/silence fallbacks already
 // handle anything not yet cached when offline). RL1 sw.js pattern.
-const CACHE = 'rolfe-legends-2-v5';
+const CACHE = 'rolfe-legends-2-v6';
 const SHELL = [
   './', 'index.html', 'style.css', 'manifest.json',
   'js/game.js', 'js/combat.js', 'js/run.js', 'js/map.js', 'js/cards.js',
   'js/enemies.js', 'js/relics.js', 'js/events.js', 'js/rng.js',
-  'js/sfx.js', 'js/music.js', 'js/credits.js', 'js/farmcode.js', 'js/prefetch.js',
+  'js/sfx.js', 'js/music.js', 'js/credits.js', 'js/farmcode.js', 'js/prefetch.js', 'js/tips.js',
 ];
 
 self.addEventListener('install', (e) => {
