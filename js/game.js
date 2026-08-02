@@ -376,7 +376,11 @@ function showMap() {
     shelf.appendChild(pin);
   }
   if (run.snacks.length) {
-    for (const sn of run.snacks) shelf.appendChild(el('span', 'relic-pin snack-pin', C.SNACKS[sn].emoji));
+    for (const sn of run.snacks) {
+      const pin = el('span', 'relic-pin snack-pin', C.SNACKS[sn].emoji);
+      pin.onclick = () => toast(`${C.SNACKS[sn].emoji} ${C.SNACKS[sn].name}: ${C.SNACKS[sn].text} (use it during a fight)`, 2600);
+      shelf.appendChild(pin);
+    }
   }
   const deckBtn = el('button', 'pilebtn', `🎴 ${run.deck.length}`);
   deckBtn.onclick = () => showDeckModal(run.deck);
@@ -686,9 +690,16 @@ function renderCombat(actedEnemy = null) {
         : orb.type === 'stinky' ? d.passive + st.hero.focus
         : orb.type === 'fresh' ? d.passive + st.hero.focus
         : '⚡';
-      orbRow.appendChild(el('span', 'orb', `${d.emoji}<small>${val}</small>`));
+      const o = el('span', 'orb', `${d.emoji}<small>${val}</small>`);
+      o.dataset.orb = orb.type;
+      if (orb.type === 'blowout') o.dataset.stored = orb.stored;
+      orbRow.appendChild(o);
     }
-    for (let i = st.hero.orbs.length; i < st.hero.orbSlots; i++) orbRow.appendChild(el('span', 'orb empty', '◌'));
+    for (let i = st.hero.orbs.length; i < st.hero.orbSlots; i++) {
+      const o = el('span', 'orb empty', '◌');
+      o.dataset.orb = 'empty';
+      orbRow.appendChild(o);
+    }
     if (orbRow.children.length) inner.appendChild(orbRow);
   }
 
@@ -1185,6 +1196,15 @@ function showHelpModal() {
     for (const v of Object.values(STATUS_INFO)) {
       m.appendChild(el('p', 'deck-line', `<span style="font-size:.85rem">${v}</span>`));
     }
+    // the secret hero's kit — only ever shown while playing him (zero-hint rule)
+    if (run && run.hero === 'liam') {
+      m.appendChild(el('p', 'subtitle', '<b>Liam\'s floating diapers (tap one in a fight!)</b>'));
+      m.appendChild(el('p', 'deck-line', '💩 <b>Stinky</b> <span style="opacity:.75;font-size:.8rem">zaps a random enemy every turn; pops for a big zap</span>'));
+      m.appendChild(el('p', 'deck-line', '🩲 <b>Fresh</b> <span style="opacity:.75;font-size:.8rem">blocks for Liam every turn; pops for big Block</span>'));
+      m.appendChild(el('p', 'deck-line', '🌋 <b>THE BLOWOUT</b> <span style="opacity:.75;font-size:.8rem">grows every turn… pops ALL AT ONCE on the weakest enemy</span>'));
+      m.appendChild(el('p', 'deck-line', '🧃 <b>Snack Time</b> <span style="opacity:.75;font-size:.8rem">+1 ⚡ every turn it floats</span>'));
+      m.appendChild(el('p', 'deck-line', '😆 <b>Giggle Power</b> <span style="opacity:.75;font-size:.8rem">makes every diaper stronger; diapers pop oldest-first when full</span>'));
+    }
   });
 }
 function pickCardModal(title, cards, onPick) {
@@ -1302,7 +1322,20 @@ document.addEventListener('click', (ev) => {
     return;
   }
   const orb = ev.target.closest && ev.target.closest('.energy-orb');
-  if (orb) toast('⚡ Energy: playing cards costs ⚡. You get 3 fresh ⚡ every turn.', 2800);
+  if (orb) { toast('⚡ Energy: playing cards costs ⚡. You get 3 fresh ⚡ every turn.', 2800); return; }
+  const diaper = ev.target.closest && ev.target.closest('.orb[data-orb]');
+  if (diaper && combat) {
+    const f = combat.hero.focus;
+    const g = f > 0 ? ` (Giggle Power +${f}!)` : '';
+    const TEXTS = {
+      stinky: `💩 Stinky Diaper: every turn its smell zaps a random enemy for ${3 + f}${g}. When it pops: ${8 + f} damage!`,
+      fresh: `🩲 Fresh Diaper: every turn it wraps Liam in ${3 + f} Block${g}. When it pops: ${6 + f} Block!`,
+      blowout: `🌋 THE BLOWOUT: it grows +${6 + f} bigger every turn${g} — it's at ${diaper.dataset.stored || 0} now. When it pops: ALL of it hits the weakest enemy. KA-BOOM.`,
+      snack: `🧃 Snack Time: +1 ⚡ every turn while it floats. When it pops: +2 ⚡.`,
+      empty: `◌ An empty diaper slot. Cards like Change It! float a new diaper here. When they're all full, the OLDEST one pops to make room.`,
+    };
+    if (TEXTS[diaper.dataset.orb]) toast(TEXTS[diaper.dataset.orb], 3400);
+  }
 });
 // #credits-<hero> previews an ending anytime (dev/testing; harmless for kids)
 const creditsPreview = /^#credits-(wyatt|aaron|liam|both)$/.exec(location.hash);

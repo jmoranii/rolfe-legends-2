@@ -204,6 +204,9 @@ async function liamUnlock() {
   await page.locator('.map-node').first().click();
   await page.waitForSelector('.enemy');
   ok(await page.locator('.orb-row .orb').count() >= 1, 'liam: diapers float in combat (Diaper Bag)');
+  // tap a floating diaper → it explains itself (James's legibility ask)
+  await page.locator('.orb[data-orb="stinky"]').first().click();
+  ok((await page.locator('.toast').first().textContent()).includes('Stinky Diaper'), 'liam: tapping a diaper explains it');
   // unlock persists
   await page.reload({ waitUntil: 'load' });
   await page.evaluate(() => localStorage.removeItem('rl2_run'));
