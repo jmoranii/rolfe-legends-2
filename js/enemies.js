@@ -38,7 +38,10 @@ export const ENEMIES = {
       return rng.chance(0.75) ? A('Nibble', rng.range(5, 7)) : { name: 'Wiggle', kind: 'buff', fn: (st, e) => applyStatus(st, e, 'strength', 1) };
     },
     onDamaged(self, state) {
-      if (!self.state.curled && self.hp > 0) { self.state.curled = true; self.block += 6; }
+      if (!self.state.curled && self.hp > 0) {
+        self.state.curled = true; self.block += 6;
+        self.name = 'Roly-Poly (curled up)'; self.artKey = 'roly_poly_curled';
+      }
     },
   },
   mud_blob_m: { // sts: Slime (medium) — splits into smalls at half
@@ -51,8 +54,10 @@ export const ENEMIES = {
         self.state.split = true;
         const spawn = spawnEnemy(state, 'mud_blob_s', { hp: self.hp });
         spawn.hp = self.hp;
-        // it "splits": original becomes one small too
+        // it "splits": original becomes one small too — so it wears the small blob's
+        // face from here on, which is what actually happened to it
         self.name = 'Mud Blob (split)';
+        self.artKey = 'mud_blob_s';
         self.maxHp = self.hp;
       }
     },
@@ -151,7 +156,7 @@ export const ENEMIES = {
       if (self.state.mode === 'hunker') {
         self.state.defTurns -= 1;
         if (self.state.defTurns <= 0) {
-          return { name: 'Engine Roar (back to work)', kind: 'buff', block: 9, fn: (st, e) => { e.state.mode = 'mow'; e.thorns = 0; } };
+          return { name: 'Engine Roar (back to work)', kind: 'buff', block: 9, fn: (st, e) => { e.state.mode = 'mow'; e.thorns = 0; e.name = 'The Rogue Combine'; e.artKey = 'rogue_combine'; } };
         }
         return { name: 'Hunker Down', kind: 'defend', block: 15 };
       }
@@ -164,6 +169,7 @@ export const ENEMIES = {
       self.state.taken += dmg;
       if (self.state.taken >= 35 && self.hp > 0) {
         self.state.taken = 0; self.state.mode = 'hunker'; self.state.defTurns = 2; self.thorns = 3;
+        self.name = 'The Rogue Combine (armored)'; self.artKey = 'rogue_combine_hunker';
         self.intent = { name: 'CLANK — Defensive Mode', kind: 'defend', block: 15 };
       }
     },

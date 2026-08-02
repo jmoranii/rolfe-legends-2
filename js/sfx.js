@@ -52,4 +52,16 @@ export const sfx = {
   sparkle: () => { [1047, 1319, 1568].forEach((f, i) => tone(f, 0.07, 'sine', 0.09, i * 0.04)); },    // draw / energy
   pop: () => { tone(520, 0.05, 'square', 0.16); tone(260, 0.09, 'sine', 0.12, 0.03); },               // diaper floats/pops
   boom: () => { tone(90, 0.35, 'sawtooth', 0.2); tone(55, 0.5, 'sine', 0.18, 0.05); tone(180, 0.15, 'square', 0.1, 0.02); }, // BLOWOUT / huge hit
+
+  // ---- going down (Sun 2026-08-02) ----
+  // A defeat needs its own voice: a hit that kills should not sound like a hit that
+  // only hurts. Downward wobble, air going out of it.
+  defeat: () => { [440, 330, 247, 165].forEach((f, i) => tone(f, 0.16, 'triangle', 0.13, i * 0.075)); tone(70, 0.34, 'sine', 0.14, 0.2); },
+  // The boss going down: a long collapse with a real thud under it.
+  bossDefeat: () => {
+    [523, 392, 294, 220, 165, 110].forEach((f, i) => tone(f, 0.22, 'sawtooth', 0.13, i * 0.11));
+    tone(80, 0.7, 'sine', 0.22, 0.5);
+    tone(55, 0.9, 'sine', 0.18, 0.62);
+    tone(200, 0.3, 'square', 0.09, 0.55);
+  },
 };

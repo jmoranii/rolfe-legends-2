@@ -4,7 +4,7 @@
 // Pure: mutates the run object only; UI renders, selfplay picks.
 
 import { relicPool } from './relics.js';
-import { makeCard, CARDS } from './cards.js';
+import { makeCard, CARDS, upgradableCards } from './cards.js';
 
 function heal(run, amount) {
   run.hp = Math.min(run.maxHp, run.hp + amount);
@@ -46,7 +46,7 @@ export const EVENTS = {
     name: "Uncle Brody's Garage", emoji: '🔧', speaker: 'Uncle Brody',
     line: '"REAL TALK, kid. Let\'s soup this thing UP."',
     choices: [
-      { label: '🔧 Upgrade a card', can: (run) => run.deck.some((c) => !c.up), apply: (run, rng) => { const ups = run.deck.filter((c) => !c.up && !['status', 'curse'].includes(c.id)); const c = rng.pick(ups); c.up = true; return `Souped up: ${c.id}!`; } },
+      { label: '🔧 Upgrade a card', can: (run) => upgradableCards(run.deck).length > 0, apply: (run) => { run.pendingUpgrade = true; return 'PICK_UPGRADE'; } },
       { label: '👋 Just say hi', apply: () => 'Brody gives you a fist bump.' },
     ],
   },

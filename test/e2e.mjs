@@ -14,6 +14,15 @@ const { webkit, chromium } = require('playwright');
 
 const BASE = 'http://localhost:8199';
 const results = [];
+// coach tips persist until tapped (by design) and sit over the hand — dismiss
+// them like a kid would before interacting
+async function zapTips(page) {
+  for (let i = 0; i < 4; i++) {
+    if (await page.locator('.coach-bubble').count() === 0) break;
+    await page.locator('.coach-bubble').first().click().catch(() => {});
+    await page.waitForTimeout(420);
+  }
+}
 function ok(cond, msg) { results.push([cond, msg]); if (!cond) console.log('  ✗', msg); }
 
 async function runSuite(browserType, name) {
@@ -49,8 +58,10 @@ async function runSuite(browserType, name) {
   ok((await page.textContent('h2')).includes('Far Fields'), `${name}: act 1 header`);
 
   // enter a reachable node (floor 1 = fight)
+  await zapTips(page);
   await page.locator('.map-node').first().click();
   await page.waitForSelector('.enemy');
+  await zapTips(page);
   ok(await page.locator('.enemy').count() >= 1, `${name}: combat renders enemies`);
   ok(await page.locator('.card').count() >= 5, `${name}: hand renders`);
   ok(await page.locator('.energy-orb').count() === 1, `${name}: energy orb`);
@@ -60,6 +71,7 @@ async function runSuite(browserType, name) {
   // sequenced with animation, so wait for END TURN to re-enable between turns
   let won = false;
   for (let turn = 0; turn < 30 && !won; turn++) {
+    await zapTips(page);
     // play affordable cards while any
     for (let i = 0; i < 12; i++) {
       const modalBtn = page.locator('.modal .btn');
@@ -91,6 +103,7 @@ async function runSuite(browserType, name) {
 
   // reward screen: pick a card if offered
   if (outcome.includes('You did it')) {
+    await zapTips(page);
     const cardPick = page.locator('.reward-card');
     if (await cardPick.count() > 0) await cardPick.first().click();
     else await page.locator('.btn', { hasText: 'Skip' }).click();
@@ -201,8 +214,10 @@ async function liamUnlock() {
   await page.waitForSelector('.act-card');
   await page.locator('.act-card .btn').click();
   await page.waitForSelector('.map-node');
+  await zapTips(page);
   await page.locator('.map-node').first().click();
   await page.waitForSelector('.enemy');
+  await zapTips(page);
   ok(await page.locator('.orb-row .orb').count() >= 1, 'liam: diapers float in combat (Diaper Bag)');
   // tap a floating diaper → it explains itself (James's legibility ask)
   await page.locator('.orb[data-orb="stinky"]').first().click();

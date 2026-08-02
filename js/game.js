@@ -3,9 +3,10 @@
 // assets/audio/ (silence fallback). No code changes needed when assets land.
 
 import { makeRng, randomSeed } from './rng.js';
-import { HEROES, CARDS, DIAPERS, cardInfo, makeCard } from './cards.js';
+import { HEROES, CARDS, DIAPERS, cardInfo, makeCard, upgradableCards, nValue } from './cards.js';
 import { RELICS } from './relics.js';
 import { EVENTS } from './events.js';
+import { scoutFor } from './scout.js';
 import * as C from './combat.js';
 import * as R from './run.js';
 import { MAP_FLOORS, BOSS_ID } from './map.js';
@@ -170,7 +171,6 @@ function pumpTips() {
     setTimeout(() => { b.remove(); tipActive = false; pumpTips(); }, 350);
   };
   b.onclick = done;
-  setTimeout(done, 10000);
 }
 function resetTips() {
   tipQueue.length = 0;
@@ -184,6 +184,9 @@ function actArtUrls(act) {
   for (const pool of [enc.easy, enc.hard, enc.elite, enc.boss]) {
     for (const group of pool) for (const k of group) keys.add(k);
   }
+  // alternate forms aren't in the encounter pools, but they appear mid-fight — so
+  // prefetch them too, or the transformation stalls waiting on an uncached image
+  if (act === 1) { keys.add('roly_poly_curled'); keys.add('rogue_combine_hunker'); keys.add('mud_blob_s'); }
   if (act === 3) keys.add('big_twister_p2');
   const urls = [...keys].map((k) => `assets/enemies/${k}.jpg`);
   urls.push(`assets/backgrounds/battle${act}.jpg`, `assets/backgrounds/map${act}.jpg`);
@@ -676,9 +679,79 @@ function miniCard(info, { extraCls = '', price = null } = {}) {
 }
 
 function snapCombat(st) {
-  const snap = { heroHp: st.hero.hp, heroBlock: st.hero.block, enemies: {} };
-  st.enemies.forEach((e, i) => { snap.enemies[i] = { hp: e.hp, block: e.block, dead: e.hp <= 0 }; });
+  const snap = { heroHp: st.hero.hp, heroBlock: st.hero.block, enemies: {}, count: st.enemies.length };
+  st.enemies.forEach((e, i) => {
+    // artKey + name are what a form change actually shows up as. Spawned enemies are
+    // pushed onto the array, so "index >= previous count" identifies a fresh split.
+    snap.enemies[i] = { hp: e.hp, block: e.block, dead: e.hp <= 0, artKey: e.artKey, name: e.name };
+  });
   return snap;
+}
+
+// Tap an enemy mid-fight and Coach James gives you the read on it: what it does,
+// and what to do about it. Also surfaces the live numbers, so the kid doesn't have
+// to squint at the chips to know what's stuck on it.
+function showScout(e) {
+  sfx.tap();
+  modal(null, (m, close) => {
+    const head = el('div', 'scout-head');
+    head.appendChild(artImg(`assets/enemies/${e.artKey}.jpg`, e.emoji, 'face scout-face'));
+    const who = el('div', 'scout-who');
+    who.appendChild(el('div', 'scout-name', e.name));
+    who.appendChild(el('div', 'scout-hp', `❤️ ${Math.max(0, e.hp)} / ${e.maxHp}`));
+    head.appendChild(who);
+    m.appendChild(head);
+
+    const facts = [];
+    if (e.block > 0) facts.push(`🛡️ ${e.block} Block right now`);
+    if (e.strength) facts.push(`💪 ${e.strength} Strength`);
+    if (e.thorns) facts.push(`🌵 ${e.thorns} spikes — hitting it hurts you back`);
+    if (e.intangible) facts.push('👻 Ghostly this turn — your hits barely land');
+    if (e.poison) facts.push(`🧪 ${e.poison} Poison ticking on it`);
+    if (e.weak) facts.push(`😵 Weak for ${e.weak} — it hits softer`);
+    if (e.vulnerable) facts.push(`🎯 Vulnerable for ${e.vulnerable} — it takes extra`);
+    if (facts.length) m.appendChild(el('div', 'scout-facts', facts.join('<br>')));
+
+    const line = el('div', 'speaker-line scout-line');
+    line.appendChild(artImg('assets/ui/portrait_coach.jpg', '🧢', 'coach-face'));
+    line.appendChild(el('span', 'scout-say', `<b>Coach James:</b> ${scoutFor(e.key, e.artKey)}`));
+    m.appendChild(line);
+    const ok = el('button', 'btn', "👍 Got it, Coach");
+    ok.onclick = close;
+    m.appendChild(ok);
+  });
+}
+
+// A form change used to be a hard art swap on the next render — the new picture just
+// appeared. Now the outgoing form is kept as a ghost layered over the incoming one and
+// cross-fades out, so there's a visible beat of "it's changing" first (James's ask).
+function formShiftFx(enemyEl, oldArtKey, emoji) {
+  if (!enemyEl) return;
+  const face = enemyEl.querySelector('.face');
+  if (!face) return;
+  enemyEl.classList.add('form-shifting');
+  const ms = Math.round(900 * fxScale());
+  if (!REDUCED && oldArtKey) {
+    const ghost = artImg(`assets/enemies/${oldArtKey}.jpg`, emoji, 'face form-ghost');
+    ghost.style.animationDuration = `${ms}ms`;
+    face.appendChild(ghost);
+    setTimeout(() => ghost.remove(), ms + 60);
+  }
+  floaty(enemyEl, '✨ CHANGING FORM!', 'formshift');
+  sfx.boom();
+  setTimeout(() => enemyEl.classList.remove('form-shifting'), ms + 60);
+}
+
+// A split used to be text-only. The new half now peels out of its parent so the
+// "one became two" reads visually.
+function splitInFx(enemyEl) {
+  if (!enemyEl || REDUCED) return;
+  const ms = Math.round(760 * fxScale());
+  enemyEl.classList.add('splitting-in');
+  enemyEl.style.animationDuration = `${ms}ms`;
+  floaty(enemyEl, '✂️ IT SPLIT!', 'formshift');
+  sfx.slash();
+  setTimeout(() => enemyEl.classList.remove('splitting-in'), ms + 60);
 }
 
 function floaty(target, text, cls) {
@@ -803,10 +876,29 @@ function animateDiffs(s, enemyEls, heroEl) {
   }
   st.enemies.forEach((e, i) => {
     const elx = enemyEls[i];
+    if (!elx) return;
     const p = prev.enemies[i];
-    if (!elx || !p) return;
-    if (e.hp <= 0 && !p.dead) elx.classList.add('dying');
+    if (!p) {
+      // No previous entry at this index = it just appeared. Splits are the only way
+      // that happens mid-fight, so play the "peels off the parent" arrival.
+      if (i >= prev.count) splitInFx(elx);
+      return;
+    }
+    if (e.hp <= 0 && !p.dead) {
+      elx.classList.add('dying');
+      if (e.isBoss) {
+        elx.classList.add('dying-boss');
+        floaty(elx, '💥 DOWN!', 'formshift');
+        sfx.bossDefeat();
+        document.getElementById('app').classList.add('quake');
+        setTimeout(() => document.getElementById('app').classList.remove('quake'), 900);
+      } else {
+        sfx.defeat();
+      }
+    }
     if (e.block > p.block) floaty(elx, `🛡️+${e.block - p.block}`, 'blk');
+    if (e.artKey !== p.artKey) formShiftFx(elx, p.artKey, e.emoji);
+    else if (e.name !== p.name) formShiftFx(elx, null, e.emoji); // split-in-place: same art, new identity
   });
   if (st.hero.hp > prev.heroHp) floaty(heroEl, `+${st.hero.hp - prev.heroHp}`, 'heal');
   if (!sawOrbBlock && st.hero.block > prev.heroBlock) floaty(heroEl, `🛡️+${st.hero.block - prev.heroBlock}`, 'blk');
@@ -829,16 +921,20 @@ function renderCombat(actedEnemy = null) {
     if (e.gone || e.fled) { enemyEls[i] = null; return; }
     const dead = e.hp <= 0;
     const d = el('div', `enemy${dead ? ' dead' : ''}${e.isBoss ? ' boss-foe' : ''}${e.isElite && !e.isBoss ? ' elite-foe' : ''}`);
+    if (!dead) d.insertAdjacentHTML('beforeend', `<div class="intent-slot"><span class="next-label">NEXT MOVE</span>${intentLabel(st, e)}</div>`);
     const face = artImg(`assets/enemies/${e.artKey}.jpg`, e.emoji, 'face');
     d.appendChild(face);
     d.insertAdjacentHTML('beforeend', `<div class="nm">${e.name}</div>
       <div class="hpbar"><div style="width:${Math.max(0, e.hp / e.maxHp * 100)}%"></div></div>
       <div class="hpnum">❤️ ${Math.max(0, e.hp)}/${e.maxHp}</div>
-      <div class="chips">${statusChips(e)}</div>
-      ${dead ? '' : intentLabel(st, e)}`);
+      <div class="chips">${statusChips(e)}</div>`);
     if (!dead && selectedCard && cardWantsTarget(selectedCard)) {
       d.classList.add('targetable');
       d.onclick = () => playSelected(e, d);
+    } else if (!dead) {
+      // Not aiming a card? Then a tap means "what IS this thing?" — Coach James scouts it.
+      d.classList.add('scoutable');
+      d.onclick = () => showScout(e);
     }
     if (e === actedEnemy) d.classList.add('lunge');
     row.appendChild(d);
@@ -982,11 +1078,7 @@ function cardText(info, live = false) {
   const fx = info.fx || [];
   const dmgOp = fx.find((o) => o.dmg != null);
   const blockOp = fx.find((o) => o.block != null);
-  const statusOp = fx.find((o) => o.status);
-  const nOp = fx.find((o) => o.selfStr != null || o.selfDex != null || o.tempStr != null || o.draw != null || o.energy != null || o.addCard);
-  const nVal = statusOp ? Math.abs(statusOp.status.n)
-    : info.pn != null ? info.pn
-    : nOp ? (nOp.selfStr ?? nOp.selfDex ?? nOp.tempStr ?? nOp.draw ?? nOp.energy ?? (nOp.addCard && nOp.addCard.n)) : '?';
+  const nVal = nValue(info) ?? '?'; // resolution lives in cards.js so it's testable
   const mark = (liveVal, baseVal) => {
     if (!live || !combat || liveVal === baseVal) return liveVal;
     return `<b class="${liveVal > baseVal ? 'val-up' : 'val-down'}">${liveVal}</b>`;
@@ -1094,10 +1186,22 @@ function promptDiscard() {
   }, { dismissable: false });
 }
 
+let winPending = false;
 function afterAction() {
   if (!combat) return;
   if (combat.over) {
-    if (combat.won) return combatWon();
+    if (combat.won) {
+      // The killing blow used to jump straight to the reward screen, so the last
+      // enemy's death animation never rendered — the fight just cut out. Render the
+      // dying frame, let it play, THEN move on. (James: beating the final boss felt
+      // abrupt.)
+      if (winPending) return;
+      winPending = true;
+      renderCombat();
+      const ms = REDUCED ? 0 : Math.round((combatKind === 'boss' ? 1900 : 900) * fxScale());
+      setTimeout(() => { winPending = false; combatWon(); }, ms);
+      return;
+    }
     return showDefeat();
   }
   renderCombat();
@@ -1115,7 +1219,12 @@ function combatWon() {
   saveRun();
   if (combatKind === 'boss') {
     const bossName = st.enemies.filter((e) => e.isBoss).map((e) => e.name).join(' & ') || 'THE BOSS';
-    showBossSplash(bossName, () => showReward(rewards, result, 'boss'));
+    // The run ends here, so a card reward is pointless — you'd pick a card and then
+    // immediately walk into the ending. Go straight from the splash to the victory
+    // sequence. (finishReward already short-circuited to showVictory on the last act,
+    // so nothing is lost: no boss relic was granted on this path either.)
+    if (run.act >= R.ACTS) showBossSplash(bossName, showVictory);
+    else showBossSplash(bossName, () => showReward(rewards, result, 'boss'));
   } else if (combatKind === 'elite' && rewards.relic) {
     const rid = rewards.relic;
     rewards.relic = null;
@@ -1302,10 +1411,10 @@ function showRest() {
   const cookies = el('button', 'btn', `🍪 Cookies (heal ${Math.floor(run.maxHp * 0.3)} HP)`);
   cookies.onclick = () => { sfx.heal(); const h = R.restCookies(run); toast(`❤️ +${h} HP. Granny hugs you.`); saveRun(); showMap(); };
   s.appendChild(cookies);
-  const canUp = run.deck.some((c) => !c.up);
+  const canUp = upgradableCards(run.deck).length > 0;
   const practice = el('button', 'btn gold', '⭐ Practice (upgrade a card)');
   practice.disabled = !canUp;
-  practice.onclick = () => upgradePickModal(run.deck.filter((c) => !c.up), (c) => {
+  practice.onclick = () => upgradePickModal(upgradableCards(run.deck), (c) => {
     if (R.restPractice(run, c.uid)) { sfx.relic(); toast(`⭐ ${CARDS[c.id].name}+ learned!`, 2400); saveRun(); showMap(); }
   });
   s.appendChild(practice);
@@ -1341,6 +1450,16 @@ function showEvent(key) {
           const i = run.deck.findIndex((x) => x.uid === c.uid);
           if (i >= 0) run.deck.splice(i, 1);
           conclude(`${CARDS[c.id].emoji} <b>${CARDS[c.id].name}</b>? Gone. You feel lighter already.`);
+        });
+      }
+      if (result === 'PICK_UPGRADE' || run.pendingUpgrade) {
+        // Brody's garage uses Granny's Practice picker: choose the card yourself,
+        // see before/after side by side, then confirm (James's ask).
+        run.pendingUpgrade = false;
+        return upgradePickModal(upgradableCards(run.deck), (c) => {
+          c.up = true;
+          const info = cardInfo(c);
+          conclude(`${info.emoji} <b>${info.name}</b> — souped UP. "Told ya," says Brody.`);
         });
       }
       if (result === 'PICK_CARD' || run.pendingRemove) {

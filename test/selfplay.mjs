@@ -4,7 +4,7 @@
 // Verdict rails are wide for v1 scaffolding; tighten as tuning progresses.
 
 import { makeRng } from '../js/rng.js';
-import { CARDS, cardInfo, makeCard } from '../js/cards.js';
+import { CARDS, cardInfo, makeCard, upgradableCards } from '../js/cards.js';
 import { EVENTS } from '../js/events.js';
 import * as C from '../js/combat.js';
 import * as R from '../js/run.js';
@@ -144,6 +144,13 @@ function playEvent(run, key, rng) {
     run.pendingRemove = false;
     const kick = run.deck.find((c) => c.id === 'shove' || c.id === 'kick');
     if (kick && run.deck.length > 6) run.deck.splice(run.deck.indexOf(kick), 1);
+  }
+  if (result === 'PICK_UPGRADE' || run.pendingUpgrade) {
+    // Brody's garage now defers the choice to the player (same picker as Granny's
+    // Practice), so the headless bot stands in for that pick.
+    run.pendingUpgrade = false;
+    const c = rng.pick(upgradableCards(run.deck));
+    if (c) c.up = true;
   }
 }
 

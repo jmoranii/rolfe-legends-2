@@ -222,6 +222,30 @@ export function makeCard(id, up = false) {
   return { id, up: !!up, uid: uidCounter++ };
 }
 
+// The value a card's {n} placeholder stands for. Lives here (pure) rather than in
+// the renderer so a test can assert every {n} on every card actually resolves — an
+// unlisted op silently renders as a literal "?" on the card face.
+export function nValue(info) {
+  const fx = info.fx || [];
+  const statusOp = fx.find((o) => o.status);
+  if (statusOp) return Math.abs(statusOp.status.n);
+  if (info.pn != null) return info.pn;
+  const o = fx.find((x) => x.selfStr != null || x.selfDex != null || x.tempStr != null
+    || x.draw != null || x.energy != null || x.focus != null || x.orbSlots != null || x.addCard);
+  if (!o) return null;
+  const v = o.selfStr ?? o.selfDex ?? o.tempStr ?? o.draw ?? o.energy ?? o.focus ?? o.orbSlots
+    ?? (o.addCard && o.addCard.n);
+  return v == null ? null : v;
+}
+
+// Cards a Practice/Garage upgrade may legally target: not already upgraded, and
+// upgrading actually does something. The `base.up` check is what keeps curses and
+// statuses out — and it self-maintains, so a card can never be offered for an
+// upgrade that would do nothing but rename it.
+export function upgradableCards(deck) {
+  return deck.filter((c) => !c.up && CARDS[c.id] && CARDS[c.id].up);
+}
+
 // Resolved view of a card instance (applies upgrade overrides).
 export function cardInfo(inst) {
   const base = CARDS[inst.id];

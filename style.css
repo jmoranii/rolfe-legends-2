@@ -87,14 +87,91 @@ h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); letter-spac
 .enemy.targetable { border-color: #ffd23f; box-shadow: 0 0 12px #ffd23f88; animation: targetpulse 1s infinite; }
 @keyframes targetpulse { 50% { box-shadow: 0 0 20px #ffd23fcc; } }
 .enemy.dead { opacity: .25; pointer-events: none; }
-.enemy.dying { animation: die calc(var(--fx, 1) * .5s) ease forwards; }
-@keyframes die { to { opacity: .25; transform: scale(.85) rotate(4deg); filter: grayscale(1); } }
-.enemy .face { display: flex; width: 74px; height: 74px; margin: 0 auto; border-radius: 12px; overflow: hidden; font-size: 2.1rem; }
+/* Going down should read as a defeat, not a fade. It flinches white, then topples
+   over and drains of colour. The boss gets a longer, heavier version. */
+.enemy.dying { animation: die calc(var(--fx, 1) * .9s) cubic-bezier(.4, 0, .7, 1) forwards; }
+@keyframes die {
+  0%   { opacity: 1; transform: none; filter: none; }
+  12%  { opacity: 1; transform: scale(1.12); filter: brightness(3.2) saturate(0); }
+  30%  { opacity: .95; transform: scale(1.02) rotate(-5deg); filter: brightness(1.3) grayscale(.4); }
+  100% { opacity: .2; transform: scale(.72) rotate(22deg) translateY(26px); filter: grayscale(1) blur(1.5px); }
+}
+.enemy.dying-boss { animation: dieboss calc(var(--fx, 1) * 1.9s) cubic-bezier(.36, 0, .66, 1) forwards; z-index: 3; }
+@keyframes dieboss {
+  0%   { opacity: 1; transform: none; filter: none; }
+  8%   { opacity: 1; transform: scale(1.16); filter: brightness(4) saturate(0); }
+  16%  { opacity: 1; transform: scale(1.06) translateX(-8px); filter: brightness(1.6); }
+  26%  { transform: scale(1.08) translateX(9px) rotate(3deg); filter: brightness(2.6) saturate(.3); }
+  38%  { transform: scale(1.04) translateX(-7px) rotate(-4deg); filter: brightness(1.2); }
+  52%  { transform: scale(1) rotate(2deg); filter: grayscale(.3); }
+  70%  { opacity: .8; transform: scale(.95) rotate(-14deg) translateY(10px); filter: grayscale(.7) blur(.5px); }
+  100% { opacity: .12; transform: scale(.6) rotate(-38deg) translateY(60px); filter: grayscale(1) blur(4px); }
+}
+/* the whole board lurches when a boss hits the dirt */
+#app.quake { animation: quake calc(var(--fx, 1) * .5s) ease; }
+@keyframes quake {
+  0%, 100% { transform: none; }
+  20% { transform: translate(-6px, 4px); }
+  45% { transform: translate(5px, -5px); }
+  70% { transform: translate(-4px, 2px); }
+}
+.enemy .face { display: flex; width: 74px; height: 74px; margin: 0 auto; border-radius: 12px; overflow: hidden; font-size: 2.1rem; position: relative; }
 .enemy .face.art-emoji { overflow: visible; }
+
+/* ---------- Coach James scouting report ---------- */
+/* A dotted hint that an enemy is tappable when you're not aiming a card. */
+.enemy.scoutable::after {
+  content: '?'; position: absolute; top: 2px; right: 4px;
+  font-size: .62rem; font-weight: 900; opacity: .4; pointer-events: none;
+}
+.scout-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.scout-head .scout-face { width: 68px; height: 68px; flex: none; border-radius: 12px; overflow: hidden; font-size: 2rem; }
+.scout-who { text-align: left; min-width: 0; }
+.scout-name { font-weight: 900; font-size: 1.05rem; line-height: 1.15; }
+.scout-hp { font-size: .85rem; opacity: .85; margin-top: 2px; }
+.scout-facts {
+  text-align: left; font-size: .85rem; line-height: 1.5;
+  background: rgba(0,0,0,.28); border-radius: 10px; padding: 8px 10px; margin-bottom: 10px;
+}
+.scout-line { text-align: left; line-height: 1.45; display: flex; gap: 10px; align-items: flex-start; }
+.scout-line .coach-face { display: flex; width: 44px; height: 44px; border-radius: 50%; overflow: hidden; flex: none; font-size: 1.7rem; }
+.scout-say { min-width: 0; }
+
+/* ---------- form change / split ---------- */
+/* The outgoing form is stacked over the incoming one and dissolves, so a mode shift
+   reads as a transformation instead of the artwork blinking to a new picture. */
+.enemy .face .form-ghost {
+  position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; border-radius: 12px;
+  z-index: 2; animation: formghost .9s ease forwards; pointer-events: none;
+}
+@keyframes formghost {
+  0%   { opacity: 1; transform: scale(1); filter: none; }
+  45%  { opacity: .85; transform: scale(1.12); filter: brightness(2.2) saturate(.4); }
+  100% { opacity: 0; transform: scale(1.35); filter: brightness(3) blur(6px); }
+}
+.enemy.form-shifting { animation: formshake calc(var(--fx, 1) * .9s) ease; }
+.enemy.form-shifting .face { box-shadow: 0 0 22px #fff8, 0 0 40px #ffd23f88; }
+@keyframes formshake {
+  0%, 100% { transform: translateX(0) scale(1); }
+  15% { transform: translateX(-5px) scale(1.04); }
+  35% { transform: translateX(5px) scale(1.06); }
+  55% { transform: translateX(-4px) scale(1.04); }
+  75% { transform: translateX(3px) scale(1.02); }
+}
+.floaty.formshift { color: #ffe680; font-size: 1.05rem; font-weight: 900; text-shadow: 0 0 12px #ffd23fcc, 0 2px 5px rgba(0,0,0,.7); }
+/* A freshly split-off enemy squeezes out of its parent rather than popping in. */
+.enemy.splitting-in { animation: splitin .76s cubic-bezier(.34, 1.56, .64, 1) both; transform-origin: left center; }
+@keyframes splitin {
+  0%   { opacity: 0; transform: translateX(-46px) scaleX(.25) scaleY(1.3); filter: blur(3px); }
+  55%  { opacity: 1; transform: translateX(6px) scaleX(1.12) scaleY(.88); filter: blur(0); }
+  100% { opacity: 1; transform: none; }
+}
 .enemy.boss-foe { max-width: 190px; }
 .enemy.boss-foe .face { width: 118px; height: 118px; font-size: 3rem; }
 .enemy .nm { font-size: .72rem; font-weight: 700; line-height: 1.1; margin-top: 2px; }
-.intent { font-size: .8rem; font-weight: 800; background: rgba(0,0,0,.45); border-radius: 8px; padding: 2px 6px; margin-top: 4px; display: inline-block; }
+.intent-slot { display: flex; flex-direction: column; align-items: center; gap: 1px; margin-bottom: 4px; }
+.next-label { font-size: .52rem; font-weight: 900; letter-spacing: .14em; opacity: .75; color: #fff; }
+.intent { font-size: .8rem; font-weight: 800; background: rgba(0,0,0,.45); border-radius: 8px; padding: 2px 6px; display: inline-block; }
 .intent.attack { color: #ff8b7a; }
 .intent.defend { color: #8fd0ff; }
 .intent.buff { color: #ffd23f; }
@@ -274,8 +351,8 @@ h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); letter-spac
 .gold-line { margin-bottom: 8px; }
 
 /* boss & elite presence: ribbons + aura so the big fights READ big */
-.enemy.boss-foe { border-width: 4px; border-color: #ffd23f; box-shadow: 0 0 22px rgba(255, 210, 63, .45); padding-top: 18px; }
-.enemy.elite-foe { border-color: #d9736b; box-shadow: 0 0 14px rgba(217, 90, 80, .4); padding-top: 16px; }
+.enemy.boss-foe { border-width: 4px; border-color: #ffd23f; box-shadow: 0 0 22px rgba(255, 210, 63, .45); padding-top: 22px; }
+.enemy.elite-foe { border-color: #d9736b; box-shadow: 0 0 14px rgba(217, 90, 80, .4); padding-top: 20px; }
 .enemy.boss-foe::before, .enemy.elite-foe::before {
   content: '👑 BOSS'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
   background: #b8860b; color: #fff; border: 2px solid #ffd23f; border-radius: 9px;
@@ -400,9 +477,17 @@ h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); letter-spac
 .act-card { justify-content: center; position: relative; text-align: center; }
 .act-card .battle-bg.has-art { opacity: .55; }
 .act-card-inner { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 6px; }
-.act-card-kicker { font-weight: 900; letter-spacing: .35em; opacity: .95; font-size: .95rem; text-shadow: 0 1px 4px rgba(0,0,0,.5); }
-.act-card-name { font-size: 2.2rem; letter-spacing: .06em; text-shadow: 0 3px 10px rgba(0,0,0,.55); animation: splashin .5s ease; }
-.act-card-sub { font-weight: 800; font-size: 1.2rem; text-shadow: 0 2px 6px rgba(0,0,0,.65); }
+/* title-screen treatment: white outline + dark glow so the story text reads
+   over ANY act art (act 1's dark text on bright corn was the offender) */
+.act-card-kicker, .act-card-name, .act-card-sub {
+  text-shadow:
+    -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 2px 2px 0 #fff,
+    -2px 0 0 #fff, 2px 0 0 #fff, 0 -2px 0 #fff, 0 2px 0 #fff,
+    0 4px 18px rgba(0,0,0,.65), 0 2px 8px rgba(0,0,0,.5);
+}
+.act-card-kicker { font-weight: 900; letter-spacing: .35em; opacity: .95; font-size: .95rem; }
+.act-card-name { font-size: 2.2rem; letter-spacing: .06em; animation: splashin .5s ease; }
+.act-card-sub { font-weight: 800; font-size: 1.2rem; }
 .act-card .speaker-line { font-size: 1.18rem; font-weight: 700; background: rgba(0,0,0,.45); color: #fff; }
 .act-card .battle-bg.has-art { opacity: .8; }
 .act-card .battle-bg.has-art ~ .act-card-inner .event-emoji { display: none; } /* the art tells the story; emoji is the no-art fallback */

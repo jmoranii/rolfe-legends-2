@@ -55,6 +55,7 @@ export function newRun(heroId, seed) {
     pos: null, trail: [],
     skipNextFloor: false,
     pendingRemove: false,
+    pendingUpgrade: false,
     stats: { fights: 0, elites: 0, damageTaken: 0 },
   };
   return run;

@@ -1,6 +1,6 @@
 // Rolfe Legends 2 — unit tests. Run: node test/test.mjs
 import { makeRng } from '../js/rng.js';
-import { CARDS, HEROES, makeCard, cardInfo, draftPool } from '../js/cards.js';
+import { CARDS, HEROES, makeCard, cardInfo, draftPool, nValue } from '../js/cards.js';
 import { RELICS, relicPool } from '../js/relics.js';
 import { ENEMIES } from '../js/enemies.js';
 import { EVENTS, EVENT_KEYS } from '../js/events.js';
@@ -874,6 +874,22 @@ for (const key of Object.keys(ENEMIES)) {
   for (const [id, e] of Object.entries(ENEMIES)) {
     ok(e.name && e.emoji && Array.isArray(e.hp), `enemy ${id} complete`);
     ok(typeof e.nextMove === 'function', `enemy ${id} has moves`);
+  }
+  // Every placeholder on a card face must resolve to a real number. Giggle Fit and
+  // More Diapers both read "Gain ? Giggle Power" in play because their ops (focus /
+  // orbSlots) were missing from the resolver's list.
+  for (const [id] of Object.entries(CARDS)) {
+    for (const up of [false, true]) {
+      const info = cardInfo({ id, up, uid: 0 });
+      const txt = info.text || '';
+      if (txt.includes('{n}')) ok(nValue(info) != null, `card ${id}${up ? '+' : ''} resolves {n}`);
+      if (txt.includes('{d}')) {
+        ok((info.fx || []).some((o) => o.dmg != null) || info.base != null, `card ${id}${up ? '+' : ''} resolves {d}`);
+      }
+      if (txt.includes('{b}')) {
+        ok((info.fx || []).some((o) => o.block != null) || info.pn != null, `card ${id}${up ? '+' : ''} resolves {b}`);
+      }
+    }
   }
   ok(draftPool('aaron').length >= 15, 'aaron has a real card pool');
   ok(draftPool('wyatt').length >= 15, 'wyatt has a real card pool');
