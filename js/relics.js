@@ -4,7 +4,7 @@
 export const RELICS = {
   // starters
   big_breakfast: { name: 'Big Breakfast', emoji: '🥞', sts: 'Burning Blood', starter: 'aaron',
-    text: 'Heal 6 HP after every fight.' },
+    text: 'Heal 8 HP after every fight.' },
   head_start: { name: 'Head Start', emoji: '👟', sts: 'Ring of the Snake', starter: 'wyatt',
     text: 'Draw 2 extra cards on your first turn.' },
   diaper_bag: { name: 'Diaper Bag', emoji: '👜', sts: 'Cracked Core', starter: 'liam',

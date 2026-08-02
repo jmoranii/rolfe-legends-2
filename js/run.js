@@ -177,7 +177,7 @@ export function applyCombatResult(run, combatState) {
   let lost = 0;
   for (const e of combatState.enemies) if (e.fled && e.stolen) lost += e.stolen;
   run.gold = Math.max(0, run.gold - lost);
-  if (run.relics.includes('big_breakfast')) run.hp = Math.min(run.maxHp, run.hp + 10);
+  if (run.relics.includes('big_breakfast')) run.hp = Math.min(run.maxHp, run.hp + 8);
   run.stats.fights += 1;
   return { goldLost: lost };
 }
@@ -254,9 +254,9 @@ export function advanceAct(run) {
   run.pos = null;
   run.trail = [];
   run.seenEvents = [];
-  // "Catch your breath" — heal 33% between acts. Kid-kindness deviation from StS
-  // (documented in DESIGN.md); the harness validates overall difficulty with it.
-  run.hp = Math.min(run.maxHp, run.hp + Math.floor(run.maxHp * 0.33));
+  // "Catch your breath" — heal 20% between acts (was 33%; hard-mode retune
+  // Sun 2026-08-02, James: everyone close to 30% winrate). Documented in DESIGN.md.
+  run.hp = Math.min(run.maxHp, run.hp + Math.floor(run.maxHp * 0.20));
   return true;
 }
 

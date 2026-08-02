@@ -12,13 +12,13 @@ export const HEROES = {
     starter: ['shove', 'shove', 'shove', 'shove', 'shove', 'brace', 'brace', 'brace', 'brace', 'tornado_slam'],
   },
   wyatt: {
-    id: 'wyatt', name: 'Wyatt the Speedy', emoji: '⚡', hp: 70,
+    id: 'wyatt', name: 'Wyatt the Speedy', emoji: '⚡', hp: 54, // StS Silent 70; hard-mode dial (his StS-true kit overperforms vs the kid-tilted bestiary)
     relic: 'head_start',
     tagline: 'Fastest feet in Rolfe. Blink and you miss him.',
     starter: ['kick', 'kick', 'kick', 'kick', 'kick', 'dodge', 'dodge', 'dodge', 'dodge', 'dodge', 'nutmeg', 'quick_feet'],
   },
   liam: { // SECRET hero — unlocked via the title-screen Goldie egg. Defect spine.
-    id: 'liam', name: 'Liam the Little', emoji: '🍼', hp: 78,
+    id: 'liam', name: 'Liam the Little', emoji: '🍼', hp: 76, // was 78 (pre-hard-mode compensation buff, partially reverted)
     relic: 'diaper_bag', secret: true,
     tagline: 'Two and a half feet of chaos. Diapers orbit him. Nobody knows why.',
     starter: ['bonk', 'bonk', 'bonk', 'bonk', 'peekaboo', 'peekaboo', 'peekaboo', 'peekaboo', 'change_it', 'double_trouble'],
@@ -29,7 +29,7 @@ export const HEROES = {
 // Mirrors StS orbs: stinky=Lightning, fresh=Frost, blowout=Dark, snack=Plasma.
 export const DIAPERS = {
   stinky:  { name: 'Stinky Diaper', emoji: '💩', passive: 3, evoke: 8,  desc: 'Each turn: the smell deals {p} to a random enemy. Send it flying: {e}.' },
-  fresh:   { name: 'Fresh Diaper', emoji: '🩲', passive: 3, evoke: 6,  desc: 'Each turn: clean & cozy, gain {p} Block. Evoke: {e} Block.' },
+  fresh:   { name: 'Fresh Diaper', emoji: '🩲', passive: 2, evoke: 5,  desc: 'Each turn: clean & cozy, gain {p} Block. Evoke: {e} Block.' },
   blowout: { name: 'THE BLOWOUT', emoji: '🌋', passive: 6, evoke: 0,  desc: 'Grows +{p} damage every turn it floats. Evoke: unleash it ALL on the weakest enemy.' },
   snack:   { name: 'Snack Time', emoji: '🧃', passive: 0, evoke: 2,  desc: 'Each turn: +1 ⚡. Evoke: +{e} ⚡.' },
 };
@@ -162,8 +162,8 @@ export const CARDS = {
   sippy_cup:    { hero: 'liam', name: 'Sippy Cup', emoji: '🥤', type: 'skill', cost: 1, rarity: 'common', sts: 'Coolheaded',
                   text: 'Float a Fresh Diaper. Draw 1 card.', fx: [{ channel: 'fresh' }, { draw: 1 }], up: { cost: 0 } },
   blanket_fort: { hero: 'liam', name: 'Blanket Fort', emoji: '🛏️', type: 'skill', cost: 2, rarity: 'common', sts: 'Glacier',
-                  text: 'Gain {b} Block. Float 2 Fresh Diapers.', fx: [{ block: 9 }, { channel: 'fresh' }, { channel: 'fresh' }],
-                  up: { fx: [{ block: 13 }, { channel: 'fresh' }, { channel: 'fresh' }] } },
+                  text: 'Gain {b} Block. Float 2 Fresh Diapers.', fx: [{ block: 8 }, { channel: 'fresh' }, { channel: 'fresh' }],
+                  up: { fx: [{ block: 11 }, { channel: 'fresh' }, { channel: 'fresh' }] } },
   sticky_hands: { hero: 'liam', name: 'Sticky Hands', emoji: '🍯', type: 'attack', cost: 0, rarity: 'common', sts: 'Claw', grows: 2,
                   text: 'Deal {d} damage. Every play makes ALL Sticky Hands +2 STICKIER this fight!', fx: [{ dmg: 4 }], up: { fx: [{ dmg: 6 }] } },
   nap_time:     { hero: 'liam', name: 'Nap Time', emoji: '😴', type: 'skill', cost: 1, rarity: 'common', sts: '(original)',

@@ -2,6 +2,14 @@
 
 Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 300`.
 
+## 2026-08-02 · HARD MODE — the balance pass lands at ~30% (James: "I want this game to be hard")
+
+- New design target: every hero close to **30% winrate** (was the 35–55 band). Selfplay rails re-anchored to 25–35 (hard ±2 at n≥300).
+- Three tuning rounds, verified at **500 runs/hero: Aaron 32.6 · Wyatt 29.4 · Liam 26.8** (from 35.3/53.3/44.7). Pacing rails untouched: 4.6/6.7/10.9 avg turns.
+- The dials: between-act heal 33%→**20%** · **Wyatt HP 70→54** (his StS-true kit overperforms; the HP dial carries the whole nerf — zero card changes) · Liam HP 78→76 + Fresh Diaper reverted to Frost-true 2/5 + Blanket Fort 9→8 · Aaron Big Breakfast 10→8 (also fixed its text, which claimed 6 while the engine healed 10).
+- Watch-item for playtests: Wyatt's deaths now front-load into act 1 (Ornery Ram top killer) — spiky early game, by design but worth feeling out.
+- sw cache v10 · unit 1312 · e2e 72/72 both engines.
+
 ## 2026-08-02 · BELLY FLOP! + true-Claw Sticky Hands + richer shop & porch (James's round)
 
 - **BELLY FLOP!** 💦 (Aaron, =Body Slam, common): deal damage equal to your Block; 1⚡ → FREE upgraded. Pairs with Fortify the Barn (Barricade). New engine op `dmgFromBlock`; the card face shows the live number ("(14 right now!)").

@@ -15,15 +15,15 @@ Every place the result improves with a reference photo or a personal detail. For
 | 4 | Phrases the boys actually say | My best-guess kid dialogue (see cameo lines below) | Real catchphrases: what Wyatt yells in soccer, Aaron-isms, what Liam actually calls things ("uppies"? "uh-oh"?), what the boys call Jacob/Tory (Dad/Mom assumed) | any event/tip/victory line |
 | 5 | Boys' interests beyond soccer (Wyatt) / strength (Aaron) | RL1 canon (Wyatt=speedy/soccer, Aaron=Lil Tornado) | Current obsessions (games, shows, animals) for card names + anthem lyrics | card flavor, anthem lyrics |
 
-## ⚖️ Balance deviations from pure StS mirrors (Phase 2)
+## ⚖️ Balance deviations from pure StS mirrors (HARD MODE — retuned Sun 2026-08-02)
 
-Tuned by the harness into the 35–55% band (500 runs/hero: **Aaron 49.8 · Wyatt 54.8 · Liam 49.4**). DESIGN.md sanctions harness-driven drift; flagging anything now above/below its StS original:
+**You re-targeted to ~30% winrate ("I want this game to be hard").** Verified at 500 runs/hero: **Aaron 32.6 · Wyatt 29.4 · Liam 26.8** (was 49.8/54.8/49.4 pre-snack-cut). Rails now enforce a 25–35 band. The dials, layered on the Phase-2 ledger below:
 
-- Between-act heal 25% → **33%** (kid-kindness lever; maps are committed paths now, harder than the old pick-1-of-3).
-- Aaron: Big Breakfast heal 6 → **10** (Burning Blood is 6) · Pumped Up **3** Str (Inflame 2) · Tough Skin **4** (Metallicize 3).
-- Liam: Fresh Diaper passive/evoke **3/6** (Frost 2/5) · Blanket Fort **9** block (Glacier 7) · Nap Time **14** · Giggle Fit **2** Focus (Defragment 1) · HP 75 → **78**.
-- Wyatt (was overshooting): Sting Shot poison 3 → **2** (Poisoned Stab 3) · Itching Powder 5 → **4** (Deadly Poison 5) · Prank Cloud poison 4 → **3** (Crippling Cloud 4).
-- Bosses sized for floor-12 kid decks (StS bosses meet floor-16 decks): Combine 175→**150** HP, MOW 24→**20** · Raccoon King 290→**250** · Twister 220/240→**190/200**, Monster Gust 28→**24** · Snapping Turtle plating 8+4→**6+3**.
+- Between-act heal **33% → 20%** (the kid-kindness lever, mostly closed).
+- **Wyatt HP 70 → 54** — his StS-true Silent kit overperforms against the kid-tilted bestiary, so the ascension-style HP dial carries the whole nerf; not one of his cards was touched. ⚠️ Texture: his deaths now front-load into act 1 (Ornery Ram is his top killer) — the early game is spiky for him. Watch whether that *feels* fair when the boys play him.
+- **Liam HP 78 → 76** · Fresh Diaper **3/6 → 2/5** (Frost-true) · Blanket Fort **9 → 8** block (Glacier is 7; kept +1 as his carry card). Giggle Fit 2 Focus and Nap Time 14 kept.
+- **Aaron: Big Breakfast 10 → 8** (his only change; also fixed the relic text, which had said "6" while the engine healed 10).
+- Phase-2 ledger still in force: Pumped Up 3 · Tough Skin 4 · Wyatt poison trims (Sting Shot 2 / Itching Powder 4 / Prank Cloud 3) · bosses sized for floor-12 decks (Combine 150, Raccoon King 250, Twister 190/200, Snapping Turtle plating 6+3).
 
 ## ✍️ New dialogue for your approval pass (Phase 2)
 

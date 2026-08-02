@@ -259,19 +259,20 @@ for (const hero of Object.keys(report)) {
   console.log(`  ${hero}: ${top.join(' · ')}`);
 }
 
-// ---------- verdict rails (tightened to the 35–55% design band) ----------
-// At n≥300 sampling noise is ~±3%, so the hard rail is band ±2%. Smaller n
-// (quick local runs) gets a looser guard so it stays useful without flaking.
+// ---------- verdict rails (25–35% band — James re-targeted Sun 2026-08-02: "I want this game to be hard") ----------
+// Design target: every hero close to 30% winrate. At n≥300 sampling noise is
+// ~±3%, so the hard rail is band ±2%. Smaller n (quick local runs) gets a
+// looser guard so it stays useful without flaking.
 let bad = false;
-const [lo, hi] = RUNS >= 300 ? [0.33, 0.57] : [0.28, 0.62];
+const [lo, hi] = RUNS >= 300 ? [0.23, 0.37] : [0.18, 0.42];
 for (const hero of ['aaron', 'wyatt', 'liam']) {
   const wr = report[hero].wins / RUNS;
-  if (wr < lo) { console.log(`RAIL FAIL: ${hero} winrate ${(wr * 100).toFixed(1)}% < ${lo * 100}% — below the 35–55 band`); bad = true; }
-  if (wr > hi) { console.log(`RAIL FAIL: ${hero} winrate ${(wr * 100).toFixed(1)}% > ${hi * 100}% — above the 35–55 band`); bad = true; }
+  if (wr < lo) { console.log(`RAIL FAIL: ${hero} winrate ${(wr * 100).toFixed(1)}% < ${lo * 100}% — below the 25–35 band`); bad = true; }
+  if (wr > hi) { console.log(`RAIL FAIL: ${hero} winrate ${(wr * 100).toFixed(1)}% > ${hi * 100}% — above the 25–35 band`); bad = true; }
 }
 if (stalls > RUNS * 0.1) { console.log(`RAIL FAIL: ${stalls} stalled fights`); bad = true; }
 if (pacing.fight > 7) { console.log(`RAIL FAIL: normal fights average ${pacing.fight.toFixed(1)} turns (bore threshold 7)`); bad = true; }
 if (pacing.elite > 11) { console.log(`RAIL FAIL: elites average ${pacing.elite.toFixed(1)} turns (bore threshold 11)`); bad = true; }
 if (pacing.boss > 16) { console.log(`RAIL FAIL: bosses average ${pacing.boss.toFixed(1)} turns (bore threshold 16)`); bad = true; }
-console.log(bad ? '\nVERDICT: NEEDS TUNING' : '\nVERDICT: ALL CLEAR (35–55 band rails)');
+console.log(bad ? '\nVERDICT: NEEDS TUNING' : '\nVERDICT: ALL CLEAR (25–35 hard-mode band)');
 process.exit(bad ? 1 : 0);

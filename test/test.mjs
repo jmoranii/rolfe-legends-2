@@ -496,7 +496,7 @@ for (const key of Object.keys(ENEMIES)) {
   // evoke order is oldest-first: fresh, then blowout
   state.hero.block = 0;
   C.evokeOrb(state);
-  eq(state.hero.block, 6, 'fresh evoke = 6 block');
+  eq(state.hero.block, 5, 'fresh evoke = 5 block (Frost-true, hard-mode revert)');
   const weakest = state.enemies.slice().sort((a, b) => a.hp - b.hp)[0];
   weakest.block = 0;
   const whp = weakest.hp;
@@ -511,7 +511,7 @@ for (const key of Object.keys(ENEMIES)) {
   state.hero.block = 0;
   C.channelOrb(state, 'stinky');
   eq(state.hero.orbs.length, 3, 'capped at 3 slots');
-  eq(state.hero.block, 6, 'oldest auto-evoked (fresh: 6 block)');
+  eq(state.hero.block, 5, 'oldest auto-evoked (fresh: 5 block)');
   forceHand(state, ['more_diapers']);
   state.hero.energy = 3;
   C.playCard(state, state.hand[0]);
@@ -853,7 +853,7 @@ for (const key of Object.keys(ENEMIES)) {
   state.hero.hp = 50;
   C.dealDamage(state, state.enemies[0], 999, { attacker: state.hero });
   R.applyCombatResult(run, state);
-  eq(run.hp, 60, 'big breakfast heals 10 after fight');
+  eq(run.hp, 58, 'big breakfast heals 8 after fight');
 }
 
 // ---------- the Secret Farm Code ----------
