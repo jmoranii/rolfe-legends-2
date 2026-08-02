@@ -2,6 +2,16 @@
 
 Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 300`.
 
+## 2026-08-02 · Liam legibility audit + junk-card & elite-reward visibility
+
+James's round-3 playtest notes, all fixed:
+- **Active powers were invisible once played** (audit's biggest find, all heroes): purple power chips now sit on the hero strip (🌪️2 Tornado Form, 🎂 Birthday Boy, 🌫️ MAXIMUM STINK…), tap → explanation with live values.
+- **Diaper auto-evokes** now announce themselves ("💩 POP!" floaty over the orb row) — the invisible oldest-pops-when-full rule finally shows.
+- **Junk-card shoves are announced**: any Straw/Scraped Knee/Hailstone/Poison Ivy stuffed into your piles toasts what+where ("🌾 2× Straw got tossed onto your DISCARD pile! It vanishes after the fight."); the junk cards' own text now says they're gone after the fight.
+- **Elite relic drops** get the full FARM TREASURE reveal popup (was a one-line mention on the reward screen); elite reward header now reads "💀 BIG Trouble — beaten!" with a collected-✓ line.
+- Kid-English: "Evoke" → "POP" on Double Trouble / Uppies!.
+- Tests: unit 1163 · e2e 65/65 both engines.
+
 ## 2026-08-01 · Story & spectacle pass (James's playtest round 2)
 
 - **In-scene family art**: all nine RL1-reused portraits regenerated (same gouache, now *doing the thing*) — Rusty carries the mystery bundle, Granny offers the cookie plate from her rocker, Dad works his shop counter, Flaj pats the tractor seat, Mom holds out the care package, Brody wrenches, Chelsea ladles, Coach fist-bumps, Goldie blocks the gate. RL1 versions parked in originals/rl1-reused.

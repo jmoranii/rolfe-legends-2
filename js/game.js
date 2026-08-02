@@ -557,6 +557,25 @@ function statusChips(cr) {
   return chips.join('');
 }
 
+// active powers (Tornado Form, Birthday Boy…) get chips + tap-explanations —
+// they used to vanish from view the moment they were played
+const POWER_INFO = {
+  tornado_form: { emoji: '🌪️', text: (n) => `Tornado Form: +${n} Strength at the start of EVERY turn!` },
+  tough_skin: { emoji: '🦬', text: (n) => `Tough Skin: +${n} Block at the end of every turn.` },
+  fortify: { emoji: '🏚️', text: () => 'Fortify the Barn: your Block no longer wears off between turns!' },
+  sleight_of_hand: { emoji: '🎩', text: () => 'Sleight of Hand: draw 1 extra card every turn, then discard 1.' },
+  ball_machine: { emoji: '🎾', text: () => 'Ball Machine: a free Soccer Ball appears in your hand every turn.' },
+  afterimage: { emoji: '👥', text: () => 'Afterimage: +1 Block every time you play a card.' },
+  max_stink: { emoji: '🌫️', text: () => 'MAXIMUM STINK: your Stinky Diapers hit ALL enemies at once.' },
+  birthday_boy: { emoji: '🎂', text: () => 'Birthday Boy: +1 Giggle Power at the start of every turn.' },
+};
+function powerChips(h) {
+  return Object.entries(h.powers || {})
+    .filter(([k, v]) => v && POWER_INFO[k])
+    .map(([k, v]) => `<span class="chip chip-power" data-power="${k}">${POWER_INFO[k].emoji}${Number.isFinite(v) ? v : ''}</span>`)
+    .join('');
+}
+
 const INTENT_KIND_INFO = {
   attack: (name, dmg) => `⚔️ Next move — ${name}: it will attack you for ${dmg} after your turn!`,
   defend: (name) => `🛡️ Next move — ${name}: it will protect itself with Block.`,
@@ -626,6 +645,20 @@ function animateDiffs(s, enemyEls, heroEl) {
   lastLogIdx = st.log.length;
   let delay = 0;
   for (const ev of events) {
+    if (ev.t === 'addCard') {
+      const card = CARDS[ev.id];
+      if (card && (card.type === 'status' || card.type === 'curse')) {
+        const pile = ev.to === 'draw' ? 'shuffled into your DRAW pile' : ev.to === 'hand' ? 'jammed into your hand' : 'tossed onto your DISCARD pile';
+        toast(`${card.emoji} ${ev.n > 1 ? ev.n + '× ' : ''}${card.name} got ${pile}! (It vanishes after the fight.)`, 3000);
+      }
+      continue;
+    }
+    if (ev.t === 'evoke') {
+      const orbRow = s.querySelector && s.querySelector('.orb-row');
+      const d = DIAPERS[ev.orb];
+      if (orbRow && d) floaty(orbRow, `${d.emoji} POP!`, 'heal');
+      continue;
+    }
     const target = ev.target === 'hero' ? heroEl : enemyEls[ev.target];
     if (!target) continue;
     const show = () => {
@@ -712,7 +745,7 @@ function renderCombat(actedEnemy = null) {
   stats.innerHTML = `<b>${hero.name}</b>
       <div class="hpbar"><div style="width:${h.hp / h.maxHp * 100}%"></div></div>
       <div class="hpnum">❤️ ${h.hp}/${h.maxHp} ${h.block ? `· 🛡️ ${h.block}` : ''}</div>
-      <div class="chips">${statusChips(h)}</div>`;
+      <div class="chips">${statusChips(h)}${powerChips(h)}</div>`;
   strip.appendChild(stats);
   const orb = el('div', 'energy-orb', `${h.energy}<small>⚡</small>`);
   strip.appendChild(orb);
@@ -914,6 +947,14 @@ function combatWon() {
   if (combatKind === 'boss') {
     const bossName = st.enemies.filter((e) => e.isBoss).map((e) => e.name).join(' & ') || 'THE BOSS';
     showBossSplash(bossName, () => showReward(rewards, result, 'boss'));
+  } else if (combatKind === 'elite' && rewards.relic) {
+    const rid = rewards.relic;
+    rewards.relic = null;
+    rewards.relicCollected = rid;
+    run.relics.push(rid);
+    R.onRelicGained(run, rid);
+    coachTip('relic', 'Farm Treasures work the whole run. Collect them!');
+    showRelicPop(rid, () => showReward(rewards, result, 'elite'));
   } else {
     showReward(rewards, result, combatKind);
   }
@@ -988,7 +1029,11 @@ function showActCard(act, onDone) {
 // ---------- rewards ----------
 function showReward(rewards, result, kind) {
   const s = screen(actCls());
-  s.appendChild(el('h2', '', kind === 'boss' ? '👑 BOSS DEFEATED!' : '🎉 You did it!'));
+  s.appendChild(el('h2', '', kind === 'boss' ? '👑 BOSS DEFEATED!' : kind === 'elite' ? '💀 BIG Trouble — beaten!' : '🎉 You did it!'));
+  if (rewards.relicCollected) {
+    const rl = RELICS[rewards.relicCollected];
+    s.appendChild(el('p', 'subtitle', `✅ ${rl.emoji} <b>${rl.name}</b> collected!`));
+  }
   if (result.goldLost) s.appendChild(el('p', 'subtitle', `😤 The thief got away with 💰${result.goldLost}…`));
   s.appendChild(el('p', 'subtitle', `+💰 ${rewards.gold} gold`));
   if (rewards.relic) {
@@ -1314,6 +1359,12 @@ document.addEventListener('click', (ev) => {
   if (ev.target.closest && ev.target.closest('.enemy.targetable')) return; // targeting taps = attacks, not tooltips
   const chip = ev.target.closest && ev.target.closest('.chip[data-status]');
   if (chip && STATUS_INFO[chip.dataset.status]) { toast(STATUS_INFO[chip.dataset.status], 2800); return; }
+  const pchip = ev.target.closest && ev.target.closest('.chip[data-power]');
+  if (pchip && combat && POWER_INFO[pchip.dataset.power]) {
+    const v = combat.hero.powers[pchip.dataset.power];
+    toast(POWER_INFO[pchip.dataset.power].text(v), 3000);
+    return;
+  }
   const it = ev.target.closest && ev.target.closest('.intent[data-intent]');
   if (it) {
     const kind = it.dataset.intent;

@@ -152,7 +152,7 @@ export const CARDS = {
   change_it:    { hero: 'liam', name: 'Change It!', emoji: '💩', type: 'skill', cost: 1, rarity: 'starter', sts: 'Zap',
                   text: 'Float a Stinky Diaper.', fx: [{ channel: 'stinky' }], up: { cost: 0 } },
   double_trouble:{ hero: 'liam', name: 'Double Trouble', emoji: '👯', type: 'skill', cost: 1, rarity: 'starter', sts: 'Dualcast',
-                  text: 'Evoke your oldest diaper twice.', special: 'double_trouble', up: { cost: 0 } },
+                  text: 'POP your oldest diaper twice.', special: 'double_trouble', up: { cost: 0 } },
   throw_spaghetti:{ hero: 'liam', name: 'Throw Spaghetti', emoji: '🍝', type: 'attack', cost: 1, rarity: 'common', sts: 'Ball Lightning',
                   text: 'Deal {d} damage. Float a Stinky Diaper.', fx: [{ dmg: 7 }, { channel: 'stinky' }], up: { fx: [{ dmg: 10 }, { channel: 'stinky' }] } },
   sippy_cup:    { hero: 'liam', name: 'Sippy Cup', emoji: '🥤', type: 'skill', cost: 1, rarity: 'common', sts: 'Coolheaded',
@@ -172,7 +172,7 @@ export const CARDS = {
   giggle_fit:   { hero: 'liam', name: 'Giggle Fit', emoji: '😆', type: 'power', cost: 1, rarity: 'uncommon', sts: 'Defragment',
                   text: 'Gain {n} Giggle Power (your diapers get stronger).', fx: [{ focus: 2 }], up: { fx: [{ focus: 3 }] } },
   uppies:       { hero: 'liam', name: 'Uppies!', emoji: '🙌', type: 'skill', cost: 1, rarity: 'uncommon', sts: 'Recursion',
-                  text: 'Evoke your oldest diaper, then float a new one just like it.', special: 'uppies', up: { cost: 0 } },
+                  text: 'Pop your oldest diaper, then float a fresh copy of it.', special: 'uppies', up: { cost: 0 } },
   throw_food:   { hero: 'liam', name: 'Throw Food', emoji: '🥣', type: 'attack', cost: 1, rarity: 'uncommon', sts: 'Barrage',
                   text: 'Deal {d} damage for each floating diaper.', special: 'throw_food', base: 4, up: { base: 6 } },
   more_diapers: { hero: 'liam', name: 'More Diapers!', emoji: '🧺', type: 'power', cost: 1, rarity: 'uncommon', sts: 'Capacitor',
@@ -192,11 +192,11 @@ export const CARDS = {
 
   // ---------- Statuses (combat junk) ----------
   scraped_knee: { hero: 'none', name: 'Scraped Knee', emoji: '🩹', type: 'status', cost: null, rarity: 'status', sts: 'Wound',
-                  text: 'Unplayable.', unplayable: true },
+                  text: 'Unplayable — it just clogs your hand. Heals up (poof!) when the fight ends.', unplayable: true },
   straw:        { hero: 'none', name: 'Straw', emoji: '🌾', type: 'status', cost: null, rarity: 'status', sts: 'Dazed',
-                  text: 'Unplayable.', unplayable: true },
+                  text: 'Unplayable — it just clogs your hand. Blows away (poof!) when the fight ends.', unplayable: true },
   hailstone:    { hero: 'none', name: 'Hailstone', emoji: '🧊', type: 'status', cost: null, rarity: 'status', sts: 'Burn',
-                  text: 'Unplayable. If in your hand at end of turn, take 2 damage.', unplayable: true, endTurnDmg: 2 },
+                  text: 'Unplayable. Still in your hand at end of turn? Take 2 damage. Melts away after the fight.', unplayable: true, endTurnDmg: 2 },
 
   // ---------- Curses (deck junk — NEVER "Chores") ----------
   homework:     { hero: 'none', name: 'Homework', emoji: '📚', type: 'curse', cost: null, rarity: 'curse', sts: 'Curse',

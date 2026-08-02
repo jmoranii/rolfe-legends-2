@@ -144,6 +144,7 @@ export function addCardToCombat(state, id, n, to = 'hand') {
     else if (to === 'draw') state.draw.splice(state.rng.int(state.draw.length + 1), 0, c);
     else state.discard.push(c);
   }
+  state.log.push({ t: 'addCard', id, n, to });
 }
 
 // ---------- relics (combat-relevant hooks) ----------
@@ -178,6 +179,7 @@ export function evokeOrb(state, times = 1) {
   const h = state.hero;
   const orb = h.orbs.shift();
   if (!orb) return;
+  state.log.push({ t: 'evoke', orb: orb.type });
   for (let t = 0; t < times; t++) {
     if (orb.type === 'stinky') {
       for (const e of randomTargets(state, h.powers.max_stink)) {
