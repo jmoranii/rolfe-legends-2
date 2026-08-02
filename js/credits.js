@@ -22,6 +22,9 @@ const CAST = [
   { re: /^(chelsea)/i, art: 'assets/events/chelsea_kitchen.jpg', emoji: '🍲', name: 'Aunt Chelsea', title: 'The Warm Kitchen' },
   { re: /^(duck)/i, art: 'assets/events/duck_pond.jpg', emoji: '🦆', name: 'The Ducks', title: 'The Victory Beat' },
   { re: /^(twister|storm)/i, art: 'assets/enemies/big_twister.jpg', emoji: '🌪️', name: 'The Big Twister', title: 'Sent packing' },
+  // beaten bosses take a bow too (James, Sun 2026-08-02: anything sung with art shows its face)
+  { re: /^mud$/i, art: 'assets/enemies/mud_king.jpg', emoji: '👑', name: 'THE MUD KING', title: 'Shoved into yesterday' },
+  { re: /^raccoons?$/i, art: 'assets/enemies/raccoon_king.jpg', emoji: '🦝', name: 'The Raccoon King', title: 'His crew ran away' },
 ];
 
 const HERO_SCENES = {
@@ -135,6 +138,34 @@ export function parseLrc(text) {
   // sung at ~11s). Re-space the cluster to END just before the next reliable
   // word. Normally-spaced words before a long gap (real instrumental breaks)
   // are left alone.
+  // Repair 0 — orphaned line tails (Aaron's "Poppa Flaj cheered … extra loud",
+  // James's report Sun 2026-08-02): Suno sometimes stamps a caption line's last
+  // 1–4 words AFTER a long instrumental break that really falls BETWEEN lines
+  // (nobody pauses 12s mid-phrase). Snap the tail to follow the head at the
+  // line's own cadence; the break then sits harmlessly between captions.
+  // The mirror-image glitch — a BUNCHED head before the cliff (Wyatt's intro) —
+  // means the head is the garbage side: defer to the cluster pass below, which
+  // re-anchors heads forward. Same bunching criterion as that pass.
+  const ws0 = lines.flatMap((l) => l.words);
+  const bunchedBefore = (gi) => {
+    let s = gi - 1;
+    while (s > 0 && ws0[s].t - ws0[s - 1].t < 1.0) s--;
+    const n = gi - s;
+    return n >= 4 && (ws0[gi - 1].t - ws0[s].t) / (n - 1) < 0.35;
+  };
+  let gi0 = 0;
+  for (const line of lines) {
+    const w = line.words;
+    for (let i = 1; i < w.length; i++) {
+      if (w[i].t - w[i - 1].t <= 6) continue;
+      if (w.length - i > 4) break; // long tail → not an orphan, leave for the cluster pass
+      if (bunchedBefore(gi0 + i)) break;
+      const cad = i >= 2 ? Math.min(0.6, Math.max(0.25, (w[i - 1].t - w[0].t) / (i - 1))) : 0.42;
+      for (let k = i; k < w.length; k++) w[k].t = Math.round((w[k - 1].t + cad) * 100) / 100;
+      break;
+    }
+    gi0 += w.length;
+  }
   const ws = lines.flatMap((l) => l.words);
   for (let i = 1; i < ws.length; i++) {
     if (ws[i].t - ws[i - 1].t <= 5) continue;
@@ -170,11 +201,16 @@ export function deriveBeats(lines, heroId) {
       }
       if (!scene) continue;
       const cool = scene.kind === 'hero' ? 9 : 16;
-      if (t - lastBeat < 1.5) continue;
       if (lastShown.has(scene.name) && t - lastShown.get(scene.name) < cool) continue;
-      beats.push({ t: Math.max(0, t - 0.15), scene });
+      // a crowd of names ("Mom and Dad and Granny too…") CHAINS with min spacing
+      // instead of dropping everyone after the first — every sung face appears
+      // (James, Sun 2026-08-02) — unless the chain would drift silly-late.
+      let bt = Math.max(0, t - 0.15);
+      if (bt - lastBeat < 1.5) bt = lastBeat + 1.5;
+      if (bt - t > 4) continue;
+      beats.push({ t: bt, scene });
       lastShown.set(scene.name, t);
-      lastBeat = t;
+      lastBeat = bt;
     }
   }
   return beats;

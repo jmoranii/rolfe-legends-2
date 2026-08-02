@@ -2,6 +2,13 @@
 
 Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 300`.
 
+## 2026-08-02 · Karaoke audit: orphaned line tails fixed + every sung face shows (James's Aaron playthrough)
+
+- **Aaron's "Poppa Flaj" jumble diagnosed**: Suno stamped the tails of two caption lines after instrumental breaks they don't belong to ("Flaj cheered extra loud" at 67s though sung ~54s; "no more!" 23s late at the bridge). New **Repair 0 in parseLrc**: an in-line stall >6s with a short tail snaps the tail to the head's cadence — unless the head is a bunched cluster (Wyatt's-intro glitch), which stays the cluster pass's case. Same discriminator as that pass, so the two repairs partition cleanly.
+- **Beat coverage**: CAST gains **THE MUD KING** 👑 and **The Raccoon King** 🦝 (sung in Aaron's anthem with art, previously invisible). deriveBeats now **chains crowded names** (min 1.5s apart, ≤4s drift cap) instead of dropping everyone after the first — Aaron's anthem gains Mom; the both-brothers finale gains Dad, Granny, Chelsea, and Goldie (the full family parade it always sang about).
+- **Real-file regression tests**: the four shipped .lrc captures are now unit-tested (monotonic, no in-line stalls, required faces per anthem, ≥1.5s beat spacing) — a regenerated anthem that re-imports Suno's glitches fails loudly. unit 1337 · e2e 73/73 · sw v12.
+- Hard mode field-validated: James beat it as Aaron after two deaths — "it was hard. So I think it's good."
+
 ## 2026-08-02 · Goldie beacon dot (James's discoverability nudge)
 
 - The Liam-unlock hotspot is viewport-stable but the painted llama drifts with the art crop — so a **tiny white dot (7px, soft glow + faint dark halo)** now marks the hotspot once title art loads. It sits in the hotspot's top band (the true center hides behind the New Adventure button). Verified portrait + landscape; e2e asserts the dot (73/73). Zero-hint posture unchanged otherwise: no copy, no tips change; the dot is a sanctioned wink. sw v11.

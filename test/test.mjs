@@ -7,7 +7,8 @@ import { EVENTS, EVENT_KEYS } from '../js/events.js';
 import * as C from '../js/combat.js';
 import * as R from '../js/run.js';
 import { generateActMap, reachableIds, validateMap, MAP_FLOORS, TREASURE_FLOOR, REST_FLOOR, BOSS_ID } from '../js/map.js';
-import { parseLrc } from '../js/credits.js';
+import { parseLrc, deriveBeats } from '../js/credits.js';
+import { readFileSync } from 'fs';
 import { TIPS_GENERAL, TIPS_HERO, nextTip } from '../js/tips.js';
 import { encodeFarmCode, decodeFarmCode } from '../js/farmcode.js';
 
@@ -572,6 +573,31 @@ for (const key of Object.keys(ENEMIES)) {
   ok(revived && revived.snacks === undefined && !revived.relics.includes('lunchbox'), 'old save loads clean');
   // Liam's Snack Time DIAPER is a different thing and stays
   ok(DIAPERS.snack.name === 'Snack Time', "Liam's Snack Time diaper untouched");
+}
+
+// ---------- anthem LRC audit (James's karaoke report, Sun 2026-08-02) ----------
+// Runs against the REAL shipped .lrc captures, so a regenerated anthem that
+// re-introduces Suno's alignment glitches fails loudly here.
+{
+  const anthem = (h) => parseLrc(readFileSync(new URL(`../assets/audio/anthem_${h}.lrc`, import.meta.url), 'utf8'));
+  for (const hero of ['aaron', 'wyatt', 'liam', 'both']) {
+    const lines = anthem(hero);
+    const ws = lines.flatMap((l) => l.words);
+    ok(ws.every((w, i) => !i || w.t >= ws[i - 1].t - 0.01), `${hero} anthem: word times monotonic`);
+    // nobody pauses 12s mid-phrase: no caption line may stall >6s internally
+    const stall = lines.some((l) => l.words.some((w, i) => i && w.t - l.words[i - 1].t > 6));
+    ok(!stall, `${hero} anthem: no orphaned line tails (the Poppa Flaj jumble)`);
+  }
+  const an = deriveBeats(anthem('aaron'), 'aaron').map((b) => b.scene.name);
+  for (const want of ['THE MUD KING', 'The Raccoon King', 'Mom', 'Dad', 'Poppa Flaj', 'The Big Twister']) {
+    ok(an.includes(want), `aaron anthem shows ${want}`);
+  }
+  const bothBeats = deriveBeats(anthem('both'), 'both');
+  const bn = bothBeats.map((b) => b.scene.name);
+  for (const want of ['Mom', 'Dad', 'Granny Rockie', 'Poppa Flaj', 'The Ducks', 'Uncle Brody', 'Aunt Chelsea', 'Coach James', 'Rusty', 'Goldie']) {
+    ok(bn.includes(want), `both finale shows ${want}`);
+  }
+  ok(bothBeats.every((b, i) => !i || b.t - bothBeats[i - 1].t >= 1.5 - 1e-9), 'both: beats spaced ≥1.5s (no slide whiplash)');
 }
 
 // ---------- BELLY FLOP! + true-Claw Sticky Hands + shop/rest expansion (James, Sun 2026-08-02) ----------
