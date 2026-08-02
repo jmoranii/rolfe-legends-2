@@ -378,6 +378,16 @@ h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); letter-spac
 .act-card .battle-bg.has-art { opacity: .8; }
 .act-card .battle-bg.has-art ~ .act-card-inner .event-emoji { display: none; } /* the art tells the story; emoji is the no-art fallback */
 
+/* event outcome, in place */
+.event-result { background: rgba(0,0,0,.5); border: 3px solid #ffd23f; border-radius: 14px; padding: 14px 16px; margin: 10px auto; max-width: 420px; color: #fff; font-weight: 700; font-size: 1.05rem; text-align: center; animation: splashin .4s ease; }
+
+/* upgrade compare (Granny's Practice) */
+.upgrade-compare { display: flex; gap: 8px; align-items: center; justify-content: center; margin: 10px 0; }
+.upgrade-compare .mini-card { width: 138px; cursor: default; }
+.up-arrow { font-size: 1.7rem; color: #ffd23f; }
+.up-after { border-color: #1c8a3a; box-shadow: 0 0 12px #1c8a3a66; }
+.up-after .mc-name { color: #1c7a2e; }
+
 /* scene decision-support strip (HP + gold + deck at every stop) */
 .scene-status { display: flex; gap: 10px; align-items: center; justify-content: center; margin: 2px 0 8px; flex-wrap: wrap; }
 .scene-stat { background: rgba(0,0,0,.3); color: #fff; border-radius: 10px; padding: 6px 12px; font-weight: 800; font-size: .9rem; }

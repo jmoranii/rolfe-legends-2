@@ -256,7 +256,7 @@ function showSettings() {
     const reset = el('button', 'btn danger', '🗑️ Abandon current run');
     reset.onclick = () => { clearSave(); run = null; close(); showTitle(); };
     m.append(mus, sx, anim, fc, a2hs, reset);
-    m.appendChild(el('p', 'subtitle', 'Rolfe Legends 2 · made with love by Uncle James'));
+    m.appendChild(el('p', 'subtitle', `Rolfe Legends 2 · made with love by Uncle James<br><span style="opacity:.55;font-size:.72rem">version: ${new Date(document.lastModified).toLocaleString()}</span>`));
   });
 }
 
@@ -623,7 +623,7 @@ function miniCard(info, { extraCls = '', price = null } = {}) {
   const cost = info.cost;
   const d = el('div', `reward-card mini-card rarity-${info.rarity} type-${info.type} ${extraCls}`);
   d.innerHTML = `${cost === null ? '' : `<div class="cost">${cost === 'X' ? 'X' : cost}</div>`}
-    <div class="art">${info.emoji}</div><b class="mc-name">${info.name}${info.upgraded ? '+' : ''}</b>
+    <div class="art">${info.emoji}</div><b class="mc-name">${info.name}</b>
     <div class="ctx mc-text">${cardText(info, false)}</div>
     ${price != null ? `<div class="price-tag">💰${price}</div>` : ''}`;
   return d;
@@ -1194,8 +1194,8 @@ function showRest() {
   const canUp = run.deck.some((c) => !c.up);
   const practice = el('button', 'btn gold', '⭐ Practice (upgrade a card)');
   practice.disabled = !canUp;
-  practice.onclick = () => pickCardModal('Upgrade which card?', run.deck.filter((c) => !c.up), (c) => {
-    if (R.restPractice(run, c.uid)) { sfx.relic(); toast(`⭐ ${CARDS[c.id].name}+ learned!`); saveRun(); showMap(); }
+  practice.onclick = () => upgradePickModal(run.deck.filter((c) => !c.up), (c) => {
+    if (R.restPractice(run, c.uid)) { sfx.relic(); toast(`⭐ ${CARDS[c.id].name}+ learned!`, 2400); saveRun(); showMap(); }
   });
   s.appendChild(practice);
 }
@@ -1205,6 +1205,18 @@ function showEvent(key) {
   const s = sceneScreen(`assets/events/${key}.jpg`, ev.emoji, ev.name);
   s.appendChild(el('div', 'speaker-line', ev.line));
   const rng = makeRng(run.seed ^ run.floor * 991 ^ 0xE1E);
+  const choicesWrap = el('div', 'event-choices');
+  s.appendChild(choicesWrap);
+  // the outcome replaces the choices RIGHT HERE on the event screen — the kid
+  // sees what happened where it happened, then moves on (James's ask)
+  const conclude = (html) => {
+    saveRun();
+    choicesWrap.innerHTML = '';
+    choicesWrap.appendChild(el('div', 'event-result', html));
+    const b = el('button', 'btn', 'Onward! →');
+    b.onclick = showMap;
+    choicesWrap.appendChild(b);
+  };
   for (const choice of ev.choices) {
     const b = el('button', 'btn', choice.label);
     if (choice.can && !choice.can(run)) b.disabled = true;
@@ -1217,8 +1229,7 @@ function showEvent(key) {
         return pickCardModal('Which useless card should we toss?', junk, (c) => {
           const i = run.deck.findIndex((x) => x.uid === c.uid);
           if (i >= 0) run.deck.splice(i, 1);
-          toast(`${CARDS[c.id].emoji} ${CARDS[c.id].name}? Gone. You feel lighter already.`, 2600);
-          saveRun(); showMap();
+          conclude(`${CARDS[c.id].emoji} <b>${CARDS[c.id].name}</b>? Gone. You feel lighter already.`);
         });
       }
       if (result === 'PICK_CARD' || run.pendingRemove) {
@@ -1226,15 +1237,12 @@ function showEvent(key) {
         return pickCardModal('Let go of which card?', run.deck, (c) => {
           const i = run.deck.findIndex((x) => x.uid === c.uid);
           if (i >= 0) run.deck.splice(i, 1);
-          toast('You feel lighter.');
-          saveRun(); showMap();
+          conclude(`${CARDS[c.id].emoji} <b>${CARDS[c.id].name}</b> is gone. You feel lighter.`);
         });
       }
-      toast(result, 2600);
-      saveRun();
-      showMap();
+      conclude(result);
     };
-    s.appendChild(b);
+    choicesWrap.appendChild(b);
   }
 }
 
@@ -1333,10 +1341,42 @@ function pickCardModal(title, cards, onPick) {
   modal(title, (m, close) => {
     for (const c of cards) {
       const info = cardInfo(c);
-      const b = el('button', 'btn secondary', `${info.emoji} ${info.name}${c.up ? '+' : ''}`);
+      const b = el('button', 'btn secondary two-line', `${info.emoji} ${info.name}${c.up ? '+' : ''}<small>${cardText(info, false)}</small>`);
       b.onclick = () => { close(); onPick(c); };
       m.appendChild(b);
     }
+  });
+}
+
+// Granny's Practice: pick a card, SEE current vs upgraded side by side,
+// then confirm or go back — no more upgrading from memory (James's ask)
+function upgradePickModal(cards, onConfirm) {
+  modal(null, (m, close) => {
+    const showList = () => {
+      m.innerHTML = '';
+      m.appendChild(el('h2', '', '⭐ Practice which move?'));
+      for (const c of cards) {
+        const info = cardInfo(c);
+        const b = el('button', 'btn secondary two-line', `${info.emoji} ${info.name}<small>${cardText(info, false)}</small>`);
+        b.onclick = () => showCompare(c);
+        m.appendChild(b);
+      }
+    };
+    const showCompare = (c) => {
+      m.innerHTML = '';
+      m.appendChild(el('h2', '', '⭐ Practice makes perfect'));
+      const row = el('div', 'upgrade-compare');
+      row.appendChild(miniCard(cardInfo(c), { extraCls: 'up-before' }));
+      row.appendChild(el('div', 'up-arrow', '➜'));
+      row.appendChild(miniCard(cardInfo({ id: c.id, up: true, uid: c.uid }), { extraCls: 'up-after' }));
+      m.appendChild(row);
+      const yes = el('button', 'btn gold', '⭐ Practice this one!');
+      yes.onclick = () => { close(); onConfirm(c); };
+      const back = el('button', 'btn secondary', '← Pick a different card');
+      back.onclick = showList;
+      m.append(yes, back);
+    };
+    showList();
   });
 }
 
