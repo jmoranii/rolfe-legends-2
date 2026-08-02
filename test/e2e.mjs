@@ -127,7 +127,7 @@ async function runSuite(browserType, name) {
   }
   await zapTips(page);
   let outcome = await page.locator('h2').first().textContent().catch(() => '');
-  const outcomeOk = outcome.includes('Nice work') || outcome.includes('rest up') || outcome.includes('You did it');
+  const outcomeOk = outcome.includes('Nice work') || outcome.includes('rest up');
   ok(outcomeOk, `${name}: fight reaches an outcome (${outcome.trim().slice(0, 30)})`);
   if (!outcomeOk) await page.screenshot({ path: `media/shots/e2e-fail-${name}-outcome.png` }).catch(() => {});
 

@@ -1232,8 +1232,8 @@ function combatWon() {
     // immediately walk into the ending. Go straight from the splash to the victory
     // sequence. (finishReward already short-circuited to showVictory on the last act,
     // so nothing is lost: no boss relic was granted on this path either.)
-    if (run.act >= R.ACTS) showBossSplash(bossName, showVictory);
-    else showBossSplash(bossName, () => showReward(rewards, result, 'boss'));
+    if (run.act >= R.ACTS) fadeOutThen(() => showBossSplash(bossName, showVictory));
+    else fadeOutThen(() => showBossSplash(bossName, () => showReward(rewards, result, 'boss')));
   } else if (combatKind === 'elite' && rewards.relic) {
     const rid = rewards.relic;
     rewards.relic = null;
@@ -1241,10 +1241,40 @@ function combatWon() {
     run.relics.push(rid);
     R.onRelicGained(run, rid);
     coachTip('relic', 'Farm Treasures work the whole run. Collect them!');
-    showRelicPop(rid, () => showReward(rewards, result, 'elite'));
+    fadeOutThen(() => showVictoryBeat(st, 'elite', () => showRelicPop(rid, () => showReward(rewards, result, 'elite'))));
   } else {
-    showReward(rewards, result, combatKind);
+    fadeOutThen(() => showVictoryBeat(st, combatKind, () => showReward(rewards, result, combatKind)));
   }
+}
+
+// the battlefield fades instead of vanishing (James: wins felt abrupt)
+function fadeOutThen(fn) {
+  const cur = document.querySelector('.screen');
+  if (REDUCED || !cur) return fn();
+  cur.classList.add('screen-fade-out');
+  setTimeout(fn, Math.round(480 * fxScale()));
+}
+
+// Coach James takes a beat after every won fight: congrats + one tip from
+// the rotating library (loading-screen wisdom, built up over many runs)
+const BEAT_LINES = [
+  (n) => `Nice work! ${n} won't bother the farm for a while.`,
+  (n) => `THAT'S how it's done. ${n}? Handled.`,
+  (n) => `The farm saw that! ${n} is done for the day.`,
+];
+let beatLineIdx = 0;
+function showVictoryBeat(st, kind, onDone) {
+  const named = st.enemies.filter((e) => !e.gone).map((e) => e.name);
+  const label = named.length > 1 ? `${named[0]} & friends` : (named[0] || 'That troublemaker');
+  const s = screen(actCls());
+  s.classList.add('victory-beat');
+  s.appendChild(artImg('assets/ui/portrait_coach.jpg', '🧢', 'scene-art'));
+  s.appendChild(el('h2', '', kind === 'elite' ? '💀 Big Trouble — beaten!' : 'Nice work!'));
+  s.appendChild(el('div', 'speaker-line', `"${BEAT_LINES[beatLineIdx++ % BEAT_LINES.length](label)}"`));
+  s.appendChild(el('div', 'tip-card', `💡 <b>Coach's tip:</b> ${nextTip(run.hero)}`));
+  const b = el('button', 'btn gold', '🎉 Collect your rewards →');
+  b.onclick = onDone;
+  s.appendChild(b);
 }
 
 // the act boss goes down: fanfare, confetti, THEN the loot
