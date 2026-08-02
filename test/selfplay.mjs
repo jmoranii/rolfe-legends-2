@@ -135,6 +135,11 @@ function playEvent(run, key, rng) {
   const usable = ev.choices.filter((ch) => !ch.can || ch.can(run));
   const choice = usable[0] || ev.choices[ev.choices.length - 1];
   const result = choice.apply(run, rng);
+  if (result === 'PICK_CURSE') {
+    const c = run.deck.find((x) => ['homework', 'poison_ivy'].includes(x.id));
+    if (c) run.deck.splice(run.deck.indexOf(c), 1);
+    return;
+  }
   if (result === 'PICK_CARD' || run.pendingRemove) {
     run.pendingRemove = false;
     const kick = run.deck.find((c) => c.id === 'shove' || c.id === 'kick');

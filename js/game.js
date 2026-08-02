@@ -1211,6 +1211,16 @@ function showEvent(key) {
     b.onclick = () => {
       sfx.tap();
       const result = choice.apply(run, rng);
+      if (result === 'PICK_CURSE') {
+        // show the kid exactly which cards are junk, and let them toss one
+        const junk = run.deck.filter((c) => CARDS[c.id].type === 'curse');
+        return pickCardModal('Which useless card should we toss?', junk, (c) => {
+          const i = run.deck.findIndex((x) => x.uid === c.uid);
+          if (i >= 0) run.deck.splice(i, 1);
+          toast(`${CARDS[c.id].emoji} ${CARDS[c.id].name}? Gone. You feel lighter already.`, 2600);
+          saveRun(); showMap();
+        });
+      }
       if (result === 'PICK_CARD' || run.pendingRemove) {
         run.pendingRemove = false;
         return pickCardModal('Let go of which card?', run.deck, (c) => {

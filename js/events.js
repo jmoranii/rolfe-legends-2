@@ -31,7 +31,7 @@ export const EVENTS = {
     choices: [
       { label: '🥪 The sandwich (heal 20% HP)', apply: (run) => `Healed ${heal(run, Math.floor(run.maxHp * 0.2))} HP. Thanks, Mom.` },
       { label: '🧃 The juice box (gain a Snack)', can: (run) => run.snacks.length < run.snackSlots, apply: (run, rng) => { run.snacks.push(rng.pick(['lemonade', 'juice_box', 'trail_mix'])); return 'Snack pocketed.'; } },
-      { label: '🧴 The sunscreen (remove a curse)', can: (run) => curses(run).length > 0, apply: (run) => { const c = curses(run)[0]; run.deck.splice(run.deck.indexOf(c), 1); return 'Curse removed. Mom was right.'; } },
+      { label: '🧴 The sunscreen (get rid of a useless card)', can: (run) => curses(run).length > 0, apply: () => 'PICK_CURSE' },
     ],
   },
   tractor_ride: {
@@ -83,7 +83,7 @@ export const EVENTS = {
     line: '"You\'ve already got everything you need. But take this anyway."',
     choices: [
       { label: '❤️ Believe in yourself (+5 Max HP)', apply: (run) => { run.maxHp += 5; run.hp += 5; return 'You feel tougher.'; } },
-      { label: '🧴 Advice (remove a curse)', can: (run) => curses(run).length > 0, apply: (run) => { const c = curses(run)[0]; run.deck.splice(run.deck.indexOf(c), 1); return 'That homework? Handled.'; } },
+      { label: '🧠 Advice (get rid of a useless card)', can: (run) => curses(run).length > 0, apply: () => 'PICK_CURSE' },
       { label: '💰 Pocket money (+50 gold)', apply: (run) => { run.gold += 50; return 'For Jacob\'s shop.'; } },
     ],
   },
@@ -132,7 +132,7 @@ export const EVENTS = {
         if (roll < 0.4) { run.gold += 75; return 'SPLASH — a bucket of coins comes up! (+75 gold)'; }
         if (roll < 0.7) { heal(run, 10); return 'The water is cool and sweet. (+10 HP)'; }
         if (roll < 0.9) { return 'Plunk. Nothing. Wells, man.'; }
-        run.deck.push(makeCard('poison_ivy')); return 'You lean too far and tumble into the ivy patch. (Curse: Poison Ivy)';
+        run.deck.push(makeCard('poison_ivy')); return '🌿 You lean too far and tumble into the ivy patch — a useless Poison Ivy card sneaks into your deck!';
       } },
       { label: '🚶 Save your coins', apply: () => 'The well gurgles, unimpressed.' },
     ],
