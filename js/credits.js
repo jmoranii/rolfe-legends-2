@@ -267,27 +267,39 @@ export function creditsRoll(heroId, deps, onDone) {
 
   function loop() {
     const t = clock();
-    let bi = beatIdx;
+    // indices recompute from scratch each frame so the roll RESYNCS if the
+    // clock ever jumps backward — e.g. the wall-clock rescue started, then the
+    // real song began at 0:00 (slow first load / blocked autoplay). The old
+    // forward-only advance left Aaron's karaoke stuck seconds ahead of the
+    // singing for the whole roll (James's report, Sat 2026-08-02).
+    let bi = -1;
     while (bi + 1 < beats.length && beats[bi + 1].t <= t) bi++;
-    if (bi !== beatIdx) { beatIdx = bi; sceneSlide(beats[bi].scene); }
+    if (bi !== beatIdx) { beatIdx = bi; if (bi >= 0) sceneSlide(beats[bi].scene); }
     if (lines) {
-      let li = lineIdx;
+      let li = -1;
       while (li + 1 < lines.length && lines[li + 1].t <= t) li++;
-      if (li !== lineIdx && li >= 0) {
+      if (li !== lineIdx) {
         lineIdx = li;
         cap.innerHTML = '';
-        const inner = el('div', 'cap-inner');
-        capWords = lines[li].words.map(({ w, t: wt }) => {
-          const s = el('span', 'cw');
-          s.textContent = remapWord(w) + ' ';
-          inner.appendChild(s);
-          return { s, wt };
-        });
-        cap.appendChild(inner);
-        cap.classList.remove('show'); void cap.offsetWidth; cap.classList.add('show');
+        capWords = [];
+        if (li >= 0) {
+          const inner = el('div', 'cap-inner');
+          capWords = lines[li].words.map(({ w, t: wt }) => {
+            const s = el('span', 'cw');
+            s.textContent = remapWord(w) + ' ';
+            inner.appendChild(s);
+            return { s, wt };
+          });
+          cap.appendChild(inner);
+          cap.classList.remove('show'); void cap.offsetWidth; cap.classList.add('show');
+        }
       }
-      // karaoke: light each word the moment it's sung; held notes don't creep
-      for (const cw of capWords) if (!cw.lit && t >= cw.wt) { cw.lit = true; cw.s.classList.add('lit'); }
+      // karaoke: light each word the moment it's sung; held notes don't creep,
+      // and a backward resync un-lights cleanly
+      for (const cw of capWords) {
+        const on = t >= cw.wt;
+        if (on !== !!cw.lit) { cw.lit = on; cw.s.classList.toggle('lit', on); }
+      }
     }
     const a = audioEl();
     if (!continued && (t >= duration || (a && a.ended))) finaleSlide();

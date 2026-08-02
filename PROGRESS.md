@@ -2,6 +2,10 @@
 
 Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 300`.
 
+## 2026-08-02 · Karaoke desync bug (Aaron's credits) — found & fixed
+
+James saw "something weird with Aaron's karaoke, maybe one-time." Root cause: if the anthem started late (uncached first load / blocked autoplay), the credits' wall-clock rescue ran the captions ahead; when the song then started at 0:00 the clock jumped BACKWARD, but caption/scene indices only advanced forward → karaoke stuck seconds ahead for the whole roll. Cached second plays start instantly, hence "one-time." Fix: indices recompute from scratch every frame (both directions) and lit words un-light on resync. Repro'd the failure and verified the fix live (caption visibly ahead on wall clock → cleared on song start → back in sync at 13.6s, 3 words lit on beat). Aaron's LRC data itself audited clean (monotonic, no bunching, no stray tokens — all four anthems).
+
 ## 2026-08-02 · Card feel system + anthem pronunciation fix
 
 - **Cause-and-effect pass** (James's round-4 ask): played cards physically FLY to what they affect (attacks → the enemy, skills/powers → you); damage floaties bigger with an impact pop (12+ = huge red, 15+ = boom sound); every card family has its own voice (single slash / flurry ticks / shield THUNK / poison bubble / power-up chord / diaper pop / BLOWOUT boom) with per-hit sounds synced to per-hit floaties.
