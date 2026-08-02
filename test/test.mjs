@@ -811,14 +811,14 @@ for (const key of Object.keys(ENEMIES)) {
   const lrc = '[00:10.61] [Verse]\nOut \n[00:11.21] in \n[00:11.45] Rolfe \n[00:12.62] glows\n\n[00:13.31] Trouble \n[00:13.80] came\n\n\n[00:20.25] [Verse 2]\nMom \n[00:21.18] packed';
   const lines = parseLrc(lrc);
   eq(lines.length, 3, 'lrc: three phrases parsed');
-  eq(lines[0].t, 10.61, 'lrc: section time carries to first word');
+  eq(lines[0].t, 10.86, 'lrc: line time follows the snapped first word');
   eq(lines[0].words[0].w, 'Out', 'lrc: bare word captured');
-  eq(lines[0].words[0].t, 10.61, 'lrc: bare word inherits section time');
+  eq(lines[0].words[0].t, 10.86, 'lrc: marker-timed bare word snaps toward the singing');
   eq(lines[0].words[2].w, 'Rolfe', 'lrc: timed word text');
   eq(lines[0].words[2].t, 11.45, 'lrc: timed word time');
   eq(lines[0].words.length, 4, 'lrc: section tag not shown as a word');
   eq(lines[2].words[0].w, 'Mom', 'lrc: verse 2 first word');
-  eq(lines[2].words[0].t, 20.25, 'lrc: verse 2 inherits marker time');
+  eq(lines[2].words[0].t, 20.83, 'lrc: marker-timed first word snaps to just before the next word');
   // enhanced word-tag format still tolerated
   const enh = parseLrc('[00:15.56] <00:15.56> Out <00:15.88> in <00:16.00> Rolfe');
   eq(enh[0].words.length, 3, 'enhanced lrc words');
