@@ -30,7 +30,6 @@ export const EVENTS = {
     line: '"You boys eating enough? Here. And WEAR your sunscreen."',
     choices: [
       { label: '🥪 The sandwich (heal 20% HP)', apply: (run) => `Healed ${heal(run, Math.floor(run.maxHp * 0.2))} HP. Thanks, Mom.` },
-      { label: '🧃 The juice box (gain a Snack)', can: (run) => run.snacks.length < run.snackSlots, apply: (run, rng) => { run.snacks.push(rng.pick(['lemonade', 'juice_box', 'trail_mix'])); return 'Snack pocketed.'; } },
       { label: '🧴 The sunscreen (get rid of a useless card)', can: (run) => curses(run).length > 0, apply: () => 'PICK_CURSE' },
     ],
   },

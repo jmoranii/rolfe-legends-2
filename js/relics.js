@@ -21,7 +21,6 @@ export const RELICS = {
   slingshot: { name: 'Slingshot', emoji: '🪃', sts: 'Pen Nib', text: 'Every 10th Attack you play deals double damage.' },
   soccer_drills: { name: 'Soccer Drills', emoji: '⚽', sts: 'Kunai', text: 'Play 3 Attacks in one turn: gain 1 Dexterity.' },
   hay_bale_toss: { name: 'Hay Bale Toss', emoji: '🌾', sts: 'Shuriken', text: 'Play 3 Attacks in one turn: gain 1 Strength.' },
-  lunchbox: { name: 'Lunchbox', emoji: '🧺', sts: 'Potion Belt', text: 'Carry 1 extra Snack.' },
   rally_cap: { name: 'Rally Cap', emoji: '🧢', sts: 'Centennial Puzzle', text: 'First time you lose HP each fight: draw 3 cards.' },
   // boss
   keys_tractor: { name: 'Keys to the Tractor', emoji: '🔑', sts: '(energy boss relic, no downside)', boss: true,

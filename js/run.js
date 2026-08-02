@@ -48,7 +48,6 @@ export function newRun(heroId, seed) {
     gold: 99,
     deck: hero.starter.map((id) => makeCard(id)),
     relics: [hero.relic],
-    snacks: [], snackSlots: 1,
     counters: {}, // cross-fight counters (slingshot, sunflower resets per fight in combat state? sunflower is per-fight in StS; keep per-fight by clearing at combat start)
     act: 1, floor: 0,
     map: generateActMap(seed, 1),
@@ -73,13 +72,11 @@ export function coachBoons(run, rng) {
   const all = [
     { id: 'maxhp', label: '❤️ "Eat your vegetables." (+8 Max HP)', apply: (r) => { r.maxHp += 8; r.hp += 8; } },
     { id: 'gold', label: '💰 "Buy something at Dad\'s." (+100 gold)', apply: (r) => { r.gold += 100; } },
-    { id: 'snack', label: '🧺 "Packed you a snack." (gain a Snack)', apply: (r, g) => { r.snacks.push(g.pick(Object.keys(SNACK_IDS))); } },
     { id: 'upgrade', label: '⭐ "Let\'s drill that one move." (upgrade a random card)', apply: (r, g) => { const c = g.pick(r.deck.filter((x) => !x.up)); if (c) c.up = true; } },
     { id: 'relic', label: '🎁 "Found this in the shed." (random Farm Treasure)', apply: (r, g) => { const p = relicPool(r.relics); if (p.length) r.relics.push(g.pick(p)); } },
   ];
   return rng.shuffle(all).slice(0, 3);
 }
-const SNACK_IDS = { lemonade: 1, juice_box: 1, jerky: 1, trail_mix: 1, band_aid: 1 };
 
 // ---------- the map (StS node graph; generation in js/map.js) ----------
 
@@ -162,7 +159,7 @@ export function cardDraft(run, rng, n = 3) {
 }
 
 export function fightRewards(run, kind, rng) {
-  const rewards = { gold: 0, cards: [], relic: null, snack: null };
+  const rewards = { gold: 0, cards: [], relic: null };
   if (kind === 'fight') rewards.gold = rng.range(10, 20);
   if (kind === 'elite') {
     rewards.gold = rng.range(25, 35);
@@ -171,7 +168,6 @@ export function fightRewards(run, kind, rng) {
   }
   if (kind === 'boss') rewards.gold = rng.range(95, 105);
   rewards.cards = cardDraft(run, rng, 3);
-  if (rng.chance(0.25) && run.snacks.length < run.snackSlots) rewards.snack = rng.pick(Object.keys(SNACK_IDS));
   return rewards;
 }
 
@@ -194,8 +190,7 @@ export function makeShop(run, rng) {
   }));
   const rp = relicPool(run.relics);
   const relic = rp.length ? { id: rng.pick(rp), price: rng.range(143, 157) } : null;
-  const snack = { id: rng.pick(Object.keys(SNACK_IDS)), price: rng.range(48, 52) };
-  return { cards, relic, snack, removePrice: 75, removed: false };
+  return { cards, relic, removePrice: 75, removed: false };
 }
 
 export function shopBuyCard(run, shop, i) {
@@ -210,15 +205,7 @@ export function shopBuyRelic(run, shop) {
   if (!shop.relic || run.gold < shop.relic.price) return false;
   run.gold -= shop.relic.price;
   run.relics.push(shop.relic.id);
-  if (shop.relic.id === 'lunchbox') run.snackSlots += 1;
   shop.relic = null;
-  return true;
-}
-export function shopBuySnack(run, shop) {
-  if (!shop.snack || run.gold < shop.snack.price || run.snacks.length >= run.snackSlots) return false;
-  run.gold -= shop.snack.price;
-  run.snacks.push(shop.snack.id);
-  shop.snack = null;
   return true;
 }
 export function shopRemoveCard(run, shop, cardUid) {
@@ -229,11 +216,6 @@ export function shopRemoveCard(run, shop, cardUid) {
   run.deck.splice(i, 1);
   shop.removed = true;
   return true;
-}
-
-// treasure/lunchbox side effects for relics gained outside the shop
-export function onRelicGained(run, id) {
-  if (id === 'lunchbox') run.snackSlots += 1;
 }
 
 // ---------- rest (Granny Rockie's porch) ----------
@@ -277,6 +259,10 @@ export function deserializeRun(json) {
     if (!run || run.v !== 2 || !HEROES[run.hero]) return null;
     if (!Array.isArray(run.deck) || !run.deck.every((c) => CARDS[c.id])) return null;
     if (!run.map || !run.map.nodes || !run.map.nodes[BOSS_ID]) return null;
+    // snacks were cut Sun 2026-08-02 (James: more complexity than value) —
+    // scrub them from older saves so a mid-run farm survives the update
+    delete run.snacks; delete run.snackSlots;
+    run.relics = run.relics.filter((id) => id !== 'lunchbox');
     return run;
   } catch { return null; }
 }

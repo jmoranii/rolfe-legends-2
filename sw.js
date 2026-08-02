@@ -4,7 +4,7 @@
 // Art + music = cache-first, filled lazily as fetched during play (precaching
 // the full set would punish the first visit; emoji/silence fallbacks already
 // handle anything not yet cached when offline). RL1 sw.js pattern.
-const CACHE = 'rolfe-legends-2-v7';
+const CACHE = 'rolfe-legends-2-v8';
 const SHELL = [
   './', 'index.html', 'style.css', 'manifest.json',
   'js/game.js', 'js/combat.js', 'js/run.js', 'js/map.js', 'js/cards.js',

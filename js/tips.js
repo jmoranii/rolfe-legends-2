@@ -10,7 +10,6 @@ export const TIPS_GENERAL = [
   'Poison bites at the START of an enemy\'s turn, then shrinks by 1.',
   'Drawing cards is sneaky-strong — more cards means more choices.',
   'A SMALL deck can be mighty: you see your best cards more often.',
-  'Snacks do nothing in your pocket. The right snack at the right time wins fights.',
   'Pick cards that work TOGETHER, not just cards that look cool.',
   'Your Farm Treasures are always working. Tap them to remember what they do!',
   'You can tap almost anything — statuses, treasures, the ⚡ — to learn what it means.',

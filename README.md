@@ -12,7 +12,7 @@ The mechanical skeleton deliberately mirrors *Slay the Spire* — the most playt
 
 - 2 heroes with distinct archetypes (strength/block vs. speed/poison/discard)
 - 3 acts, ~36 floors of branching path choices, 8 family-cameo events
-- 40+ cards, 25+ enemies, 16 "Farm Treasure" relics, snacks, upgrades
+- 40+ cards, 25+ enemies, 15 "Farm Treasure" relics, upgrades
 - Runs sized to fit a kid's screen-time hour (~30–40 min)
 
 ## Tech

@@ -10,6 +10,9 @@ import * as C from '../js/combat.js';
 import * as R from '../js/run.js';
 
 const RUNS = Number(process.argv[2] || 150);
+// a stray flag ("--quick") parses to NaN, the loop runs ZERO games, and every
+// rail passes vacuously — a fake-green gate. Refuse to run a 0-game harness.
+if (!Number.isFinite(RUNS) || RUNS < 1) { console.log(`RAIL FAIL: bad run count ${process.argv[2]}`); process.exit(1); }
 
 // static card pick scores (rough tier list; the harness measures, we tune data)
 const PICK = {
@@ -95,11 +98,6 @@ function playTurn(state) {
     if (!best) break;
     if (!C.playCard(state, best, target)) break;
   }
-  // snacks: emergency heal
-  if (!state.over && state.hero.hp < state.hero.maxHp * 0.35) {
-    const i = state.snacks.findIndex((s) => s === 'lemonade' || s === 'band_aid');
-    if (i >= 0) C.useSnack(state, i);
-  }
   if (!state.over) C.endTurn(state);
 }
 
@@ -107,12 +105,6 @@ const fightStats = { fight: [], elite: [], boss: [] };   // {turns, hpLost}
 function runCombat(run, enemies, rng, kind) {
   const state = C.startCombat(run, enemies, rng, { kind });
   const hp0 = state.hero.hp;
-  // a real kid chugs the juice box at the boss: use combat snacks up front
-  if (kind === 'boss' || kind === 'elite') {
-    for (let i = state.snacks.length - 1; i >= 0; i--) {
-      if (['jerky', 'juice_box', 'trail_mix'].includes(state.snacks[i])) C.useSnack(state, i);
-    }
-  }
   let turns = 0;
   while (!state.over && turns++ < 60) playTurn(state);
   if (!state.over) { state.over = true; state.won = false; state.stall = true; }
@@ -184,8 +176,7 @@ function simulateRun(heroId, seed) {
       run.gold += rewards.gold;
       const picked = draftPick(run, rewards.cards);
       if (picked) run.deck.push(makeCard(picked));
-      if (rewards.relic) { run.relics.push(rewards.relic); R.onRelicGained(run, rewards.relic); }
-      if (rewards.snack && run.snacks.length < run.snackSlots) run.snacks.push(rewards.snack);
+      if (rewards.relic) run.relics.push(rewards.relic);
       if (node.type === 'boss') {
         if (run.act >= R.ACTS) return { won: true, act: 3, floor: run.floor, deckIds: run.deck.map((c) => c.id) };
         if (!run.relics.includes('keys_tractor')) run.relics.push('keys_tractor');
@@ -199,7 +190,6 @@ function simulateRun(heroId, seed) {
       }
       const curse = run.deck.find((c) => ['homework', 'poison_ivy'].includes(c.id));
       if (curse && run.gold >= shop.removePrice) R.shopRemoveCard(run, shop, curse.uid);
-      if (shop.snack && run.gold >= shop.snack.price && run.snacks.length < run.snackSlots) R.shopBuySnack(run, shop);
     } else if (node.type === 'rest') {
       if (run.hp < run.maxHp * 0.72) R.restCookies(run);
       else {
@@ -209,9 +199,7 @@ function simulateRun(heroId, seed) {
       }
     } else if (node.type === 'event') {
       playEvent(run, node.event, rng);
-    } else if (node.type === 'treasure') {
-      if (node.relic) R.onRelicGained(run, node.relic);
-    }
+    } // treasure: enterMapNode already banked the relic
   }
   return { won: false, act: run.act, floor: run.floor, by: 'guard_exhausted', stall: true };
 }

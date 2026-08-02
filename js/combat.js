@@ -277,7 +277,7 @@ export function startCombat(run, enemyKeys, rng, { kind = 'fight' } = {}) {
     heroId: run.hero,
     enemies: [],
     draw: [], hand: [], discard: [], exhaust: [],
-    relics: run.relics, counters: run.counters, snacks: run.snacks,
+    relics: run.relics, counters: run.counters,
     turn: 0, over: false, won: false,
     attacksThisTurn: 0, skillsThisTurn: 0, cardsThisTurn: 0,
     pendingDiscard: 0, costOverride: {}, flags: {},
@@ -474,25 +474,6 @@ export function resolveDiscard(state, inst) {
   removeFromHand(state, inst);
   state.discard.push(inst);
   state.pendingDiscard -= 1;
-  return true;
-}
-
-// ---------- snacks ----------
-
-export const SNACKS = {
-  lemonade: { name: "Granny's Lemonade", emoji: '🍋', text: 'Heal 12 HP.', use: (s) => { s.hero.hp = Math.min(s.hero.maxHp, s.hero.hp + 12); } },
-  juice_box: { name: 'Juice Box', emoji: '🧃', text: 'Gain 2 ⚡.', combatOnly: true, use: (s) => { s.hero.energy += 2; } },
-  jerky: { name: 'Beef Jerky', emoji: '🥩', text: '+2 Strength this fight.', combatOnly: true, use: (s) => { s.hero.strength += 2; } },
-  trail_mix: { name: 'Trail Mix', emoji: '🥜', text: 'Draw 3 cards.', combatOnly: true, use: (s) => drawCards(s, 3) },
-  band_aid: { name: 'Band-Aid', emoji: '🩹', text: 'Heal 20% of max HP.', use: (s) => { s.hero.hp = Math.min(s.hero.maxHp, s.hero.hp + Math.floor(s.hero.maxHp * 0.2)); } },
-};
-
-export function useSnack(state, idx) {
-  const id = state.snacks[idx];
-  if (!id || state.over) return false;
-  SNACKS[id].use(state);
-  state.snacks.splice(idx, 1);
-  checkCombatEnd(state);
   return true;
 }
 

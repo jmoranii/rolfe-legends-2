@@ -206,7 +206,28 @@ function prefetchActBundle(act) {
 }
 
 // ---------- title ----------
+// Screen Wake Lock: tablets auto-dim while a kid reads a hand mid-fight (James
+// saw it in playtesting). Held from fight start until back on the map/title, so
+// fights, victory beats, rewards, and the credits roll stay lit. The OS
+// reclaims the lock whenever the tab hides; re-grab on return while wanted.
+let wakeLock = null, wakeWanted = false;
+function holdScreen() {
+  wakeWanted = true;
+  if (!('wakeLock' in navigator) || wakeLock) return;
+  navigator.wakeLock.request('screen')
+    .then((wl) => { wakeLock = wl; wl.addEventListener('release', () => { wakeLock = null; }); })
+    .catch(() => {}); // low battery / policy refusal — dimming returns, game unaffected
+}
+function releaseScreen() {
+  wakeWanted = false;
+  if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && wakeWanted) holdScreen();
+});
+
 function showTitle() {
+  releaseScreen();
   music.play('title');
   const s = screen('act-1 title-screen');
   const art = bgLayer('assets/ui/title.jpg', 'title-art');
@@ -404,7 +425,7 @@ const NODE_META = {
   fight: { ico: '⚔️', name: 'Trouble', desc: "Something's bothering the farm. Fight it!" },
   elite: { ico: '💀', name: 'BIG Trouble', desc: 'A serious foe — big risk, and it drops a Farm Treasure.' },
   boss: { ico: '👑', name: 'THE BOSS', desc: 'The big one at the top of the map.' },
-  shop: { ico: '🛒', name: "Dad's Farm Supply", desc: 'Spend gold on cards, treasures, and snacks.' },
+  shop: { ico: '🛒', name: "Dad's Farm Supply", desc: 'Spend gold on cards and treasures.' },
   rest: { ico: '🍪', name: "Granny Rockie's Porch", desc: 'Cookies (heal) or Practice (upgrade a card).' },
   event: { ico: '❓', name: 'Something Happens…', desc: 'You never know, out in the fields.' },
   treasure: { ico: '🐕', name: 'Here Comes Rusty!', desc: 'He brings you a Farm Treasure. Good boy.' },
@@ -421,6 +442,7 @@ function nodeXY(node, W) {
 }
 
 function showMap() {
+  releaseScreen();
   music.play(`map${run.act}`);
   saveRun();
   const s = screen(actCls());
@@ -437,13 +459,6 @@ function showMap() {
     pin.title = `${RELICS[rid].name} — ${RELICS[rid].text}`;
     pin.onclick = () => toast(`${RELICS[rid].emoji} ${RELICS[rid].name}: ${RELICS[rid].text}`, 2400);
     shelf.appendChild(pin);
-  }
-  if (run.snacks.length) {
-    for (const sn of run.snacks) {
-      const pin = el('span', 'relic-pin snack-pin', C.SNACKS[sn].emoji);
-      pin.onclick = () => toast(`${C.SNACKS[sn].emoji} ${C.SNACKS[sn].name}: ${C.SNACKS[sn].text} (use it during a fight)`, 2600);
-      shelf.appendChild(pin);
-    }
   }
   const deckBtn = el('button', 'pilebtn', `🎴 ${run.deck.length}`);
   deckBtn.onclick = () => showDeckModal(run.deck);
@@ -570,6 +585,7 @@ function startCombatUI(enemyKeys, kind) {
   combatKind = kind;
   if (kind === 'boss') lastBossKeys = enemyKeys;
   combat = C.startCombat(run, enemyKeys, makeRng(randomSeed()), { kind });
+  holdScreen();
   music.play(kind === 'boss' ? 'boss' : kind === 'elite' ? 'elite' : 'battle');
   selectedCard = null;
   prevSnap = null;
@@ -1048,32 +1064,9 @@ function renderCombat(actedEnemy = null) {
   strip.appendChild(orb);
   inner.appendChild(strip);
 
-  // the belt: labeled SNACKS + FARM TREASURES right under the health bar —
+  // the belt: labeled FARM TREASURES right under the health bar —
   // pins jiggle when a treasure procs, so its work is visible (James's ask)
   const belt = el('div', 'belt-row');
-  if (st.snacks.length) {
-    const snackGroup = el('div', 'belt-group');
-    snackGroup.appendChild(el('div', 'belt-label', 'SNACKS'));
-    const bar = el('div', 'belt-pins');
-    st.snacks.forEach((id, i) => {
-      const sn = C.SNACKS[id];
-      const b = el('button', 'snack', sn.emoji);
-      b.disabled = st.phase === 'enemy';
-      b.onclick = () => modal(null, (m, close) => {
-        m.appendChild(el('div', 'event-emoji', sn.emoji));
-        m.appendChild(el('h2', '', sn.name));
-        m.appendChild(el('p', 'subtitle', sn.text));
-        const use = el('button', 'btn gold', `${sn.emoji} Eat it now!`);
-        use.onclick = () => { close(); sfx.heal(); C.useSnack(st, i); afterAction(); };
-        const keep = el('button', 'btn secondary', '🎒 Save it for later');
-        keep.onclick = close;
-        m.append(use, keep);
-      });
-      bar.appendChild(b);
-    });
-    snackGroup.appendChild(bar);
-    belt.appendChild(snackGroup);
-  }
   if (run.relics.length) {
     const relicGroup = el('div', 'belt-group belt-treasures');
     relicGroup.appendChild(el('div', 'belt-label', 'FARM TREASURES'));
@@ -1322,7 +1315,6 @@ function combatWon() {
     rewards.relic = null;
     rewards.relicCollected = rid;
     run.relics.push(rid);
-    R.onRelicGained(run, rid);
     coachTip('relic', 'Farm Treasures work the whole run. Collect them!');
     fadeOutThen(() => showVictoryBeat(st, 'elite', () => showRelicPop(rid, () => showReward(rewards, result, 'elite'))));
   } else {
@@ -1440,13 +1432,7 @@ function showReward(rewards, result, kind) {
     const rl = RELICS[rewards.relic];
     s.appendChild(el('div', 'speaker-line', `${rl.emoji} <b>${rl.name}</b> — ${rl.text}`));
     run.relics.push(rewards.relic);
-    R.onRelicGained(run, rewards.relic);
     coachTip('relic', 'Farm Treasures work the whole run. Collect them!');
-  }
-  if (rewards.snack && run.snacks.length < run.snackSlots) {
-    run.snacks.push(rewards.snack);
-    s.appendChild(el('p', 'subtitle', `${C.SNACKS[rewards.snack].emoji} Found a snack: ${C.SNACKS[rewards.snack].name}`));
-    coachTip('snack', 'Snacks are one-time saves — spend them when it counts.');
   }
   if (rewards.cards.length) {
     s.appendChild(el('p', 'subtitle', '<b>Pick a new card:</b>'));
@@ -1505,13 +1491,6 @@ function showShop(shop) {
     const b = el('button', 'btn gold two-line', `${rl.emoji} ${rl.name} — 💰${shop.relic.price}<small>${rl.text}</small>`);
     b.disabled = run.gold < shop.relic.price;
     b.onclick = () => { if (R.shopBuyRelic(run, shop)) { sfx.relic(); saveRun(); showShop(shop); } };
-    s.appendChild(b);
-  }
-  if (shop.snack) {
-    const sn = C.SNACKS[shop.snack.id];
-    const b = el('button', 'btn secondary two-line', `${sn.emoji} ${sn.name} — 💰${shop.snack.price}<small>${sn.text}</small>`);
-    b.disabled = run.gold < shop.snack.price || run.snacks.length >= run.snackSlots;
-    b.onclick = () => { if (R.shopBuySnack(run, shop)) { sfx.gold(); saveRun(); showShop(shop); } };
     s.appendChild(b);
   }
   if (!shop.removed) {
@@ -1603,7 +1582,6 @@ function showTreasure(relicId) {
   if (relicId) {
     // two beats: the tease, then the big pulsing FARM TREASURE reveal —
     // same ritual as elite/boss drops (James: treasure rooms should feel cooler)
-    R.onRelicGained(run, relicId);
     s.appendChild(el('div', 'speaker-line', 'He trots up, tail wagging like mad — there\'s something in his mouth, and he is VERY proud of it.'));
     const b = el('button', 'btn gold', '🎁 What did you bring?!');
     b.onclick = () => {
@@ -1642,13 +1620,6 @@ function showStuffModal() {
     for (const rid of run.relics) {
       const rl = RELICS[rid];
       m.appendChild(el('p', 'deck-line', `${rl.emoji} <b>${rl.name}</b> <span style="opacity:.75;font-size:.8rem">${rl.text}</span>`));
-    }
-    if (run.snacks.length) {
-      m.appendChild(el('p', 'subtitle', '<b>Snacks</b>'));
-      for (const sid of run.snacks) {
-        const sn = C.SNACKS[sid];
-        m.appendChild(el('p', 'deck-line', `${sn.emoji} <b>${sn.name}</b> <span style="opacity:.75;font-size:.8rem">${sn.text}</span>`));
-      }
     }
     const help = el('button', 'btn secondary', '📖 What do the words mean?');
     help.onclick = () => { close(); showHelpModal(); };
@@ -1734,6 +1705,7 @@ function upgradePickModal(cards, onConfirm) {
 
 // ---------- endings ----------
 function showDefeat() {
+  releaseScreen();
   music.play('title');
   sfx.lose();
   const st = combat; combat = null;
@@ -1874,7 +1846,7 @@ else showTitle();
 
 // e2e/debug handle (+ dev screen-jumps for tests/screenshots — harmless in play)
 window.__RL2 = {
-  get run() { return run; }, get combat() { return combat; }, R, C, showTitle,
+  get run() { return run; }, get combat() { return combat; }, get wakeHeld() { return !!wakeLock; }, R, C, showTitle,
   dev: {
     start(heroId = 'wyatt', seed = 4242) { run = R.newRun(heroId, seed); showMap(); },
     enter(type, arg) {

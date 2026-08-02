@@ -300,8 +300,7 @@ h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); letter-spac
 .pilebtn { background: rgba(0,0,0,.35); color: #fff; border: none; border-radius: 10px; padding: 8px 10px; font-size: .8rem; font-weight: 700; cursor: pointer; }
 .endturn { flex: 1; background: #2e6b34; color: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 1.05rem; font-weight: 900; cursor: pointer; box-shadow: 0 3px 0 rgba(0,0,0,.3); }
 .endturn:disabled { background: #55575e; opacity: .8; }
-.snackbar { display: flex; gap: 6px; }
-/* the belt: labeled snack + treasure rows under the health bar */
+/* the belt: labeled treasure row under the health bar */
 .belt-row { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-start; }
 .belt-group { display: flex; flex-direction: column; gap: 2px; }
 .belt-label { font-size: .55rem; font-weight: 900; letter-spacing: .14em; opacity: .8; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.6); }
@@ -313,7 +312,6 @@ h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); letter-spac
   45% { transform: rotate(12deg) scale(1.25); box-shadow: 0 0 12px #ffd23f; }
   70% { transform: rotate(-7deg) scale(1.15); }
 }
-.snack { background: rgba(0,0,0,.35); border: 2px solid #ffd23f88; border-radius: 10px; padding: 6px 8px; font-size: 1.2rem; cursor: pointer; }
 
 /* ---------- the map (StS node graph) ---------- */
 .map-screen { padding: 0; overflow: hidden; }
@@ -322,7 +320,6 @@ h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); letter-spac
 .floor-meter { text-align: center; font-size: .85rem; opacity: .95; margin: 4px 0; font-weight: 700; }
 .relic-shelf { display: flex; gap: 5px; flex-wrap: wrap; padding: 2px 0; justify-content: center; align-items: center; }
 .relic-pin { font-size: 1.1rem; background: rgba(0,0,0,.3); border-radius: 8px; padding: 2px 5px; cursor: pointer; }
-.snack-pin { border: 1px solid #ffd23f88; }
 
 .map-wrap { flex: 1; overflow-y: auto; position: relative; -webkit-overflow-scrolling: touch; }
 .map-bg { position: sticky; top: 0; height: 0; z-index: 0; }

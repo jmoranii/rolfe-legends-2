@@ -1,6 +1,6 @@
 // Rolfe Legends 2 — unit tests. Run: node test/test.mjs
 import { makeRng } from '../js/rng.js';
-import { CARDS, HEROES, makeCard, cardInfo, draftPool, nValue } from '../js/cards.js';
+import { CARDS, HEROES, DIAPERS, makeCard, cardInfo, draftPool, nValue } from '../js/cards.js';
 import { RELICS, relicPool } from '../js/relics.js';
 import { ENEMIES } from '../js/enemies.js';
 import { EVENTS, EVENT_KEYS } from '../js/events.js';
@@ -555,21 +555,23 @@ for (const key of Object.keys(ENEMIES)) {
   eq(state.hero.focus, 1, 'Birthday Boy: +1 Giggle Power at turn start');
 }
 
-// ---------- snacks ----------
+// ---------- snacks are GONE (James's cut, Sun 2026-08-02: complexity > value) ----------
 {
+  ok(C.SNACKS === undefined && C.useSnack === undefined, 'no consumable-snack engine surface');
   const run = freshRun('aaron', 11);
-  run.snacks = ['lemonade', 'juice_box', 'jerky', 'trail_mix', 'band_aid'];
-  const state = C.startCombat(run, ['gopher'], makeRng(11));
-  state.hero.hp = 40;
-  C.useSnack(state, 0);
-  eq(state.hero.hp, 52, 'lemonade heals 12');
-  C.useSnack(state, 0);
-  eq(state.hero.energy, 5, 'juice box +2 energy');
-  C.useSnack(state, 0);
-  eq(state.hero.strength, 2, 'jerky +2 str');
-  const h0 = state.hand.length;
-  C.useSnack(state, 0);
-  eq(state.hand.length, Math.min(10, h0 + 3), 'trail mix draws 3');
+  ok(run.snacks === undefined && run.snackSlots === undefined, 'runs carry no snack fields');
+  const shop = R.makeShop(run, makeRng(21));
+  ok(shop.snack === undefined, 'shop stocks no snacks');
+  const rewards = R.fightRewards(run, 'fight', makeRng(9));
+  ok(rewards.snack === undefined, 'fight rewards drop no snacks');
+  ok(!Object.keys(RELICS).includes('lunchbox'), 'Lunchbox (Potion Belt) retired');
+  // legacy mid-run saves survive the cut: snack fields scrubbed, lunchbox stripped
+  const old = JSON.parse(R.serializeRun(freshRun('wyatt', 5)));
+  old.snacks = ['lemonade']; old.snackSlots = 2; old.relics = [...old.relics, 'lunchbox'];
+  const revived = R.deserializeRun(JSON.stringify(old));
+  ok(revived && revived.snacks === undefined && !revived.relics.includes('lunchbox'), 'old save loads clean');
+  // Liam's Snack Time DIAPER is a different thing and stays
+  ok(DIAPERS.snack.name === 'Snack Time', "Liam's Snack Time diaper untouched");
 }
 
 // ---------- alternate bosses ----------
@@ -740,7 +742,6 @@ for (const key of Object.keys(ENEMIES)) {
   ok(R.shopBuyCard(run, shop, 0), 'buy card');
   eq(run.deck.length, d0 + 1, 'card added to deck');
   ok(R.shopBuyRelic(run, shop), 'buy relic');
-  ok(R.shopBuySnack(run, shop), 'buy snack');
   const uid = run.deck[0].uid;
   ok(R.shopRemoveCard(run, shop, uid), 'remove card service');
   ok(!run.deck.some((c) => c.uid === uid), 'card removed');

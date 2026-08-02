@@ -8,7 +8,7 @@ Slay-the-Spire-like roguelike deckbuilder. Every mechanic mirrors StS unless not
 - Combat: draw 5/turn, **3 ⚡/turn** (flat), block expires at turn start, enemies telegraph **intents**. Strength (+dmg per hit), Dexterity (+block per block card), Weak (-25% dmg dealt), Vulnerable (+50% dmg taken), Frail (-25% block), Poison (N dmg at victim's turn start, then -1). Exhaust pile. Innate = in opening hand. X-cost = spend all ⚡.
 - Rewards after fights: gold + pick-1-of-3 cards; elites add a relic; treasure = Rusty brings a relic.
 - Numbers at StS scale: hero HP 70–80, hits 5–30. NOT RL1's small numbers (James's call).
-- Deck starts small, grows by drafting; shop offers card removal. Snacks (potions): 1 belt slot (+1 with Lunchbox).
+- Deck starts small, grows by drafting; shop offers card removal. ~~Snacks (potions)~~ **CUT Sun 2026-08-02** (James: more complexity than value).
 
 ## Heroes (equal depth — do not underestimate Aaron)
 
@@ -47,18 +47,18 @@ Final boss: **The Big Twister**=Awakened One (phase 2: dissipates, then RE-FORMS
 ## Relics — "Farm Treasures" (James-approved, all StS mirrors)
 
 Starters: Big Breakfast (Aaron) · Head Start (Wyatt).
-Pool: Fence Post=Anchor (8 block turn 1) · Granny's Thermos=Blood Vial (heal 2 at fight start) · Barbed Wire=Bronze Scales (thorns 3) · Barn Lantern=Lantern (+1⚡ turn 1) · Lucky Horseshoe=Vajra (+1 str) · Skipping Stone=Oddly Smooth Stone (+1 dex) · Old Quilt=Orichalcum (6 block if none at turn end) · Sunflower=Happy Flower (+1⚡ every 3rd turn) · Slingshot=Pen Nib (every 10th attack ×2) · Soccer Drills=Kunai (3 attacks/turn → +1 dex) · Hay Bale Toss=Shuriken (→ +1 str) · Lunchbox=Potion Belt (+1 Snack slot) · Rally Cap=Centennial Puzzle (first HP loss/fight → draw 3).
+Pool: Fence Post=Anchor (8 block turn 1) · Granny's Thermos=Blood Vial (heal 2 at fight start) · Barbed Wire=Bronze Scales (thorns 3) · Barn Lantern=Lantern (+1⚡ turn 1) · Lucky Horseshoe=Vajra (+1 str) · Skipping Stone=Oddly Smooth Stone (+1 dex) · Old Quilt=Orichalcum (6 block if none at turn end) · Sunflower=Happy Flower (+1⚡ every 3rd turn) · Slingshot=Pen Nib (every 10th attack ×2) · Soccer Drills=Kunai (3 attacks/turn → +1 dex) · Hay Bale Toss=Shuriken (→ +1 str) · Rally Cap=Centennial Puzzle (first HP loss/fight → draw 3).
 Boss: **Keys to the Tractor** (+1⚡ every turn, NO downside — kid-version jackpot).
 
-## Snacks (potions) — 1 slot
+## Snacks (potions) — CUT Sun 2026-08-02
 
-Granny's Lemonade (heal 12) · Juice Box (+2⚡) · Beef Jerky (+2 str this fight) · Trail Mix (draw 3) · Band-Aid (heal 20% max HP).
+James removed consumable snacks entirely (more complexity than value for the boys; measured cost ~8–15 winrate points, folded into the next balance pass). Lunchbox retired with them. Liam's **Snack Time diaper is unrelated and stays** (it's his Plasma orb).
 
 ## Map events (family cameos; lines James-approved)
 
-Mom's Care Package (heal 20% / gain Snack / remove a curse) · Poppa Flaj's Tractor Ride (skip next floor) · Uncle Brody's Garage (upgrade a card) · Aunt Chelsea's Kitchen (heal 25% / remove a card) · The Duck Pond (a **Duck** ally card joins the run) · Goldie's Gate (relic; 50% she spits: lose 5 HP; "Goldie says nothing. Goldie knows.") · Coach James's Pep Talk (+5 max HP / remove curse / 50 gold) · The Old Well (coin-toss gamble).
+Mom's Care Package (heal 20% / remove a curse) · Poppa Flaj's Tractor Ride (skip next floor) · Uncle Brody's Garage (upgrade a card) · Aunt Chelsea's Kitchen (heal 25% / remove a card) · The Duck Pond (a **Duck** ally card joins the run) · Goldie's Gate (relic; 50% she spits: lose 5 HP; "Goldie says nothing. Goldie knows.") · Coach James's Pep Talk (+5 max HP / remove curse / 50 gold) · The Old Well (coin-toss gamble).
 Rest site = **Granny Rockie's porch**: Cookies (heal 30% max) or Practice (upgrade a card).
-Shop = **Jacob's Farm Supply** (Dad): cards, relic, snack, card removal.
+Shop = **Jacob's Farm Supply** (Dad): cards, relic, card removal.
 Treasure = **Rusty** trots up with a relic in his mouth.
 Start boon = **Coach James** (Neow): pick 1 of 3 modest boosts.
 
@@ -77,7 +77,7 @@ Full run 30–40 min (fits the screen-time hour). ~12 floors/act keeps it under 
 ## Build order
 
 1. Pure engine: rng, combat (all keywords), tests.
-2. Content data: heroes, cards, enemies acts 1–3, relics, snacks, events.
+2. Content data: heroes, cards, enemies acts 1–3, relics, events.
 3. Run layer: map gen, rewards, shop/rest/treasure/events, save.
 4. Selfplay harness: full-run simulation, winrate rails.
 5. UI: title/character select/map/battle/reward/shop/rest/event/win/lose.

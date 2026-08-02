@@ -2,6 +2,14 @@
 
 Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 300`.
 
+## 2026-08-02 · Snacks CUT + screen wake lock (James's calls)
+
+- **Consumable snacks removed entirely** — James: "more complexity than value." Full sweep: engine (SNACKS/useSnack gone), fight-reward drops, shop stock, Coach boon, Mom's juice-box event choice, Lunchbox relic (Potion Belt) retired, belt UI (now just FARM TREASURES), map shelf, Your-stuff modal, tip library, selfplay policies, DESIGN/README/REVIEW docs. Old mid-run saves load clean (snack fields scrubbed, Lunchbox stripped on deserialize). **Liam's Snack Time diaper is a different system and stays** (his Plasma orb — it's in his anthem).
+- Post-cut winrates measured (150 runs/hero, NOT rebalanced per James — queued for the balance pass): **Aaron 38.7 · Wyatt 50.7 · Liam 40.7** (was ~50/55/49; snacks were carrying late-game survivability — act-3 deaths dominate). All inside rails.
+- **Screen Wake Lock**: tablets auto-dimmed while kids read their hand (James hit it playtesting). Held from fight start until back on map/title — covers fights, victory beats, rewards, and the credits roll; re-acquired when the tab returns. Verified live (held in fight, released on map).
+- **Harness confession + guard**: `selfplay.mjs --quick` parsed as `Number('--quick') = NaN` → the loop ran ZERO games and every rail passed vacuously. My recent commit gates that used `--quick` were fake-green (no balance-relevant changes shipped under them, but still). The harness now refuses non-numeric/zero run counts.
+- sw cache v8 · unit 1290 · e2e 72/72 both engines.
+
 ## 2026-08-02 · Combat belt + the Squall's exit (fleeing ≠ dying)
 
 - **Combat belt** (shipped 798fddb, logging here): SNACKS + FARM TREASURES sit in labeled groups under the hero health bar, wrapping to extra rows as the collection grows; every treasure pin taps to explain itself, and **pins jiggle+glow the moment they proc** (engine logs `relic` events at all 15 proc sites).

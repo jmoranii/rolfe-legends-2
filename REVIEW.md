@@ -38,7 +38,7 @@ Tuned by the harness into the 35–55% band (500 runs/hero: **Aaron 49.8 · Wyat
 - Aaron: "Thunder boomed. Lightning cracked. Aaron flexed. The storm apologized. AARON THE STRONG!"
 - Liam: "Thunder and Lightning met THE BLOWOUT. The storm has not stopped running. LIAM THE LITTLE!"
 
-**Coach James onboarding tips** (Phase 1, ≤12 words each): "Pick your path — you can see the whole climb." · "💀 is BIG trouble… and big treasure. Your call." · "Farm Treasures work the whole run. Collect them!" · "Snacks are one-time saves — spend them when it counts." · Defeat screen: "Runs end — that's the game. You keep everything you learned. 💪"
+**Coach James onboarding tips** (Phase 1, ≤12 words each): "Pick your path — you can see the whole climb." · "💀 is BIG trouble… and big treasure. Your call." · "Farm Treasures work the whole run. Collect them!" · ~~"Snacks are one-time saves…"~~ (snacks cut Sun 2026-08-02) · Defeat screen: "Runs end — that's the game. You keep everything you learned. 💪"
 
 ## ✍️ Act story cards (Sat 2026-08-01 — your word pass)
 
