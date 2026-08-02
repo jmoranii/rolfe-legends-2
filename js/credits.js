@@ -110,7 +110,7 @@ export function parseLrc(text) {
         // a marker-timed bare word can sit way early (the marker marks the
         // SECTION start, not the word) — snap it to just before this word
         const prev = cur[cur.length - 1];
-        if (prev && prev.bare && t - prev.t > 0.6) prev.t = Math.max(prev.t, t - 0.35);
+        if (prev && prev.bare && t - prev.t > 0.6) prev.t = Math.round(Math.max(prev.t, t - 0.35) * 100) / 100;
         if (ws.length === 1) cur.push({ w: ws[0], t });           // per-word format
         else {                                                    // line-level: spread gently
           flush();
