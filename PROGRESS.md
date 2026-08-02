@@ -2,6 +2,10 @@
 
 Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 300`.
 
+## 2026-08-02 · Goldie beacon dot (James's discoverability nudge)
+
+- The Liam-unlock hotspot is viewport-stable but the painted llama drifts with the art crop — so a **tiny white dot (7px, soft glow + faint dark halo)** now marks the hotspot once title art loads. It sits in the hotspot's top band (the true center hides behind the New Adventure button). Verified portrait + landscape; e2e asserts the dot (73/73). Zero-hint posture unchanged otherwise: no copy, no tips change; the dot is a sanctioned wink. sw v11.
+
 ## 2026-08-02 · HARD MODE — the balance pass lands at ~30% (James: "I want this game to be hard")
 
 - New design target: every hero close to **30% winrate** (was the 35–55 band). Selfplay rails re-anchored to 25–35 (hard ±2 at n≥300).

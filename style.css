@@ -66,7 +66,17 @@ h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); letter-spac
 .title-screen .title-logo { -webkit-text-stroke: 2px #fff; paint-order: stroke fill; }
 .title-screen .title-sub { -webkit-text-stroke: 1.5px #fff; paint-order: stroke fill; }
 .goldie-egg { position: fixed; bottom: 10px; right: 12px; font-size: 1.7rem; opacity: .55; cursor: pointer; z-index: 2; }
-.goldie-egg.on-art { font-size: 1rem; opacity: 0.001; width: 120px; height: 230px; display: block; z-index: 0; } /* invisible hotspot over the painted llama, under the button layer */
+.goldie-egg.on-art { font-size: 1rem; opacity: 1; width: 120px; height: 230px; display: block; z-index: 0; } /* hotspot over the painted llama, under the button layer (emoji text cleared in JS) */
+/* James's discoverability nudge (Sun 2026-08-02): the painted llama drifts with
+   the viewport crop but the hotspot doesn't, so a faint white dot marks the spot.
+   It sits in the hotspot's top band — the true center hides behind the buttons. */
+.goldie-egg.on-art::after {
+  content: ''; position: absolute; top: 26px; left: 50%; transform: translateX(-50%);
+  width: 7px; height: 7px; border-radius: 50%;
+  background: rgba(255,255,255,.75);
+  /* faint dark halo so the dot reads even when the crop parks it on Goldie's cream fur */
+  box-shadow: 0 0 0 1.5px rgba(60,40,20,.3), 0 0 8px 2px rgba(255,255,255,.4);
+}
 /* the title overlay passes empty-space taps through (to Goldie); buttons still win */
 .title-inner { pointer-events: none; }
 .title-inner button { pointer-events: auto; }

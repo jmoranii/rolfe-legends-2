@@ -260,7 +260,7 @@ function showTitle() {
   const goldie = el('div', 'goldie-egg', '🦙');
   art.addEventListener('transitionend', () => {}); // no-op; hotspot swap below
   const swapIfArt = () => {
-    if (art.classList.contains('has-art')) goldie.classList.add('on-art');
+    if (art.classList.contains('has-art')) { goldie.classList.add('on-art'); goldie.textContent = ''; } // emoji out; the CSS dot takes over as the beacon
   };
   setTimeout(swapIfArt, 350);
   setTimeout(swapIfArt, 1400);

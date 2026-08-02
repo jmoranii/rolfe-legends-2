@@ -241,6 +241,10 @@ async function liamUnlock() {
   page.on('pageerror', (e) => errors.push(String(e)));
   await page.goto(BASE, { waitUntil: 'load' });
   ok(await page.locator('.goldie-egg').count() === 1, 'liam: Goldie watches the title screen');
+  // the beacon dot (James's nudge): once title art loads, the hotspot shows a tiny white dot
+  await page.waitForTimeout(1700);
+  const dotW = await page.evaluate(() => getComputedStyle(document.querySelector('.goldie-egg.on-art'), '::after').width).catch(() => 'none');
+  ok(dotW === '7px', `liam: hotspot beacon dot present (${dotW})`);
   // zero-hint check: no Liam on hero select before unlock
   await page.locator('.btn', { hasText: 'New Adventure' }).click();
   ok(await page.locator('.hero-card').count() === 2, 'liam: only 2 heroes before unlock');
