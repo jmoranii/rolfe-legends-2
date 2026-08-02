@@ -830,6 +830,16 @@ for (const key of Object.keys(ENEMIES)) {
   ok(plain[0].words[2].t > plain[0].words[0].t, 'plain lrc word times increase');
   eq(parseLrc(''), null, 'empty lrc → null');
   eq(parseLrc(null), null, 'null lrc → null');
+  // Suno glitch repair: a bunched cluster stamped at ~0s before a >5s cliff
+  // gets re-anchored to just before the next reliable word (real instrumental
+  // breaks after normally-spaced words are left alone)
+  const glitch = '[00:00.10] Out \n[00:00.20] in \n[00:00.30] Rolfe \n[00:00.40] when \n[00:00.55] glows\n\n[00:01.69] Trouble \n[00:13.86] came \n[00:14.07] where';
+  const rep = parseLrc(glitch);
+  ok(rep[0].t > 10, 'bunched head cluster re-anchored near the singing');
+  ok(rep[1].words[0].t > 12 && rep[1].words[0].t < 13.86, 'cluster tail sits just before the reliable word');
+  const legit = '[00:60.0] cheered \n[00:60.5] loud\n\n[00:75.0] The \n[00:75.4] strongest';
+  const rep2 = parseLrc(legit);
+  eq(rep2[0].words[0].t, 60.0, 'normally-spaced words before a real break untouched');
 }
 
 // ---------- data integrity ----------

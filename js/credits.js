@@ -107,6 +107,10 @@ export function parseLrc(text) {
       }
       if (!any) {
         const ws = rest.split(/\s+/);
+        // a marker-timed bare word can sit way early (the marker marks the
+        // SECTION start, not the word) — snap it to just before this word
+        const prev = cur[cur.length - 1];
+        if (prev && prev.bare && t - prev.t > 0.6) prev.t = Math.max(prev.t, t - 0.35);
         if (ws.length === 1) cur.push({ w: ws[0], t });           // per-word format
         else {                                                    // line-level: spread gently
           flush();
@@ -119,12 +123,30 @@ export function parseLrc(text) {
       const w = raw.trim();
       if (/^\[.*\]$/.test(w)) continue;
       const t = carryT != null ? carryT : (cur.length ? cur[cur.length - 1].t + 0.01 : 0);
-      cur.push({ w, t });
+      cur.push({ w, t, bare: true });
     }
     carryT = null;
   }
   flush();
-  return lines.length ? lines : null;
+  if (!lines.length) return null;
+  // Repair Suno alignment glitches: a run of implausibly BUNCHED words (many
+  // words squeezed into ~a second) right before a >5s cliff means the cluster
+  // was stamped at the wrong time (seen: an intro phrase stamped at 0s though
+  // sung at ~11s). Re-space the cluster to END just before the next reliable
+  // word. Normally-spaced words before a long gap (real instrumental breaks)
+  // are left alone.
+  const ws = lines.flatMap((l) => l.words);
+  for (let i = 1; i < ws.length; i++) {
+    if (ws[i].t - ws[i - 1].t <= 5) continue;
+    let start = i - 1;
+    while (start > 0 && ws[start].t - ws[start - 1].t < 1.0) start--;
+    const n = i - start;
+    if (n >= 4 && (ws[i - 1].t - ws[start].t) / (n - 1) < 0.35) {
+      for (let k = start; k < i; k++) ws[k].t = Math.round((ws[i].t - 0.38 * (i - k)) * 100) / 100;
+    }
+  }
+  for (const line of lines) line.t = line.words[0].t;
+  return lines;
 }
 
 // derive portrait beats from the timed words
@@ -148,7 +170,7 @@ export function deriveBeats(lines, heroId) {
       }
       if (!scene) continue;
       const cool = scene.kind === 'hero' ? 9 : 16;
-      if (t - lastBeat < 2.4) continue;
+      if (t - lastBeat < 1.5) continue;
       if (lastShown.has(scene.name) && t - lastShown.get(scene.name) < cool) continue;
       beats.push({ t: Math.max(0, t - 0.15), scene });
       lastShown.set(scene.name, t);

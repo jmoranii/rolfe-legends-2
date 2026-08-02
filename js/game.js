@@ -1412,6 +1412,7 @@ function showVictory() {
   // THE CROWN — first win per hero rolls the synced-lyric anthem credits;
   // winning with BOTH big brothers unlocks the bonus finale on top.
   const bothNow = p.wins.aaron > 0 && p.wins.wyatt > 0 && !p.bonusSeen;
+  if (bothNow) prefetch(['assets/audio/anthem_both.mp3', 'assets/audio/anthem_both.lrc']); // the finale follows — have it ready
   const rollBonus = () => {
     if (bothNow) {
       p.bonusSeen = true;
@@ -1448,6 +1449,11 @@ function showCrownScreen(heroId) {
   const again = el('button', 'btn secondary', '🎬 Watch your credits again');
   again.onclick = () => creditsRoll(heroId, { el, artImg, sfx, REDUCED }, () => showCrownScreen(heroId));
   s.appendChild(again);
+  if (p.wins.wyatt > 0 && p.wins.aaron > 0) {
+    const both = el('button', 'btn secondary', '👑👑 Watch the double-legend finale');
+    both.onclick = () => creditsRoll('both', { el, artImg, sfx, REDUCED }, () => showCrownScreen(heroId));
+    s.appendChild(both);
+  }
   const b = el('button', 'btn', '🌱 Play Again');
   b.onclick = () => { run = null; showHeroSelect(); };
   s.appendChild(b);
