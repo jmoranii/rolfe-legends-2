@@ -10,7 +10,6 @@ import { generateActMap, reachableIds, validateMap, MAP_FLOORS, TREASURE_FLOOR, 
 import { parseLrc, deriveBeats } from '../js/credits.js';
 import { readFileSync } from 'fs';
 import { TIPS_GENERAL, TIPS_HERO, nextTip } from '../js/tips.js';
-import { encodeFarmCode, decodeFarmCode } from '../js/farmcode.js';
 
 let passed = 0, failed = 0;
 const fails = [];
@@ -882,34 +881,8 @@ for (const key of Object.keys(ENEMIES)) {
   eq(run.hp, 58, 'big breakfast heals 8 after fight');
 }
 
-// ---------- the Secret Farm Code ----------
-{
-  const profile = { wins: { wyatt: 3, aaron: 1, liam: 0 }, bonusSeen: true, liamUnlocked: true };
-  const run = freshRun('wyatt', 909);
-  run.gold = 231; run.act = 2; run.deck.push(makeCard('sting_shot'));
-  const code = encodeFarmCode(profile, run);
-  ok(code.startsWith('FARM2-'), 'farm code has the FARM2 prefix');
-  const back = decodeFarmCode(code);
-  ok(back, 'farm code decodes');
-  eq(back.profile.wins.wyatt, 3, 'wins survive the round-trip');
-  ok(back.profile.bonusSeen && back.profile.liamUnlocked, 'flags survive');
-  ok(back.run && back.run.gold === 231 && back.run.act === 2, 'current run survives');
-  eq(back.run.deck.length, run.deck.length, 'deck survives');
-  ok(back.run.map && back.run.map.nodes, 'map survives');
-  // no run
-  const solo = decodeFarmCode(encodeFarmCode(profile, null));
-  ok(solo && solo.run === null, 'profile-only code round-trips');
-  // tamper: flip a payload char → checksum rejects
-  const mid = 20 + Math.floor((code.length - 24) / 2);
-  const tampered = code.slice(0, mid) + (code[mid] === 'A' ? 'B' : 'A') + code.slice(mid + 1);
-  eq(decodeFarmCode(tampered), null, 'tampered code rejected');
-  eq(decodeFarmCode('FARM2-garbage-xyz'), null, 'garbage rejected');
-  eq(decodeFarmCode('hello'), null, 'non-code rejected');
-  eq(decodeFarmCode(''), null, 'empty rejected');
-  // liam wins imply unlock even if flag dropped
-  const p2 = decodeFarmCode(encodeFarmCode({ wins: { liam: 1 }, bonusSeen: false, liamUnlocked: false }, null));
-  ok(p2.profile.liamUnlocked, 'liam wins imply his unlock');
-}
+// (the Secret Farm Code was removed Sun 2026-08-02 — James: cross-device
+// save transfer isn't needed; each device keeps its own farm)
 
 // ---------- coach tip rotation ----------
 {

@@ -160,19 +160,11 @@ async function runSuite(browserType, name) {
     ok(true, `${name}: continue restores map`);
   }
 
-  // the Secret Farm Code: copy out, tamper rejected, restore round-trips
+  // settings still opens cleanly (Farm Code removed Sun 2026-08-02)
   await page.locator('.pilebtn', { hasText: '⚙️' }).click();
-  await page.locator('.btn', { hasText: 'Farm Code' }).click();
-  await page.waitForSelector('.farmcode-box');
-  const code = await page.locator('.farmcode-box').first().inputValue();
-  ok(code.startsWith('FARM2-'), `${name}: farm code shown`);
-  await page.locator('.farmcode-box').nth(1).fill('FARM2-nonsense-abc');
-  await page.locator('.btn', { hasText: 'Restore this farm' }).click();
-  ok(await page.locator('.toast').count() >= 1, `${name}: bad code politely rejected`);
-  await page.locator('.farmcode-box').nth(1).fill(code);
-  await page.locator('.btn', { hasText: 'Restore this farm' }).click();
-  await page.waitForSelector('.title-logo');
-  ok(await page.locator('.btn', { hasText: 'Continue' }).count() === 1, `${name}: farm code restores the run`);
+  ok(await page.locator('.btn', { hasText: 'Farm Code' }).count() === 0, `${name}: no Farm Code in settings`);
+  ok(await page.locator('.btn', { hasText: 'Abandon current run' }).count() === 1, `${name}: settings renders`);
+  await page.locator('.modal-close, .modal .btn.secondary', { hasText: /home screen/i }).first().click().catch(() => {});
 
   // offline shell: the service worker registers
   const swReady = await page.evaluate(() =>

@@ -441,7 +441,6 @@ h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); letter-spac
 @keyframes coachin { from { opacity: 0; transform: translateX(-50%) translateY(14px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 
 .speaker-line { background: rgba(0,0,0,.3); border-left: 5px solid #ffd23f; border-radius: 10px; padding: 12px; margin: 10px auto; max-width: 420px; font-style: italic; }
-.farmcode-box { width: 100%; min-height: 74px; margin: 8px 0; border-radius: 10px; border: 2px solid #55575e; background: #1a2436; color: #f4efe6; font-family: monospace; font-size: .7rem; padding: 8px; resize: vertical; user-select: text; -webkit-user-select: text; }
 .event-emoji { font-size: 3.4rem; text-align: center; margin: 10px 0; }
 
 .crown { font-size: 4.5rem; text-align: center; animation: crownpulse 1.6s infinite; }

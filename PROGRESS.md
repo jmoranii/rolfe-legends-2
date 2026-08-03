@@ -2,6 +2,12 @@
 
 Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 300`.
 
+## 2026-08-02 · Farm Code removed + overkill HP clamp (James's calls)
+
+- **Secret Farm Code deleted entirely** (settings button, restore flow, js/farmcode.js, its unit + e2e coverage) — James: cross-device save transfer isn't needed; each device keeps its own farm. Settings is now: music, sounds, animations, home-screen, abandon run.
+- **HP floors at 0 in the engine**: an overkill hit was flashing "❤️ -3" on the hero strip before the defeat screen replaced it. Clamped in dealDamage so every surface inherits the fix.
+- unit 1324 · e2e 71/71 both engines · sw v13.
+
 ## 2026-08-02 · Karaoke audit: orphaned line tails fixed + every sung face shows (James's Aaron playthrough)
 
 - **Aaron's "Poppa Flaj" jumble diagnosed**: Suno stamped the tails of two caption lines after instrumental breaks they don't belong to ("Flaj cheered extra loud" at 67s though sung ~54s; "no more!" 23s late at the bridge). New **Repair 0 in parseLrc**: an in-line stall >6s with a short tail snaps the tail to the head's cadence — unless the head is a bunched cluster (Wyatt's-intro glitch), which stays the cluster pass's case. Same discriminator as that pass, so the two repairs partition cleanly.

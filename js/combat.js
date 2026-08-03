@@ -41,7 +41,9 @@ export function dealDamage(state, target, amount, { attacker = null, isAttack = 
     amount: dmg, absorbed, src,
   });
   if (dmg > 0) {
-    target.hp -= dmg;
+    // floor at 0: overkill was flashing "❤️ -3" on the hero strip before the
+    // defeat screen replaced it (James's report, Sun 2026-08-02)
+    target.hp = Math.max(0, target.hp - dmg);
     if (target.onDamaged) target.onDamaged(target, state, dmg);
     if (target === state.hero) {
       state.hpLostThisFight = (state.hpLostThisFight || 0) + dmg;

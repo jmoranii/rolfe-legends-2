@@ -13,7 +13,6 @@ import { MAP_FLOORS, BOSS_ID } from './map.js';
 import { sfx, setEnabled as setSfx, isEnabled as sfxOn } from './sfx.js';
 import * as music from './music.js';
 import { creditsRoll } from './credits.js';
-import { encodeFarmCode, decodeFarmCode } from './farmcode.js';
 import { prefetch } from './prefetch.js';
 import { nextTip } from './tips.js';
 import { EVENT_KEYS } from './events.js';
@@ -317,52 +316,12 @@ function showSettings() {
       anim.textContent = animLabel();
       toast(animMode === 'fast' ? '🎬 Fast animations — for pros!' : '🎬 Slow & clear — see every hit land.');
     };
-    const fc = el('button', 'btn gold', '🔑 Secret Farm Code');
-    fc.onclick = () => { close(); showFarmCode(); };
     const a2hs = el('button', 'btn secondary', '📲 Put it on your home screen');
     a2hs.onclick = () => { close(); showA2HS(); };
     const reset = el('button', 'btn danger', '🗑️ Abandon current run');
     reset.onclick = () => { clearSave(); run = null; close(); showTitle(); };
-    m.append(mus, sx, anim, fc, a2hs, reset);
+    m.append(mus, sx, anim, a2hs, reset);
     m.appendChild(el('p', 'subtitle', `Rolfe Legends 2 · made with love by Uncle James<br><span style="opacity:.55;font-size:.72rem">version: ${new Date(document.lastModified).toLocaleString()}</span>`));
-  });
-}
-
-// ---------- the Secret Farm Code (save backup / restore) ----------
-function showFarmCode() {
-  const saved = run || R.deserializeRun(localStorage.getItem(SAVE_KEY));
-  const code = encodeFarmCode(loadProfile(), saved);
-  modal('🔑 Secret Farm Code', (m, close) => {
-    m.appendChild(el('p', 'subtitle', 'Your whole farm story in one magic code. Copy it somewhere safe, or type one in to bring a farm back.'));
-    const out = document.createElement('textarea');
-    out.className = 'farmcode-box';
-    out.readOnly = true;
-    out.value = code;
-    m.appendChild(out);
-    const copy = el('button', 'btn', '📋 Copy my code');
-    copy.onclick = () => {
-      out.select();
-      const done = () => { copy.textContent = '✅ Copied!'; setTimeout(() => { copy.textContent = '📋 Copy my code'; }, 1600); };
-      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(code).then(done, () => { document.execCommand('copy'); done(); });
-      else { document.execCommand('copy'); done(); }
-    };
-    m.appendChild(copy);
-    const inBox = document.createElement('textarea');
-    inBox.className = 'farmcode-box';
-    inBox.placeholder = 'Paste a Farm Code here…';
-    m.appendChild(inBox);
-    const restore = el('button', 'btn gold', '🚜 Restore this farm');
-    restore.onclick = () => {
-      const decoded = decodeFarmCode(inBox.value);
-      if (!decoded) { toast('🤔 That code doesn\'t look right. Check for missing bits!'); return; }
-      saveProfile(decoded.profile);
-      if (decoded.run) { run = decoded.run; saveRun(); } else { clearSave(); run = null; }
-      sfx.win();
-      toast('🌾 Farm restored!');
-      close();
-      showTitle();
-    };
-    m.appendChild(restore);
   });
 }
 
