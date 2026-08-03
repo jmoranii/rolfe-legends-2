@@ -28,11 +28,12 @@ function incomingMult(target) { return (target.vulnerable || 0) > 0 ? 1.5 : 1; }
 // Every resolved hit is appended to state.log so the UI can show EACH hit of a
 // multi-hit card/intent separately (X-cost spins, ×N flurries) — including
 // fully-blocked hits ("Blocked!").
-export function dealDamage(state, target, amount, { attacker = null, isAttack = true, src = null } = {}) {
+export function dealDamage(state, target, amount, { attacker = null, isAttack = true, src = null, pierce = false } = {}) {
   if (!target || target.hp <= 0 || target.gone) return 0;
   let dmg = Math.floor(amount * (isAttack ? incomingMult(target) : 1));
   if (target.intangible && isAttack) dmg = Math.min(dmg, 1);
-  const absorbed = Math.min(target.block || 0, dmg);
+  // pierce = StS "HP loss" (poison, self-costs): goes straight through Block
+  const absorbed = pierce ? 0 : Math.min(target.block || 0, dmg);
   target.block = (target.block || 0) - absorbed;
   dmg -= absorbed;
   state.log.push({
@@ -104,7 +105,7 @@ export function applyStatus(state, target, k, n) {
 function tickPoison(state, creature) {
   const p = creature.poison || 0;
   if (p > 0) {
-    dealDamage(state, creature, p, { isAttack: false, src: 'poison' });
+    dealDamage(state, creature, p, { isAttack: false, src: 'poison', pierce: true });
     creature.poison = p - 1;
   }
 }
@@ -461,7 +462,7 @@ function runEffects(state, info, target) {
     if (op.draw) drawCards(state, op.draw);
     if (op.discard) state.pendingDiscard += op.discard;
     if (op.energy) h.energy += op.energy;
-    if (op.loseHp) dealDamage(state, h, op.loseHp, { isAttack: false, src: 'effort' });
+    if (op.loseHp) dealDamage(state, h, op.loseHp, { isAttack: false, src: 'effort', pierce: true });
     if (op.selfStr) h.strength += op.selfStr;
     if (op.selfDex) h.dexterity += op.selfDex;
     if (op.tempStr) h.tempStr += op.tempStr;

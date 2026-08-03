@@ -2,6 +2,12 @@
 
 Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 300`.
 
+## 2026-08-03 · Poison pierces Block (James's call — StS "HP loss" rule)
+
+- New `pierce` option on dealDamage: HP-loss damage skips Block entirely. **Poison** now bites through the Snapping Turtle's plating (the canonical case — it was silently being absorbed) and **All-Out Effort's self-cost** no longer gets eaten by the hero's own Block. Thorns/hailstones/constrict stay blockable (StS calls those "damage", not "HP loss").
+- Poison explainers updated: "Goes right through Block and shells!" (status chip + tip library).
+- Winrates barely moved (Aaron 30.7 · Wyatt 37.3 · Liam 36.0 @150) — the turtle case is narrow. unit 1385 · e2e 77/77 · sw v17.
+
 ## 2026-08-03 · Full heal between acts (James's call — StS-true, meal-framed)
 
 - Between-act heal 20% → **100%**: "🥪 Lunch at the farmhouse!" after act 1, "🍗 Dinner before the storm!" after act 2. James: hard mode lives in the fights, not the transitions. Exactly StS's between-act behavior.

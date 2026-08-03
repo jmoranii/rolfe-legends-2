@@ -574,6 +574,27 @@ for (const key of Object.keys(ENEMIES)) {
   ok(DIAPERS.snack.name === 'Snack Time', "Liam's Snack Time diaper untouched");
 }
 
+// ---------- poison pierces Block (StS "HP loss" rule — James, Sun 2026-08-03) ----------
+{
+  // the canonical case: the Snapping Turtle's persistent plating used to eat poison
+  const { state } = combatVs(['snapping_turtle'], { hero: 'wyatt' });
+  const e = state.enemies[0];
+  e.poison = 5; e.block = 10; e.block_persist = true;
+  const hp0 = e.hp;
+  state.hand = [];
+  C.endTurn(state);
+  eq(hp0 - e.hp, 5, 'poison bites straight through the shell');
+  ok(e.block >= 10, 'the plating is untouched by poison');
+  // All-Out Effort's self-cost is HP loss too — the hero's own Block never eats it
+  const { state: s2 } = combatVs(['gopher']);
+  forceHand(s2, ['all_out']);
+  s2.hero.block = 10;
+  const h0 = s2.hero.hp;
+  C.playCard(s2, s2.hand[0]);
+  eq(h0 - s2.hero.hp, 6, "All-Out's cost pierces the hero's own Block");
+  eq(s2.hero.block, 10, 'hero Block untouched by the self-cost');
+}
+
 // ---------- scout reports describe, never prescribe (James's rule, Sun 2026-08-03) ----------
 {
   const { SCOUT, SCOUT_FALLBACK } = await import('../js/scout.js');

@@ -7,7 +7,7 @@
 // egg tease stays VAGUE — no location, no method (the egg may move someday).
 
 export const TIPS_GENERAL = [
-  'Poison bites at the START of an enemy\'s turn, then shrinks by 1.',
+  'Poison bites at the START of an enemy\'s turn, then shrinks by 1. It goes right through Block and shells!',
   'Drawing cards is sneaky-strong — more cards means more choices.',
   'A SMALL deck can be mighty: you see your best cards more often.',
   'Pick cards that work TOGETHER, not just cards that look cool.',

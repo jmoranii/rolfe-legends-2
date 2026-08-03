@@ -571,7 +571,7 @@ const STATUS_INFO = {
   strength: '💪 Strength: every attack hits that much harder.',
   tempStr: '💪⏳ Temporary Strength: extra attack damage this turn only.',
   dexterity: '🩰 Dexterity: block cards give that much MORE Block.',
-  poison: '☠️ Poison: takes that much damage at the start of its turn, then shrinks by 1.',
+  poison: '☠️ Poison: takes that much damage at the start of its turn, then shrinks by 1. Goes right through Block and shells!',
   weak: '😩 Weak: attacks deal 25% LESS damage.',
   vulnerable: '💔 Vulnerable: takes 50% MORE damage from attacks.',
   frail: '🦴 Frail: block cards give 25% less Block.',
