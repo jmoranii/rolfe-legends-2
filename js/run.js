@@ -254,9 +254,10 @@ export function advanceAct(run) {
   run.pos = null;
   run.trail = [];
   run.seenEvents = [];
-  // "Catch your breath" — heal 20% between acts (was 33%; hard-mode retune
-  // Sun 2026-08-02, James: everyone close to 30% winrate). Documented in DESIGN.md.
-  run.hp = Math.min(run.maxHp, run.hp + Math.floor(run.maxHp * 0.20));
+  // A full meal between acts — lunch after act 1, dinner after act 2 — heals
+  // you ALL the way up, exactly like StS's between-act rest (James's call
+  // Sun 2026-08-03; hard mode lives in the fights, not the transitions).
+  run.hp = run.maxHp;
   return true;
 }
 

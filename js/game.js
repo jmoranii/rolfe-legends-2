@@ -1450,7 +1450,9 @@ function finishReward(kind) {
     const proceed = () => {
       R.advanceAct(run);
       saveRun();
-      toast('❤️ You catch your breath between acts (+33% HP)', 2400);
+      toast(run.act === 2
+        ? '🥪 Lunch at the farmhouse! Healed ALL the way up.'
+        : '🍗 Dinner before the storm! Healed ALL the way up.', 2600);
       showActCard(run.act, showMap);
     };
     // boss relic: the jackpot — and it gets a real reveal

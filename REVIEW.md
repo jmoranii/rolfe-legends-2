@@ -19,7 +19,7 @@ Every place the result improves with a reference photo or a personal detail. For
 
 **You re-targeted to ~30% winrate ("I want this game to be hard").** Verified at 500 runs/hero: **Aaron 32.6 · Wyatt 29.4 · Liam 26.8** (was 49.8/54.8/49.4 pre-snack-cut). Rails now enforce a 25–35 band. The dials, layered on the Phase-2 ledger below:
 
-- Between-act heal **33% → 20%** (the kid-kindness lever, mostly closed).
+- Between-act heal: **FULL heal** (your call Sun 2026-08-03, StS-true — framed as lunch after act 1, dinner after act 2; "hard mode lives in the fights, not the transitions"). Supersedes the 33%→20% retune; no balance rerun per your instruction.
 - **Wyatt HP 70 → 54** — his StS-true Silent kit overperforms against the kid-tilted bestiary, so the ascension-style HP dial carries the whole nerf; not one of his cards was touched. ⚠️ Texture: his deaths now front-load into act 1 (Ornery Ram is his top killer) — the early game is spiky for him. Watch whether that *feels* fair when the boys play him.
 - **Liam HP 78 → 76** · Fresh Diaper **3/6 → 2/5** (Frost-true) · Blanket Fort **9 → 8** block (Glacier is 7; kept +1 as his carry card). Giggle Fit 2 Focus and Nap Time 14 kept.
 - **Aaron: Big Breakfast 10 → 8** (his only change; also fixed the relic text, which had said "6" while the engine healed 10).

@@ -2,6 +2,12 @@
 
 Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 300`.
 
+## 2026-08-03 · Full heal between acts (James's call — StS-true, meal-framed)
+
+- Between-act heal 20% → **100%**: "🥪 Lunch at the farmhouse!" after act 1, "🍗 Dinner before the storm!" after act 2. James: hard mode lives in the fights, not the transitions. Exactly StS's between-act behavior.
+- Measured, NOT rebalanced (per instruction): 150-run winrates drift up to **Aaron 34.0 · Wyatt 37.3 · Liam 36.0** (from 32.6/29.4/26.8 @500). Wyatt+Liam now sit a touch above the 25–35 soft band — noted for the next balance batch.
+- unit 1381 · e2e 77/77 · sw v16.
+
 ## 2026-08-03 · Scout reports describe, never prescribe (James's rule)
 
 - All ~40 of Coach's tap-an-enemy scouting reports rewritten as pure M.O. — the mechanic, the pattern, the danger, and **zero how-to-beat advice** ("Take the talker out first", "Punch, don't posture", "Block up, hang on" all cut). Many answers is the point of the game; a well-stated M.O. implies the strategy without dictating it (the Squall's "endless health, hits harder every turn, blows itself out after five" needs no directive). **Zero exceptions were needed.** Reassurance stays ("It's not broken — it's him").

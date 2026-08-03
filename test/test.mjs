@@ -840,7 +840,9 @@ for (const key of Object.keys(ENEMIES)) {
   ok(seen.has('treasure'), 'path passed the treasure row');
   ok(seen.has('rest'), 'path passed the pre-boss rest');
   eq(R.enterMapNode(run, 'nope'), null, 'unreachable node rejected');
+  run.hp = 3;
   ok(R.advanceAct(run), 'advance to act 2');
+  eq(run.hp, run.maxHp, 'a full meal between acts: healed ALL the way (StS-true)');
   eq(run.act, 2, 'act advanced');
   eq(run.floor, 0, 'floor reset');
   eq(run.pos, null, 'position reset');
