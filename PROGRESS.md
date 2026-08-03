@@ -2,6 +2,11 @@
 
 Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 300`.
 
+## 2026-08-03 · Scout reports describe, never prescribe (James's rule)
+
+- All ~40 of Coach's tap-an-enemy scouting reports rewritten as pure M.O. — the mechanic, the pattern, the danger, and **zero how-to-beat advice** ("Take the talker out first", "Punch, don't posture", "Block up, hang on" all cut). Many answers is the point of the game; a well-stated M.O. implies the strategy without dictating it (the Squall's "endless health, hits harder every turn, blows itself out after five" needs no directive). **Zero exceptions were needed.** Reassurance stays ("It's not broken — it's him").
+- A lint test now bans prescription phrases from the scout library permanently. unit 1380 · e2e 77/77 · sw v15.
+
 ## 2026-08-02 · Death-feel suite (all five, James's call) + event relic reveals
 
 - **Knockout beat**: the lethal hit no longer cuts straight to defeat — the world drains gray, the hero strip tips over (~1.6s, --fx scaled), then the defeat screen fades in. Mirror of the victory fade.

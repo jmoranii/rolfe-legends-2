@@ -673,8 +673,9 @@ function snapCombat(st) {
   return snap;
 }
 
-// Tap an enemy mid-fight and Coach James gives you the read on it: what it does,
-// and what to do about it. Also surfaces the live numbers, so the kid doesn't have
+// Tap an enemy mid-fight and Coach James gives you the read on it: what it does —
+// and ONLY what it does (no counter-advice; many answers is the point, James's
+// rule Sun 2026-08-03). Also surfaces the live numbers, so the kid doesn't have
 // to squint at the chips to know what's stuck on it.
 function showScout(e) {
   sfx.tap();

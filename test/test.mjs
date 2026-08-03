@@ -574,6 +574,19 @@ for (const key of Object.keys(ENEMIES)) {
   ok(DIAPERS.snack.name === 'Snack Time', "Liam's Snack Time diaper untouched");
 }
 
+// ---------- scout reports describe, never prescribe (James's rule, Sun 2026-08-03) ----------
+{
+  const { SCOUT, SCOUT_FALLBACK } = await import('../js/scout.js');
+  // banned: how-to-beat prescriptions. Coach names the mechanic and stops —
+  // many answers is the point of the game.
+  const ADVICE = /\b(out first|take (him|her|it|them) out|kill (it|him|her)|finish him|save (a|your|something)|you need|focus everything|don'?t (waste|poke|tickle|panic|show up|be low)|best plan|go fast|shut off|hit it early|your window|time your|watch the pattern|be ready|hang on|block up|let it pass|leave him be|speed matters|not worth a card|make (her|him) regret)\b/i;
+  for (const [key, line] of Object.entries(SCOUT)) {
+    ok(!ADVICE.test(line), `scout(${key}) describes without prescribing`);
+  }
+  ok(!ADVICE.test(SCOUT_FALLBACK), 'scout fallback describes without prescribing');
+  ok(Object.keys(SCOUT).length >= 38, 'scout library covers the bestiary');
+}
+
 // ---------- death feel + event relic reveals (James's round, Sun 2026-08-02) ----------
 {
   // the culprit is recorded for the defeat screen's "taken down by…" chip
