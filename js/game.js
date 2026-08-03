@@ -668,7 +668,10 @@ function snapCombat(st) {
   st.enemies.forEach((e, i) => {
     // artKey + name are what a form change actually shows up as. Spawned enemies are
     // pushed onto the array, so "index >= previous count" identifies a fresh split.
-    snap.enemies[i] = { hp: e.hp, block: e.block, dead: e.hp <= 0, artKey: e.artKey, name: e.name };
+    snap.enemies[i] = {
+      hp: e.hp, block: e.block, dead: e.hp <= 0, artKey: e.artKey, name: e.name,
+      strength: e.strength || 0, debuffs: (e.weak || 0) + (e.vulnerable || 0),
+    };
   });
   return snap;
 }
@@ -706,6 +709,37 @@ function showScout(e) {
     ok.onclick = close;
     m.appendChild(ok);
   });
+}
+
+// THE BIG TWISTER's re-form — the act-3 signature moment gets its own sequence
+// (James, Sun 2026-08-03): double lightning flash, board quake + gust lean, the
+// card convulses and GROWS through the art swap, debris scatters, and the label
+// says exactly what happened.
+function reformFx(enemyEl, oldArtKey, emoji) {
+  if (window.__RL2) window.__RL2._reforms = (window.__RL2._reforms || 0) + 1;
+  if (!enemyEl) return;
+  sfx.boom();
+  sfx.whoosh(true);
+  setTimeout(() => sfx.bossDefeat(), Math.round(300 * fxScale()));
+  if (REDUCED) { floaty(enemyEl, '🌪️ IT RE-FORMS… BIGGER!', 'formshift'); return; }
+  const flash = el('div', 'storm-flash');
+  document.body.appendChild(flash);
+  setTimeout(() => flash.remove(), Math.round(1200 * fxScale()));
+  const app = document.getElementById('app');
+  app.classList.add('quake', 'gust');
+  setTimeout(() => app.classList.remove('quake', 'gust'), Math.round(950 * fxScale()));
+  enemyEl.classList.add('reforming');
+  const ms = Math.round(2200 * fxScale());
+  const face = enemyEl.querySelector('.face');
+  if (face && oldArtKey) {
+    const ghost = artImg(`assets/enemies/${oldArtKey}.jpg`, emoji, 'face form-ghost');
+    ghost.style.animationDuration = `${ms}ms`;
+    face.appendChild(ghost);
+    setTimeout(() => ghost.remove(), ms + 60);
+  }
+  windScatter(enemyEl, 10);
+  floaty(enemyEl, '🌪️ IT RE-FORMS… BIGGER!', 'formshift');
+  setTimeout(() => enemyEl.classList.remove('reforming'), ms + 60);
 }
 
 // A form change used to be a hard art swap on the next render — the new picture just
@@ -949,8 +983,26 @@ function animateDiffs(s, enemyEls, heroEl) {
       }
     }
     if (e.block > p.block) floaty(elx, `🛡️+${e.block - p.block}`, 'blk');
-    if (e.artKey !== p.artKey) formShiftFx(elx, p.artKey, e.emoji);
-    else if (e.name !== p.name) formShiftFx(elx, null, e.emoji); // split-in-place: same art, new identity
+    // every silent tell announces itself (James, Sun 2026-08-03):
+    if (e.hp > p.hp && !p.dead && e.artKey === p.artKey) {
+      floaty(elx, `💚+${e.hp - p.hp}`, 'heal'); // possum nuzzles, any enemy heal
+    }
+    if ((e.strength || 0) > p.strength) {
+      const gain = (e.strength || 0) - p.strength;
+      floaty(elx, `💪+${gain}`, 'formshift'); // rallies, speeches, Inhale, FURY
+      if (e.key === 'raccoon_king' && gain >= 4) {
+        elx.classList.add('fury-flash');
+        floaty(elx, '👑 ROYAL FURY!', 'formshift');
+        sfx.boom();
+      }
+    }
+    if (p.debuffs - ((e.weak || 0) + (e.vulnerable || 0)) > 2) {
+      floaty(elx, '😤 Shook it ALL off!', 'blk'); // a cleanse, not the natural tick-down
+    }
+    if (e.artKey !== p.artKey) {
+      if (e.artKey === 'big_twister_p2') reformFx(elx, p.artKey, e.emoji);
+      else formShiftFx(elx, p.artKey, e.emoji);
+    } else if (e.name !== p.name) formShiftFx(elx, null, e.emoji); // split-in-place: same art, new identity
   });
   if (st.hero.hp > prev.heroHp) floaty(heroEl, `+${st.hero.hp - prev.heroHp}`, 'heal');
   if (!sawOrbBlock && st.hero.block > prev.heroBlock) floaty(heroEl, `🛡️+${st.hero.block - prev.heroBlock}`, 'blk');

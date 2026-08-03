@@ -348,6 +348,28 @@ async function deathScreen() {
   await browser.close();
 }
 
+// the Big Twister's bespoke re-form sequence fires on the phase swap
+async function twisterReform() {
+  const browser = await chromium.launch();
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  await page.goto(BASE, { waitUntil: 'load' });
+  await page.evaluate(() => { window.__RL2.dev.start('aaron'); window.__RL2.dev.enter('boss', ['big_twister']); });
+  await page.waitForSelector('.enemy');
+  await page.evaluate(() => {
+    const { C } = window.__RL2;
+    C.dealDamage(window.__RL2.combat, window.__RL2.combat.enemies[0], 999, { attacker: window.__RL2.combat.hero });
+    window.__RL2.dev.enter('refresh');
+  });
+  await page.waitForTimeout(400);
+  const reforms = await page.evaluate(() => window.__RL2._reforms || 0);
+  ok(reforms >= 1, `twister: bespoke re-form sequence fired (${reforms})`);
+  ok((await page.textContent('.enemy .nm')).includes('REFORMED'), 'twister: phase 2 named on the card');
+  ok(errors.length === 0, `twister: zero page errors${errors.length ? ' — ' + errors[0].slice(0, 120) : ''}`);
+  await browser.close();
+}
+
 try {
   await runSuite(chromium, 'chromium');
   await runSuite(webkit, 'webkit');
@@ -355,6 +377,7 @@ try {
   await creditsPreview();
   await fleeExit();
   await deathScreen();
+  await twisterReform();
   await deepRun();
 } catch (e) {
   ok(false, 'suite crashed: ' + e.message);

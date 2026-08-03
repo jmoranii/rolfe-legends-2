@@ -2,6 +2,13 @@
 
 Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 300`.
 
+## 2026-08-03 · The Twister's re-form + every silent tell announces itself (James's round)
+
+- **Bespoke re-form sequence** for THE BIG TWISTER's phase swap (was the generic cross-fade): double lightning flash over the whole screen, board quake + gust lean, the card convulses and GROWS through the art swap (2.2s, --fx scaled), debris scatters, boom + gale + rumble stack, "🌪️ IT RE-FORMS… BIGGER!". Reduced-motion keeps just the label.
+- **ROYAL FURY gets its moment**: the Raccoon King's half-HP enrage flashes his card hot red with "👑 ROYAL FURY!" (it was a silent chip update).
+- **Generic tells** in animateDiffs: enemy heals float 💚+N (possum nuzzles were invisible), strength gains float 💪+N (crow rallies, Whiskers's speech, Inhale, THUNDER's boom), and a ≥3-point debuff drop floats "😤 Shook it ALL off!" (cleanse vs natural tick-down).
+- e2e probe force-kills phase 1 and asserts the sequence fires + the card renames. unit 1385 · e2e 80/80 · sw v18.
+
 ## 2026-08-03 · Poison pierces Block (James's call — StS "HP loss" rule)
 
 - New `pierce` option on dealDamage: HP-loss damage skips Block entirely. **Poison** now bites through the Snapping Turtle's plating (the canonical case — it was silently being absorbed) and **All-Out Effort's self-cost** no longer gets eaten by the hero's own Block. Thorns/hailstones/constrict stay blockable (StS calls those "damage", not "HP loss").
