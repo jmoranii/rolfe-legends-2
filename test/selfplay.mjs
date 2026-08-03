@@ -206,6 +206,7 @@ function simulateRun(heroId, seed) {
       }
     } else if (node.type === 'event') {
       playEvent(run, node.event, rng);
+      run.pendingRelicPop = null; // UI-only flag; keep harness runs clean
     } // treasure: enterMapNode already banked the relic
   }
   return { won: false, act: run.act, floor: run.floor, by: 'guard_exhausted', stall: true };

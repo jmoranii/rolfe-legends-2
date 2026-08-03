@@ -2,6 +2,16 @@
 
 Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 300`.
 
+## 2026-08-02 · Death-feel suite (all five, James's call) + event relic reveals
+
+- **Knockout beat**: the lethal hit no longer cuts straight to defeat — the world drains gray, the hero strip tips over (~1.6s, --fx scaled), then the defeat screen fades in. Mirror of the victory fade.
+- **"Taken down by…"**: the engine records the killer (enemy w/ art, or a src label — Sneaky poison ☠️, Prickly spikes 🌵, The rising water 🌊…); the defeat screen shows a wanted-poster chip + a tiny run recap (Act · Floor · fights won).
+- **Danger telegraph**: under 25% HP the screen edges pulse red and a heartbeat thumps once per turn — death stops arriving as a surprise. Static (no pulse) under reduced motion.
+- **Coach's pickup lines**: 12 rotating encouragements on the defeat screen (localStorage rotation, no repeats until the library wraps). Word pass in REVIEW.md.
+- **Per-hero KO art**: dusted-but-okay paintings (mud puddle, dizzy stars, consoling ducks) at assets/ui/ko_<hero>.jpg — emoji fallback until each lands.
+- **Goldie's Gate + Pie Contest relic bug** (James's report): event relics printed raw ids ("lucky_horseshoe") in prose — now they queue `run.pendingRelicPop` and get the same big FARM TREASURE reveal as Rusty/elite drops, with rewritten flavor lines.
+- unit 1335 · e2e 77/77 both engines (new: defeat-screen probe incl. line rotation) · sw v14.
+
 ## 2026-08-02 · Farm Code removed + overkill HP clamp (James's calls)
 
 - **Secret Farm Code deleted entirely** (settings button, restore flow, js/farmcode.js, its unit + e2e coverage) — James: cross-device save transfer isn't needed; each device keeps its own farm. Settings is now: music, sounds, animations, home-screen, abandon run.

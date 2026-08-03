@@ -9,7 +9,7 @@ import * as R from '../js/run.js';
 import { generateActMap, reachableIds, validateMap, MAP_FLOORS, TREASURE_FLOOR, REST_FLOOR, BOSS_ID } from '../js/map.js';
 import { parseLrc, deriveBeats } from '../js/credits.js';
 import { readFileSync } from 'fs';
-import { TIPS_GENERAL, TIPS_HERO, nextTip } from '../js/tips.js';
+import { TIPS_GENERAL, TIPS_HERO, nextTip, LOSS_LINES, nextLossLine } from '../js/tips.js';
 
 let passed = 0, failed = 0;
 const fails = [];
@@ -572,6 +572,39 @@ for (const key of Object.keys(ENEMIES)) {
   ok(revived && revived.snacks === undefined && !revived.relics.includes('lunchbox'), 'old save loads clean');
   // Liam's Snack Time DIAPER is a different thing and stays
   ok(DIAPERS.snack.name === 'Snack Time', "Liam's Snack Time diaper untouched");
+}
+
+// ---------- death feel + event relic reveals (James's round, Sun 2026-08-02) ----------
+{
+  // the culprit is recorded for the defeat screen's "taken down by…" chip
+  const { state } = combatVs(['old_scarecrow']);
+  C.dealDamage(state, state.hero, 999, { attacker: state.enemies[0] });
+  C.checkCombatEnd(state);
+  ok(state.over && !state.won, 'hero death ends the fight');
+  eq(state.killedBy.name, 'Old Scarecrow', 'killer enemy recorded');
+  ok(state.killedBy.artKey !== undefined, 'killer carries its art key');
+  eq(state.hero.hp, 0, 'overkill floors at 0 — no negative hearts');
+  const { state: s2 } = combatVs(['gopher']);
+  C.dealDamage(s2, s2.hero, 999, { isAttack: false, src: 'thorns' });
+  eq(s2.killedBy.src, 'thorns', 'src-only death recorded for the label map');
+}
+{
+  // Coach's pickup lines rotate without repeating until the library wraps
+  const mem = { data: {}, getItem(k) { return this.data[k]; }, setItem(k, v) { this.data[k] = v; } };
+  const seen = new Set();
+  for (let i = 0; i < LOSS_LINES.length; i++) seen.add(nextLossLine(mem));
+  eq(seen.size, LOSS_LINES.length, 'every loss line appears before any repeats');
+  ok(LOSS_LINES.every((l) => l.length < 90), 'loss lines stay kid-short');
+}
+{
+  // Goldie's Gate + the Pie Contest hand out relics via the big reveal —
+  // never a raw id ("lucky_horseshoe") in the prose
+  for (const [key, idx] of [['goldie_gate', 0], ['pie_contest', 2]]) {
+    const run = freshRun('wyatt', 71);
+    const text = EVENTS[key].choices[idx].apply(run, makeRng(71));
+    ok(run.pendingRelicPop && RELICS[run.pendingRelicPop], `${key}: relic queued for the FARM TREASURE reveal`);
+    ok(!/[a-z]_[a-z]/.test(text), `${key}: result prose has no raw relic id`);
+  }
 }
 
 // ---------- anthem LRC audit (James's karaoke report, Sun 2026-08-02) ----------

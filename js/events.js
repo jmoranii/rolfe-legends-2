@@ -15,6 +15,7 @@ function gainRelic(run, rng) {
   if (!pool.length) return null;
   const id = rng.pick(pool);
   run.relics.push(id);
+  run.pendingRelicPop = id; // the UI turns this into the big FARM TREASURE reveal
   return id;
 }
 function removableCards(run) {
@@ -71,8 +72,8 @@ export const EVENTS = {
     choices: [
       { label: '🦙 Approach the llama', apply: (run, rng) => {
         const id = gainRelic(run, rng);
-        if (rng.chance(0.5)) { run.hp = Math.max(1, run.hp - 5); return id ? `Goldie SPITS (-5 HP)… but lets you take it: ${id}.` : 'Goldie spits. That\'s all.'; }
-        return id ? `Goldie nods, once. You may take it: ${id}.` : 'Goldie nods. There was nothing behind her. Classic Goldie.';
+        if (rng.chance(0.5)) { run.hp = Math.max(1, run.hp - 5); return id ? 'Goldie SPITS (-5 HP)… then steps aside. Something glitters behind her.' : 'Goldie spits. That\'s all.'; }
+        return id ? 'Goldie nods, once, and steps aside. She was guarding something for you.' : 'Goldie nods. There was nothing behind her. Classic Goldie.';
       } },
       { label: '🚶 Respect the llama, walk away', apply: () => 'Wise.' },
     ],
@@ -95,7 +96,7 @@ export const EVENTS = {
       { label: '🫙 Swipe the prize jar (a Farm Treasure… and Homework)', apply: (run, rng) => {
         const id = gainRelic(run, rng);
         run.deck.push(makeCard('homework'));
-        return id ? `You got ${id}! …There was homework taped under the lid.` : 'The jar was empty. The homework was real.';
+        return id ? 'The jar is YOURS! …There was homework taped under the lid.' : 'The jar was empty. The homework was real.';
       } },
     ],
   },

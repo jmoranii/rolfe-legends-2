@@ -57,6 +57,29 @@ export const TIPS_HERO = {
   ],
 };
 
+// Coach's pickup lines — the defeat screen's rotating encouragement (hard mode
+// means kids see this screen often; it should never repeat back-to-back).
+// Word pass pending in REVIEW.md.
+export const LOSS_LINES = [
+  "Hey. Even legends have tough days. Same time tomorrow?",
+  "Runs end — that's the game. You keep every trick you learned.",
+  "That one got me too, once. Really.",
+  "You know what the farm loves? That you keep showing up.",
+  "Tough fight. Next run, watch their NEXT MOVE bubble like a hawk.",
+  "Block the big hits. Sneak past the little ones. You'll get 'em.",
+  "The storm thinks it won. The storm has NO idea who it's dealing with.",
+  "Granny says: cookies first, revenge second.",
+  "Every great run starts with a deep breath. In… out… LET'S GO.",
+  "A smaller deck hits harder. Something to chew on.",
+  "The ducks still believe in you. All of them. Every duck.",
+  "One more run? The barn's counting on you.",
+];
+export function nextLossLine(storage = localStorage) {
+  const i = (Number(storage.getItem('rl2_lossidx')) || 0) % LOSS_LINES.length;
+  storage.setItem('rl2_lossidx', String(i + 1));
+  return LOSS_LINES[i];
+}
+
 // sequential rotation per hero (general + that hero's tips interleaved),
 // position persisted so expertise builds across sessions
 export function nextTip(heroId, storage = localStorage) {

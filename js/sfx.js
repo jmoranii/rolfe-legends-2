@@ -86,6 +86,9 @@ export const sfx = {
     tone(200, 0.3, 'square', 0.09, 0.55);
   },
 
+  // low-HP danger pulse: two soft thumps, once per turn (Sun 2026-08-02)
+  heartbeat: () => { tone(55, 0.12, 'sine', 0.2); tone(48, 0.18, 'sine', 0.16, 0.18); },
+
   // ---- blown away (Sun 2026-08-02) ----
   // Leaving is not losing: wind, not a thud. The big version is the Passing
   // Squall's whole-sky exhale as it finally lets go.

@@ -46,6 +46,12 @@ Every place the result improves with a reference photo or a personal detail. For
 - **Sticky Hands** 🍯 now a true Claw: "Deal 4 damage. Every play makes ALL Sticky Hands +2 STICKIER this fight!" — numbers tick up green on every copy, "🍯 Sticky Handses +2!" floaty on each play. ⚖️ deviation: base 4/6 vs StS Claw's 3/5 (kept our pre-existing numbers).
 - **Granny's new line**: "There's my little legend. Cookies, practice that one move — or want me to keep something safe for you?" · Store flow: "🏠 [Card] is safe on Granny's shelf."
 
+## ✍️ Death-feel suite (Sun 2026-08-02 — your word pass + art eyeball)
+
+- **Coach's pickup lines** (12, rotating on the defeat screen — never repeats until the library wraps): "Hey. Even legends have tough days. Same time tomorrow?" · "Runs end — that's the game. You keep every trick you learned." · "That one got me too, once. Really." · "You know what the farm loves? That you keep showing up." · "Tough fight. Next run, watch their NEXT MOVE bubble like a hawk." · "Block the big hits. Sneak past the little ones. You'll get 'em." · "The storm thinks it won. The storm has NO idea who it's dealing with." · "Granny says: cookies first, revenge second." · "Every great run starts with a deep breath. In… out… LET'S GO." · "A smaller deck hits harder. Something to chew on." · "The ducks still believe in you. All of them. Every duck." · "One more run? The barn's counting on you."
+- 🎨 **Per-hero KO art** (`assets/ui/ko_wyatt/aaron/liam.jpg`): dusted-but-okay — sitting in a mud puddle, dizzy stars, consoling ducks, rueful half-smile. Likeness check is yours; reroll on request.
+- ⚖️ Src-death labels for the "taken down by" chip: Sneaky poison ☠️ · Prickly spikes 🌵 · The rising water 🌊 · Pure effort 😮‍💨 · A hailstone 🧊 · The storm 🌩️ (fallback).
+
 ## ✍️ Act story cards (Sat 2026-08-01 — your word pass)
 
 Full-screen interstitials before each act (you asked for the story beats). Current copy:

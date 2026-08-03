@@ -323,12 +323,38 @@ async function fleeExit() {
   await browser.close();
 }
 
+// the defeat screen: KO art slot, run recap, Coach's rotating pickup line
+async function deathScreen() {
+  const browser = await chromium.launch();
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  await page.goto(BASE, { waitUntil: 'load' });
+  await page.evaluate(() => { window.__RL2.dev.start('aaron'); window.__RL2.dev.enter('defeat'); });
+  await page.waitForSelector('.btn');
+  ok((await page.textContent('h2')).includes('rest up'), 'defeat: header renders');
+  ok(await page.locator('.ko-art').count() === 1, 'defeat: KO art slot present');
+  ok((await page.textContent('.recap-line')).includes('fights won'), 'defeat: run recap shows');
+  const line1 = await page.textContent('.speaker-line');
+  ok(line1.includes('Coach James'), 'defeat: Coach signs the pickup line');
+  await page.locator('.btn', { hasText: 'Try Again' }).click();
+  await page.waitForSelector('.title-logo');
+  // rotation: a second defeat serves a different line
+  await page.evaluate(() => { window.__RL2.dev.start('aaron'); window.__RL2.dev.enter('defeat'); });
+  await page.waitForSelector('.speaker-line');
+  const line2 = await page.textContent('.speaker-line');
+  ok(line1 !== line2, 'defeat: pickup lines rotate');
+  ok(errors.length === 0, `defeat: zero page errors${errors.length ? ' — ' + errors[0].slice(0, 120) : ''}`);
+  await browser.close();
+}
+
 try {
   await runSuite(chromium, 'chromium');
   await runSuite(webkit, 'webkit');
   await liamUnlock();
   await creditsPreview();
   await fleeExit();
+  await deathScreen();
   await deepRun();
 } catch (e) {
   ok(false, 'suite crashed: ' + e.message);

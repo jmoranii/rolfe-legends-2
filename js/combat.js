@@ -47,6 +47,13 @@ export function dealDamage(state, target, amount, { attacker = null, isAttack = 
     if (target.onDamaged) target.onDamaged(target, state, dmg);
     if (target === state.hero) {
       state.hpLostThisFight = (state.hpLostThisFight || 0) + dmg;
+      // the culprit gets named on the defeat screen ("Taken down by…")
+      if (target.hp <= 0 && !state.killedBy) {
+        const foe = attacker && attacker !== state.hero && attacker.name ? attacker : null;
+        state.killedBy = foe
+          ? { name: foe.name, emoji: foe.emoji, artKey: foe.artKey }
+          : { src: src || 'storm' };
+      }
       // Rally Cap (=Centennial Puzzle): first HP loss each fight → draw 3
       if (hasRelic(state, 'rally_cap') && !state.flags.rallyCapUsed) {
         state.flags.rallyCapUsed = true;

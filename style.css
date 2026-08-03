@@ -139,6 +139,41 @@ h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); letter-spac
 #app.gust { animation: gustlean calc(var(--fx, 1) * .9s) ease-in-out; }
 @keyframes gustlean { 25% { transform: translateX(7px); } 62% { transform: translateX(-5px); } }
 
+/* The knockout beat: the world drains gray and the hero strip tips over before
+   the defeat screen fades in — going down gets a moment, same as winning. */
+#app.ko { animation: kofade calc(var(--fx, 1) * 1.6s) ease forwards; }
+@keyframes kofade {
+  0%   { filter: none; }
+  20%  { filter: brightness(1.7) saturate(.4); }
+  100% { filter: grayscale(1) brightness(.72); }
+}
+#app.ko .hero-strip { animation: kotip calc(var(--fx, 1) * 1.5s) cubic-bezier(.4, 0, .7, 1) forwards; }
+@keyframes kotip {
+  30%  { transform: rotate(-2deg); }
+  100% { transform: rotate(6deg) translateY(12px); opacity: .8; }
+}
+
+/* danger telegraph: under 25% HP the screen edges pulse red (heartbeat in sfx) */
+.combat.danger::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 4;
+  box-shadow: inset 0 0 70px 24px rgba(255, 45, 45, .32);
+  animation: dangerpulse 1.7s ease-in-out infinite;
+}
+@keyframes dangerpulse { 50% { opacity: .45; } }
+@media (prefers-reduced-motion: reduce) { .combat.danger::after { animation: none; opacity: .6; } }
+
+/* defeat screen: the culprit's wanted-poster chip + dusted-but-okay hero art */
+.ko-art { width: 168px; height: 168px; }
+.killer-chip {
+  display: flex; align-items: center; gap: 10px; justify-content: center;
+  background: rgba(0,0,0,.28); border: 2px solid rgba(255,255,255,.2); border-radius: 14px;
+  padding: 8px 14px; margin: 6px auto; max-width: 320px;
+}
+.killer-chip .killer-face { display: flex; width: 52px; height: 52px; border-radius: 10px; overflow: hidden; font-size: 1.7rem; flex: none; }
+.killer-name { font-size: .82rem; opacity: .9; text-align: left; line-height: 1.3; }
+.killer-name b { font-size: 1rem; }
+.recap-line { margin-bottom: 6px; opacity: .75; }
+
 /* the whole board lurches when a boss hits the dirt */
 #app.quake { animation: quake calc(var(--fx, 1) * .5s) ease; }
 @keyframes quake {

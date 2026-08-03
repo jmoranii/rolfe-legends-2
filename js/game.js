@@ -14,7 +14,7 @@ import { sfx, setEnabled as setSfx, isEnabled as sfxOn } from './sfx.js';
 import * as music from './music.js';
 import { creditsRoll } from './credits.js';
 import { prefetch } from './prefetch.js';
-import { nextTip } from './tips.js';
+import { nextTip, nextLossLine } from './tips.js';
 import { EVENT_KEYS } from './events.js';
 
 const $app = document.getElementById('app');
@@ -544,6 +544,7 @@ function startCombatUI(enemyKeys, kind) {
   combatKind = kind;
   if (kind === 'boss') lastBossKeys = enemyKeys;
   combat = C.startCombat(run, enemyKeys, makeRng(randomSeed()), { kind });
+  lastPulseTurn = -1;
   holdScreen();
   music.play(kind === 'boss' ? 'boss' : kind === 'elite' ? 'elite' : 'battle');
   selectedCard = null;
@@ -955,11 +956,18 @@ function animateDiffs(s, enemyEls, heroEl) {
   prevSnap = snapCombat(st);
 }
 
+let lastPulseTurn = -1;
 function renderCombat(actedEnemy = null) {
   const s = screen(actCls());
   s.classList.add('combat');
   s.classList.remove('screen-enter'); // combat re-renders constantly; no re-entry flash
   const st = combat;
+  // danger telegraph: under 25% HP the screen edges pulse red and a heartbeat
+  // thumps once per turn — death should never arrive as a surprise
+  if (st.hero.hp > 0 && st.hero.hp <= st.hero.maxHp * 0.25) {
+    s.classList.add('danger');
+    if (st.turn !== lastPulseTurn) { lastPulseTurn = st.turn; sfx.heartbeat(); }
+  }
   s.appendChild(bgLayer(`assets/backgrounds/battle${run.act}.jpg`, 'battle-bg'));
   const inner = el('div', 'combat-inner');
   s.appendChild(inner);
@@ -1258,7 +1266,22 @@ function afterAction() {
       setTimeout(() => { winPending = false; combatWon(); }, ms);
       return;
     }
-    return showDefeat();
+    // The knockout beat: going down gets a moment too — the world drains gray,
+    // the hero strip tips over, THEN the defeat screen fades in. (James: the
+    // cut to defeat was abrupt.)
+    if (winPending) return;
+    winPending = true;
+    renderCombat();
+    sfx.lose();
+    const app = document.getElementById('app');
+    if (!REDUCED) app.classList.add('ko');
+    const koMs = REDUCED ? 0 : Math.round(1600 * fxScale());
+    setTimeout(() => {
+      winPending = false;
+      app.classList.remove('ko');
+      fadeOutThen(showDefeat);
+    }, koMs);
+    return;
   }
   renderCombat();
 }
@@ -1548,6 +1571,13 @@ function showEvent(key) {
           conclude(`${CARDS[c.id].emoji} <b>${CARDS[c.id].name}</b> is gone. You feel lighter.`);
         });
       }
+      // a relic from an event (Goldie's Gate, the Pie Contest) gets the same big
+      // FARM TREASURE reveal as Rusty and elite drops — not a raw id in prose
+      if (run.pendingRelicPop) {
+        const rid = run.pendingRelicPop;
+        run.pendingRelicPop = null;
+        return showRelicPop(rid, () => conclude(result));
+      }
       conclude(result);
     };
     choicesWrap.appendChild(b);
@@ -1681,19 +1711,37 @@ function upgradePickModal(cards, onConfirm) {
 }
 
 // ---------- endings ----------
+// what a src-only death (no enemy attacker) gets called on the defeat screen
+const KILLER_SRC = {
+  poison: { name: 'Sneaky poison', emoji: '☠️' },
+  thorns: { name: 'Prickly spikes', emoji: '🌵' },
+  constrict: { name: 'The rising water', emoji: '🌊' },
+  effort: { name: 'Pure effort', emoji: '😮‍💨' },
+  hailstone: { name: 'A hailstone', emoji: '🧊' },
+  storm: { name: 'The storm', emoji: '🌩️' },
+};
+
 function showDefeat() {
   releaseScreen();
   music.play('title');
-  sfx.lose();
   const st = combat; combat = null;
   prevSnap = null;
   clearSave();
   const s = screen('plain');
-  s.appendChild(el('div', 'event-emoji', '🌧️'));
+  // dusted-but-okay hero art (per hero; 🌧️ until the painting lands)
+  s.appendChild(artImg(`assets/ui/ko_${run.hero}.jpg`, '🌧️', 'scene-art ko-art'));
   s.appendChild(el('h2', '', 'The farm needs you to rest up…'));
-  s.appendChild(el('div', 'speaker-line', `"Hey. Even legends have tough days. The farm's still standing — because you were out there. Same time tomorrow?" — Coach James`));
-  s.appendChild(el('p', 'subtitle', `Runs end — that's the game. You keep everything you learned. 💪`));
-  s.appendChild(el('p', 'subtitle', `You made it to Act ${run.act}, floor ${run.floor}.`));
+  // the culprit's wanted-poster chip + a tiny run recap
+  const k = st && st.killedBy;
+  if (k) {
+    const info = k.name ? k : (KILLER_SRC[k.src] || KILLER_SRC.storm);
+    const chip = el('div', 'killer-chip');
+    chip.appendChild(artImg(k.artKey ? `assets/enemies/${k.artKey}.jpg` : 'assets/none.jpg', info.emoji, 'killer-face'));
+    chip.appendChild(el('div', 'killer-name', `taken down by<br><b>${info.name.toUpperCase()}</b>`));
+    s.appendChild(chip);
+  }
+  s.appendChild(el('p', 'subtitle recap-line', `Act ${run.act} · Floor ${run.floor} · ⚔️ ${run.stats.fights} fights won`));
+  s.appendChild(el('div', 'speaker-line', `"${nextLossLine()}" — Coach James`));
   const b = el('button', 'btn', '🌱 Try Again');
   b.onclick = showTitle;
   s.appendChild(b);
