@@ -2,6 +2,13 @@
 
 Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 300`.
 
+## 2026-08-04 · Aaron's karaoke: FIXED with acoustic ground truth (no regeneration needed)
+
+- James still heard pacing wrongness at the Dad mention after two heuristic repairs. Root cause finally nailed by **transcribing the actual audio** (whisperkit-cli large-v3, word timestamps, on filtered isolated windows — the full mix defeats Whisper, but 13s windows with the lyrics as prompt decode cleanly): **Suno stamped "Dad fixed fences, Mom stood proud" ~12 seconds early** — during "he slammed the door!" and an *unlabeled "oh oh oh hey!" backing chant* — while the Coach/Rusty stamps were nearly right (±0.3s vs acoustics). Our repair passes had "fixed" the correct side toward the wrong one.
+- Fix: the two bad lines' stamps in anthem_aaron.lrc are **patched to the measured acoustic times** (verse actually sung 62.3–67.6s); Coach/Rusty left at Suno's (verified-correct) stamps. The chant stays uncaptioned — it's not in the lyric sheet, so the captions simply rest through the break, like every instrumental.
+- Beats now land with the singing: Dad 62.1 · Mom 63.8 · Poppa Flaj 65.3 · Coach 68.0 · Rusty 71.1. The outro has a layered AARON!-chant that gives conflicting decodes — left at Suno's stamps (unverifiable, and never reported as wrong).
+- Technique now proven for any future anthem-timing dispute: chunked whisper + lyric prompt → patch the .lrc. unit 1390 · e2e 80/80 · sw v21.
+
 ## 2026-08-04 · Intent etiquette (James's call — StS-true telegraph timing)
 
 - A telegraphed move now **vanishes the moment the enemy makes it** (the bubble becomes a dim "…"), and the fresh telegraph **waits for the start of your turn** — all enemies re-telegraph together. Was: the next turn's intent popped instantly mid-carnage, muddling "what just hit me" with "what's coming." UI-only (reads the engine's phase queue); probe-verified across a 3-enemy phase. sw v20.
