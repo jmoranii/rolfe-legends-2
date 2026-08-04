@@ -1033,7 +1033,15 @@ function renderCombat(actedEnemy = null) {
     if (e.fled) { row.appendChild(fleeOutEl(e)); enemyEls[i] = null; return; }
     const dead = e.hp <= 0;
     const d = el('div', `enemy${dead ? ' dead' : ''}${e.isBoss ? ' boss-foe' : ''}${e.isElite && !e.isBoss ? ' elite-foe' : ''}`);
-    if (!dead) d.insertAdjacentHTML('beforeend', `<div class="intent-slot"><span class="next-label">NEXT MOVE</span>${intentLabel(st, e)}</div>`);
+    if (!dead) {
+      // Intent etiquette (James, Mon 2026-08-04): a telegraphed move VANISHES the
+      // moment the enemy makes it, and the fresh telegraph waits for the start of
+      // YOUR turn — mid-phase an acted enemy just shows "…", like StS.
+      const spent = st.phase === 'enemy' && !st.queue.includes(e);
+      d.insertAdjacentHTML('beforeend', spent
+        ? '<div class="intent-slot"><span class="next-label">NEXT MOVE</span><span class="intent thinking">…</span></div>'
+        : `<div class="intent-slot"><span class="next-label">NEXT MOVE</span>${intentLabel(st, e)}</div>`);
+    }
     const face = artImg(`assets/enemies/${e.artKey}.jpg`, e.emoji, 'face');
     d.appendChild(face);
     d.insertAdjacentHTML('beforeend', `<div class="nm">${e.name}</div>

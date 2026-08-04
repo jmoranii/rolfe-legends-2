@@ -269,6 +269,7 @@ h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); letter-spac
 .intent-slot { display: flex; flex-direction: column; align-items: center; gap: 1px; margin-bottom: 4px; }
 .next-label { font-size: .52rem; font-weight: 900; letter-spacing: .14em; opacity: .75; color: #fff; }
 .intent { font-size: .8rem; font-weight: 800; background: rgba(0,0,0,.45); border-radius: 8px; padding: 2px 6px; display: inline-block; }
+.intent.thinking { opacity: .45; letter-spacing: 2px; } /* spent mid-phase: the next telegraph waits for your turn */
 .intent.attack { color: #ff8b7a; }
 .intent.defend { color: #8fd0ff; }
 .intent.buff { color: #ffd23f; }

@@ -2,6 +2,10 @@
 
 Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 300`.
 
+## 2026-08-04 · Intent etiquette (James's call — StS-true telegraph timing)
+
+- A telegraphed move now **vanishes the moment the enemy makes it** (the bubble becomes a dim "…"), and the fresh telegraph **waits for the start of your turn** — all enemies re-telegraph together. Was: the next turn's intent popped instantly mid-carnage, muddling "what just hit me" with "what's coming." UI-only (reads the engine's phase queue); probe-verified across a 3-enemy phase. sw v20.
+
 ## 2026-08-04 · Roly-poly uncurls (James's report) — Belly Flop preview confirmed correct
 
 - **Roly-poly was stuck in curled art forever**: the first-hit curl set the name/art and nothing ever set them back. Now once the curl's Block is spent (it zeroes at his turn start), he visibly unrolls via the form-change cross-fade — and the trick stays used up (no re-curl). Unit-tested end to end.
