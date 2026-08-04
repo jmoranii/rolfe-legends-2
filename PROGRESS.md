@@ -2,6 +2,12 @@
 
 Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 300`.
 
+## 2026-08-04 · Roly-poly uncurls (James's report) — Belly Flop preview confirmed correct
+
+- **Roly-poly was stuck in curled art forever**: the first-hit curl set the name/art and nothing ever set them back. Now once the curl's Block is spent (it zeroes at his turn start), he visibly unrolls via the form-change cross-fade — and the trick stays used up (no re-curl). Unit-tested end to end.
+- **Belly Flop "(4 right now!)" at zero Block investigated — not a bug**: Strength rides on the flop (attackValue adds it, StS Body Slam behaves the same, and it's unit-tested). The preview number is the true damage: 0 Block + 4 Strength really deals 4.
+- unit 1390 · e2e 80/80 · sw v19.
+
 ## 2026-08-03 · The Twister's re-form + every silent tell announces itself (James's round)
 
 - **Bespoke re-form sequence** for THE BIG TWISTER's phase swap (was the generic cross-fade): double lightning flash over the whole screen, board quake + gust lean, the card convulses and GROWS through the art swap (2.2s, --fx scaled), debris scatters, boom + gale + rumble stack, "🌪️ IT RE-FORMS… BIGGER!". Reduced-motion keeps just the label.

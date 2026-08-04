@@ -574,6 +574,22 @@ for (const key of Object.keys(ENEMIES)) {
   ok(DIAPERS.snack.name === 'Snack Time', "Liam's Snack Time diaper untouched");
 }
 
+// ---------- roly-poly uncurls once the curl is spent (James, Mon 2026-08-04) ----------
+{
+  const { state } = combatVs(['roly_poly']);
+  const e = state.enemies[0];
+  C.dealDamage(state, e, 1, { attacker: state.hero });
+  eq(e.artKey, 'roly_poly_curled', 'first hit: he curls (art follows)');
+  ok(e.block >= 5, 'the curl granted its Block');
+  state.hand = [];
+  C.endTurn(state); // his turn: block zeroes at turn start, then he acts → uncurls at re-intent
+  eq(e.artKey, 'roly_poly', 'curl spent: the art unrolls');
+  eq(e.name, 'Roly-Poly', 'name unrolls with it');
+  const b0 = e.block;
+  C.dealDamage(state, e, 1, { attacker: state.hero });
+  eq(e.block, b0, 'the trick stays used up — no second curl');
+}
+
 // ---------- poison pierces Block (StS "HP loss" rule — James, Sun 2026-08-03) ----------
 {
   // the canonical case: the Snapping Turtle's persistent plating used to eat poison

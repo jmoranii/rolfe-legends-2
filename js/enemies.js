@@ -35,6 +35,12 @@ export const ENEMIES = {
   roly_poly: { // sts: Louse (curls up for block on first hit)
     name: 'Roly-Poly', emoji: '🪲', hp: [13, 17],
     nextMove(self, state, rng) {
+      // the art follows the mechanic: once the curl's Block is spent (it zeroes
+      // at his turn start), he visibly unrolls — but the trick stays used up
+      // (James's report Mon 2026-08-04: he was stuck curled forever)
+      if (self.state.curled && self.block <= 0 && self.artKey === 'roly_poly_curled') {
+        self.name = 'Roly-Poly'; self.artKey = 'roly_poly';
+      }
       return rng.chance(0.75) ? A('Nibble', rng.range(5, 7)) : { name: 'Wiggle', kind: 'buff', fn: (st, e) => applyStatus(st, e, 'strength', 1) };
     },
     onDamaged(self, state) {
