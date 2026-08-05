@@ -2,6 +2,13 @@
 
 Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 300`.
 
+## 2026-08-05 · Map murals: tall scrolling act paintings (James's pick — option B)
+
+- **The map backdrop was viewport-anchored and slid away when scrolling** (bare act gradient above floor ~4). Now each act has a **1:3 tall mural that scrolls WITH the trail**, StS-parchment style: act 1 — farmhouse at the gate up through golden corn to the Rogue Combine waiting on the ridge; act 2 — barnyard gate up past the coops to a crowned raccoon silhouette on the dusk ridge; act 3 — the battened farmhouse up through storm-bent fields to the Big Twister's grinning face filling the sky. Bottom of the act = home, top = the boss. The trail literally climbs toward trouble.
+- **Pipeline**: codex can't hold a 3:1 aspect (two full stalls), so each mural is two 1024×1536 panels with matching haze bands at the joining edges, vstacked — the seam hides in the haze. (One comedy beat: zsh arrays are 1-indexed, so the first batch's briefs all shifted one act over; paintings were fine, filenames rotated, act 3 regenerated.)
+- **Wide screens**: the trail canvas caps at 560px, so a blurred copy of the mural fills the side gutters (letterbox-blur) instead of bare gradient. Verified at phone + iPad-landscape.
+- unit 1390 · e2e 80/80 · sw v23.
+
 ## 2026-08-05 · Victory stars + README refresh (James's pick from the polish menu)
 
 - **Victory stars on the title screen**: the old "Farm defended: Wyatt ×3" text is now ⚡ Wyatt ⭐⭐⭐ / 🌪️ Aaron ⭐ (per-hero rows, ⭐×N past five). Liam's row exists only once he has a win — zero-hint verified (pre-unlock profile shows no trace).

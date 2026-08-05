@@ -439,7 +439,15 @@ function showMap() {
   const canvas = el('div', 'map-canvas');
   const H = MAP_PAD * 2 + MAP_FLOORS * ROW_H + 40;
   canvas.style.height = `${H}px`;
-  wrap.appendChild(bgLayer(`assets/backgrounds/map${run.act}.jpg`, 'map-bg'));
+  // the mural lives INSIDE the canvas so it spans the whole trail and scrolls
+  // with it, StS-parchment style (James's pick, Tue 2026-08-05) — it used to be
+  // viewport-anchored and slid away, leaving bare gradient
+  canvas.appendChild(bgLayer(`assets/backgrounds/map${run.act}.jpg`, 'map-bg'));
+  // wide screens: the canvas caps at 560px, so a blurred copy of the same mural
+  // fills the side gutters (letterbox-blur) instead of bare act gradient
+  const wide = bgLayer(`assets/backgrounds/map${run.act}.jpg`, 'map-bg-wide');
+  wide.style.height = `${H}px`;
+  wrap.appendChild(wide);
   s.appendChild(wrap);
   wrap.appendChild(canvas);
   $app.appendChild(s); // ensure laid out for width
