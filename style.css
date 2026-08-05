@@ -57,6 +57,7 @@ h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); letter-spac
 .title-art.has-art ~ .title-inner .title-logo,
 .title-inner .title-logo { text-shadow: 0 2px 4px rgba(0,0,0,.45), 0 6px 18px rgba(0,0,0,.3); }
 .title-buttons { margin-top: auto; padding-bottom: 46px; }
+.wins-shelf { margin: 2px 0 6px; font-size: .85rem; line-height: 1.5; color: #ffe9a8; text-shadow: 0 1px 3px rgba(0,0,0,.65); -webkit-text-stroke: 0; }
 .title-screen .title-sub { text-shadow: 0 1px 3px rgba(0,0,0,.4); }
 /* Thin white outline so the dark act-1 title text stays legible over the painted
    art. paint-order puts the stroke behind the fill, so the letterforms keep their

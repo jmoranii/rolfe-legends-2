@@ -11,14 +11,16 @@ Play as **Wyatt the Speedy** or **Aaron the Strong** and defend the family farm 
 The mechanical skeleton deliberately mirrors *Slay the Spire* — the most playtested deckbuilder architecture in existence — with every card, enemy, and relic re-imagined for the Rolfe farm. All names, art, text, and music are original.
 
 - 2 heroes with distinct archetypes (strength/block vs. speed/poison/discard)
-- 3 acts, ~36 floors of branching path choices, 8 family-cameo events
+- 3 acts, ~36 floors of branching path choices, 11 family-cameo events
 - 40+ cards, 25+ enemies, 15 "Farm Treasure" relics, upgrades
+- **Tuned hard on purpose**: ~30% winrate, verified by simulation — losses teach, and every sung ending is earned
+- Each hero's first win rolls a personalized victory anthem with word-synced karaoke captions
 - Runs sized to fit a kid's screen-time hour (~30–40 min)
 
 ## Tech
 
 - HTML5 + CSS3 + vanilla JS ES modules — zero dependencies, no build step
-- Pure DOM-free engine (`js/combat.js`, `js/run.js`) with 1,100+ unit tests; Playwright e2e in Chromium and WebKit
+- Pure DOM-free engine (`js/combat.js`, `js/run.js`) with 1,390+ unit tests; 80-check Playwright e2e in Chromium and WebKit
 - AI selfplay balance harness simulating full runs (`test/selfplay.mjs`) — winrate rails, death heatmaps
 - Seeded RNG throughout; localStorage saves
 - Procedural WebAudio SFX; drop-in art (PNG) and music (Suno) layers

@@ -2,6 +2,13 @@
 
 Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 300`.
 
+## 2026-08-05 · Victory stars + README refresh (James's pick from the polish menu)
+
+- **Victory stars on the title screen**: the old "Farm defended: Wyatt ×3" text is now ⚡ Wyatt ⭐⭐⭐ / 🌪️ Aaron ⭐ (per-hero rows, ⭐×N past five). Liam's row exists only once he has a win — zero-hint verified (pre-unlock profile shows no trace).
+- **README refreshed**: hard-mode framing ("losses teach, every sung ending is earned"), the karaoke anthems mentioned, event/test counts current. Still says "2 heroes" — the README is public and zero-hint applies there too.
+- **A2HS icons checked**: barn + duck + twister, crisp at 192/512 — no change needed.
+- unit 1390 · e2e 80/80 · sw v22.
+
 ## 2026-08-04 · Aaron's karaoke: FIXED with acoustic ground truth (no regeneration needed)
 
 - James still heard pacing wrongness at the Dad mention after two heuristic repairs. Root cause finally nailed by **transcribing the actual audio** (whisperkit-cli large-v3, word timestamps, on filtered isolated windows — the full mix defeats Whisper, but 13s windows with the lyrics as prompt decode cleanly): **Suno stamped "Dad fixed fences, Mom stood proud" ~12 seconds early** — during "he slammed the door!" and an *unlabeled "oh oh oh hey!" backing chant* — while the Coach/Rusty stamps were nearly right (±0.3s vs acoustics). Our repair passes had "fixed" the correct side toward the wrong one.

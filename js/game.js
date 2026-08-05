@@ -245,8 +245,13 @@ function showTitle() {
   nb.onclick = () => { sfx.tap(); showHeroSelect(); };
   btns.appendChild(nb);
   const p = loadProfile();
-  const winBits = ['wyatt', 'aaron', 'liam'].filter((h) => p.wins[h] > 0).map((h) => `${HEROES[h].name.split(' ')[0]} ×${p.wins[h]}`);
-  if (winBits.length) btns.appendChild(el('p', 'subtitle', `🏆 Farm defended: ${winBits.join(' · ')}`));
+  // victory stars: one ⭐ per win per hero — the collection lives on the title
+  // screen (James, Tue 2026-08-05). Liam appears only once he has a win, which
+  // requires the unlock — zero-hint holds.
+  const star = (n) => (n <= 5 ? '⭐'.repeat(n) : `⭐×${n}`);
+  const winBits = ['wyatt', 'aaron', 'liam'].filter((h) => p.wins[h] > 0)
+    .map((h) => `${HEROES[h].emoji} ${HEROES[h].name.split(' ')[0]} ${star(p.wins[h])}`);
+  if (winBits.length) btns.appendChild(el('p', 'subtitle wins-shelf', winBits.join('<br>')));
   const settings = el('button', 'btn secondary', '⚙️ Settings');
   settings.onclick = showSettings;
   btns.appendChild(settings);
