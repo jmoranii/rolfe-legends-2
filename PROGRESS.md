@@ -2,6 +2,10 @@
 
 Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 300`.
 
+## 2026-08-05 · Power cards say they're permanent (James's call)
+
+- Every power card's text now auto-appends **"Lasts the whole fight!"** — same never-drifts mechanism as the Innate line, one append site covers all 12 powers on every surface. The load-bearing case: Pumped Up ("Gain 3 Strength") read identical to Flex ("Gain 2 Strength this turn") unless the permanence is stated. Verified side by side in-hand. sw v24.
+
 ## 2026-08-05 · Map murals: tall scrolling act paintings (James's pick — option B)
 
 - **The map backdrop was viewport-anchored and slid away when scrolling** (bare act gradient above floor ~4). Now each act has a **1:3 tall mural that scrolls WITH the trail**, StS-parchment style: act 1 — farmhouse at the gate up through golden corn to the Rogue Combine waiting on the ridge; act 2 — barnyard gate up past the coops to a crowned raccoon silhouette on the dusk ridge; act 3 — the battened farmhouse up through storm-bent fields to the Big Twister's grinning face filling the sky. Bottom of the act = home, top = the boss. The trail literally climbs toward trouble.

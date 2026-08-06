@@ -1226,7 +1226,10 @@ function cardText(info, live = false) {
   }
   // "Innate" is invisible jargon on the card face, and a card can *become* innate on
   // upgrade (Ball Machine+), so spell it out here rather than in each card's text —
-  // that way the line can never drift out of sync with the flag.
+  // that way the line can never drift out of sync with the flag. Same treatment for
+  // powers (James, Tue 2026-08-05): purple alone doesn't say the effect is permanent —
+  // "Gain 3 Strength" on Pumped Up reads identical to Flex without this line.
+  if (info.type === 'power') body += ' Lasts the whole fight!';
   return info.innate ? `${body} Starts in your opening hand.` : body;
 }
 function renderCardText(info) { return cardText(info, true); }
