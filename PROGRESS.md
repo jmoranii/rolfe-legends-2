@@ -13,6 +13,12 @@ Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 3
 - **Wide screens**: the trail canvas caps at 560px, so a blurred copy of the mural fills the side gutters (letterbox-blur) instead of bare gradient. Verified at phone + iPad-landscape.
 - unit 1390 · e2e 80/80 · sw v23.
 
+## 2026-08-05 · Acoustic audit of the remaining three anthems (James's ask)
+
+- **Wyatt: real drift found and fixed.** The family-cameo verse ran progressively **~0.7→4.2s later than Suno's stamps** (Mom sung at 23.7 vs stamped 20.6; Rusty 32.3 vs 28.1) — every portrait fired seconds before its name. The verse (41 words, laced→wind) is re-stamped to whisper-measured times; the rest of the track is shifted **+3.2s** on the model that fits both the chorus anchor (+2.7 measured) and the song-end duration. Verse = measured; tail = modeled, flagged honestly.
+- **Liam + the finale: no patch.** Their parsed timelines are structurally clean (monotonic, no stalls, full beat coverage), James has reported nothing, and ~21 whisper windows failed to extract usable word timing from their denser mixes — patching without ground truth is guessing. **Escalation path if either ever sounds off: Suno `stems`** on the existing clips (small credit spend) → clean vocals → exact stamps; technique proven.
+- unit 1390 · e2e 80/80 · sw v26.
+
 ## 2026-08-05 · Victory stars + README refresh (James's pick from the polish menu)
 
 - **Victory stars on the title screen**: the old "Farm defended: Wyatt ×3" text is now ⚡ Wyatt ⭐⭐⭐ / 🌪️ Aaron ⭐ (per-hero rows, ⭐×N past five). Liam's row exists only once he has a win — zero-hint verified (pre-unlock profile shows no trace).
