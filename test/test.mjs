@@ -945,6 +945,14 @@ for (const key of Object.keys(ENEMIES)) {
   const run3 = freshRun('wyatt', 63);
   EVENTS.duck_pond.choices[0].apply(run3, rng);
   ok(run3.deck.some((c) => c.id === 'duck'), 'duck friend joins the deck');
+  // the duck pulls his weight: draw 2 on play (James's buff, Wed 2026-08-06)
+  {
+    const { state } = combatVs(['old_scarecrow']);
+    forceHand(state, ['duck']);
+    state.draw = ['shove', 'shove', 'brace'].map((id) => makeCard(id));
+    C.playCard(state, state.hand[0], state.enemies[0]);
+    eq(state.hand.length, 2, 'Duck Friend draws 2 cards');
+  }
 }
 {
   // save round-trip

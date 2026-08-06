@@ -192,7 +192,9 @@ export const CARDS = {
 
   // ---------- Special / ally ----------
   duck:         { hero: 'any', name: 'Duck Friend', emoji: '🦆', type: 'attack', cost: 1, rarity: 'special', sts: '(original)',
-                  text: 'QUACK! Deal {d} damage. Draw 1 card.', fx: [{ dmg: 5 }, { draw: 1 }], up: { fx: [{ dmg: 8 }, { draw: 1 }] } },
+                  // draw 2 (was 1): helping the duckling should be the obviously good
+                  // choice (James, Wed 2026-08-06)
+                  text: 'QUACK! Deal {d} damage. Draw 2 cards.', fx: [{ dmg: 5 }, { draw: 2 }], up: { fx: [{ dmg: 8 }, { draw: 2 }] } },
 
   // ---------- Statuses (combat junk) ----------
   scraped_knee: { hero: 'none', name: 'Scraped Knee', emoji: '🩹', type: 'status', cost: null, rarity: 'status', sts: 'Wound',

@@ -13,6 +13,11 @@ Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 3
 - **Wide screens**: the trail canvas caps at 560px, so a blurred copy of the mural fills the side gutters (letterbox-blur) instead of bare gradient. Verified at phone + iPad-landscape.
 - unit 1390 · e2e 80/80 · sw v23.
 
+## 2026-08-06 · Duck Friend buff + Wyatt sync confirmed deployed
+
+- **Duck Friend draws 2** (was 1), both versions — helping the duckling at the pond should be the obviously good choice (James). Unit-tested; harness rails unmoved.
+- James heard Wyatt's karaoke ~one line off — verified Pages is serving the corrected LRC (Mom@23.70 live = local); he watched on a stale cache before sw v26 activated. sw v27.
+
 ## 2026-08-05 · Acoustic audit of the remaining three anthems (James's ask)
 
 - **Wyatt: real drift found and fixed.** The family-cameo verse ran progressively **~0.7→4.2s later than Suno's stamps** (Mom sung at 23.7 vs stamped 20.6; Rusty 32.3 vs 28.1) — every portrait fired seconds before its name. The verse (41 words, laced→wind) is re-stamped to whisper-measured times; the rest of the track is shifted **+3.2s** on the model that fits both the chorus anchor (+2.7 measured) and the song-end duration. Verse = measured; tail = modeled, flagged honestly.
