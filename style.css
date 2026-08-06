@@ -651,4 +651,8 @@ h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); letter-spac
 @media (min-width: 700px) {
   .card { flex-basis: 118px; }
   .title-logo { font-size: 2.6rem; }
+  /* tablets: enemy cards were phone-sized and swam in the space (sweep, Tue 2026-08-05) */
+  .enemy { min-width: 124px; max-width: 172px; }
+  .enemy .face { width: 96px; height: 96px; font-size: 2.6rem; }
+  .enemy-row { gap: 14px; }
 }
