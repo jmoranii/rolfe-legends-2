@@ -19,7 +19,7 @@ const CAST = [
   { re: /^(mom)/i, art: 'assets/events/care_package.jpg', emoji: '📦', name: 'Mom', title: 'The Care Package' },
   { re: /^(dad)/i, art: 'assets/events/shop_jacob.jpg', emoji: '🛒', name: 'Dad', title: 'The Farm Supply' },
   { re: /^(brody)/i, art: 'assets/events/brody_garage.jpg', emoji: '🔧', name: 'Uncle Brody', title: 'REAL TALK' },
-  { re: /^(chelsea)/i, art: 'assets/events/chelsea_kitchen.jpg', emoji: '🍲', name: 'Aunt Chelsea', title: 'The Warm Kitchen' },
+  { re: /^(chelsea|kelse)/i, art: 'assets/events/chelsea_kitchen.jpg', emoji: '🍲', name: 'Aunt Chelsea', title: 'The Warm Kitchen' },
   { re: /^(duck)/i, art: 'assets/events/duck_pond.jpg', emoji: '🦆', name: 'The Ducks', title: 'The Victory Beat' },
   { re: /^(twister|storm)/i, art: 'assets/enemies/big_twister.jpg', emoji: '🌪️', name: 'The Big Twister', title: 'Sent packing' },
   // beaten bosses take a bow too (James, Sun 2026-08-02: anything sung with art shows its face)
@@ -46,6 +46,7 @@ const FINALES = {
 const REMAP = [
   [/^whyatt/i, 'Wyatt'],
   [/^leeum/i, 'Liam'],
+  [/^kelse[ya]/i, 'Chelsea'], // sung "Kelsey" so Suno says it right (James, Wed 2026-08-06); spelled Chelsea on screen
 ];
 function remapWord(w) {
   for (const [re, name] of REMAP) {

@@ -13,6 +13,14 @@ Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 3
 - **Wide screens**: the trail canvas caps at 560px, so a blurred copy of the mural fills the side gutters (letterbox-blur) instead of bare gradient. Verified at phone + iPad-landscape.
 - unit 1390 · e2e 80/80 · sw v23.
 
+## 2026-08-06 · Finale anthem regenerated — "Chelsea" now sung "Kelsey"
+
+- James heard the finale mispronounce Aunt Chelsea (ch sound; she pronounces it Kelsey). Suno can't patch a word, so the whole track was **regenerated with the lyric respelled "Kelsey"** — the same phonetic-spelling trick as Whyatt/Leeum. Take 1 shipped (`ffa18ce4`, 75.8s); take 2 archived in other-takes.
+- Display stays "Chelsea": REMAP kelse→Chelsea for captions + CAST trigger widened to `/^(chelsea|kelse)/i` (portrait still fires; ten-family test green).
+- New take's Suno stamps passed all LRC audits clean — no hand repair needed. Whisper probes on the bridge couldn't resolve the name (this mix has always resisted); James's ear is the final verifier.
+- Wyatt's anthem also spells "Chelsea" (~0:54) — James only heard it in the finale; his track keeps its hand-measured timing unless he hears it there too (link sent for a listen).
+- unit 1391 · e2e 80/80 · sw v29.
+
 ## 2026-08-06 · Wyatt HP 54 → 51 (back inside the hard band)
 
 - Fresh 500-run check (James asked for current balance): the full-heal + Duck buffs had pushed Wyatt to **39.2%** — over the 37% hard rail (`VERDICT: NEEDS TUNING`). Aaron 33.4 / Liam 34.0 were fine, so the fix is Wyatt-only.
