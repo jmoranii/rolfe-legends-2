@@ -13,6 +13,13 @@ Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 3
 - **Wide screens**: the trail canvas caps at 560px, so a blurred copy of the mural fills the side gutters (letterbox-blur) instead of bare gradient. Verified at phone + iPad-landscape.
 - unit 1390 · e2e 80/80 · sw v23.
 
+## 2026-08-07 · Wyatt anthem regenerated too — Kelsey fix, whisper-verified
+
+- James confirmed Wyatt's track also sang "Chelsea" with the ch sound → regenerated with the "Kelsey" respelling (take 1 = `56ce6954`, 84.2s; prior gen's take 2 archived as `-v2-take2`).
+- **Both fixes verified acoustically this time**: an *unprompted* whisper pass on verse 3 transcribed "…and **Kelsey** warmed him head to toe…" — the K sound is in the audio (and "Wyatt!" comes through right from the Whyatt spelling).
+- **New take's stamps are accurate** — measured vs stamped: Brody Δ0.21s · Kelsey Δ0.26s · Coach Δ0.02s · ducks Δ0.42s · sandwiches Δ0.38s. The old take's 0.7→4.2s drift did not recur; no hand re-stamping needed, so nothing was lost by replacing the hand-measured LRC.
+- unit 1391 · e2e 80/80 · sw v30.
+
 ## 2026-08-06 · Finale anthem regenerated — "Chelsea" now sung "Kelsey"
 
 - James heard the finale mispronounce Aunt Chelsea (ch sound; she pronounces it Kelsey). Suno can't patch a word, so the whole track was **regenerated with the lyric respelled "Kelsey"** — the same phonetic-spelling trick as Whyatt/Leeum. Take 1 shipped (`ffa18ce4`, 75.8s); take 2 archived in other-takes.
