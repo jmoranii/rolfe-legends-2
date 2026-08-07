@@ -13,6 +13,12 @@ Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 3
 - **Wide screens**: the trail canvas caps at 560px, so a blurred copy of the mural fills the side gutters (letterbox-blur) instead of bare gradient. Verified at phone + iPad-landscape.
 - unit 1390 · e2e 80/80 · sw v23.
 
+## 2026-08-07 · Stat changes you can SEE: event strip fx + Big Breakfast banner
+
+- **Events animate their consequences** (James's ask): the HP/gold strip on event screens used to go stale after a choice — now it re-renders with a green swell (gains) or red rattle (hits), plus a combat-style floaty rising from the exact stat that changed (❤️ +16 / 💔 -5 / ❤️ MAX HP +5! / 💰 ±N), with heal/hurt sfx. Floaties are anchored per-stat (`floaty()` grew an optional `leftPct`). Reduced-motion: numbers still re-render, animations skip.
+- **Big Breakfast visibly triggers after every fight** (James's ask): `applyCombatResult` now reports the actual amount healed, and the reward screen opens with a flip-in banner — 🥞 **Big Breakfast!** ❤️ +8 → 48/80 (or "already stuffed!" at full HP) + heal sfx. Final-act boss skips it by design (goes straight to the ending).
+- unit 1396 · e2e 86/86 (event strip re-render + banner checks) · sw v31.
+
 ## 2026-08-07 · Wyatt anthem regenerated too — Kelsey fix, whisper-verified
 
 - James confirmed Wyatt's track also sang "Chelsea" with the ch sound → regenerated with the "Kelsey" respelling (take 1 = `56ce6954`, 84.2s; prior gen's take 2 archived as `-v2-take2`).

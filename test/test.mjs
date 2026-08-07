@@ -305,6 +305,24 @@ for (const [id, def] of Object.entries(CARDS)) {
   R.applyCombatResult(run, state);
   eq(run.gold, g0 - 15, 'stolen gold deducted');
 }
+
+// ---------- Big Breakfast reports its trigger for the reward banner (James, Thu 2026-08-07) ----------
+{
+  const run = R.newRun('aaron', 77);
+  const state = C.startCombat(run, ['gopher'], makeRng(77));
+  state.hero.hp = 40;
+  const res = R.applyCombatResult(run, state);
+  eq(res.breakfastHeal, 8, 'Big Breakfast reports +8 after the fight');
+  eq(run.hp, 48, 'pancakes actually healed');
+  const run2 = R.newRun('aaron', 77);
+  const state2 = C.startCombat(run2, ['gopher'], makeRng(77));
+  const res2 = R.applyCombatResult(run2, state2);
+  eq(res2.breakfastHeal, 0, 'full HP: reports 0 (banner says stuffed), no overheal');
+  eq(run2.hp, run2.maxHp, 'hp stays clamped at max');
+  const run3 = R.newRun('wyatt', 77);
+  const state3 = C.startCombat(run3, ['gopher'], makeRng(77));
+  eq(R.applyCombatResult(run3, state3).breakfastHeal, null, 'no pancakes → no banner');
+}
 {
   const { state } = combatVs(['old_scarecrow']);
   const e = state.enemies[0];

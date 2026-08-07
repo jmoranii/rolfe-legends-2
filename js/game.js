@@ -110,8 +110,8 @@ function sceneScreen(artPath, emoji, titleText) {
   // deck in view (James's playtest note)
   if (run) {
     const strip = el('div', 'scene-status');
-    strip.appendChild(el('span', 'scene-stat', `❤️ ${run.hp}/${run.maxHp}`));
-    strip.appendChild(el('span', 'scene-stat', `💰 ${run.gold}`));
+    strip.appendChild(el('span', 'scene-stat stat-hp', `❤️ ${run.hp}/${run.maxHp}`));
+    strip.appendChild(el('span', 'scene-stat stat-gold', `💰 ${run.gold}`));
     const deckB = el('button', 'pilebtn', `🎴 My Deck (${run.deck.length})`);
     deckB.onclick = () => showDeckModal(run.deck);
     strip.appendChild(deckB);
@@ -841,10 +841,10 @@ function windScatter(fromEl, count) {
   }
 }
 
-function floaty(target, text, cls) {
+function floaty(target, text, cls, leftPct) {
   if (!target || REDUCED) return;
   const f = el('span', `floaty ${cls}`, text);
-  f.style.left = `${22 + Math.random() * 46}%`;
+  f.style.left = `${leftPct ?? 22 + Math.random() * 46}%`;
   const ms = Math.round(950 * fxScale());
   f.style.animationDuration = `${ms}ms`;
   target.appendChild(f);
@@ -1493,6 +1493,14 @@ function showActCard(act, onDone) {
 function showReward(rewards, result, kind) {
   const s = screen(actCls());
   s.appendChild(el('h2', '', kind === 'boss' ? '👑 BOSS DEFEATED!' : kind === 'elite' ? '💀 BIG Trouble — beaten!' : '🎉 You did it!'));
+  // Aaron's pancakes visibly do their work after every fight (James's ask)
+  if (result.breakfastHeal != null) {
+    const gained = result.breakfastHeal > 0
+      ? `❤️ +${result.breakfastHeal} → ${run.hp}/${run.maxHp}`
+      : `❤️ ${run.hp}/${run.maxHp} — already stuffed!`;
+    s.appendChild(el('div', 'bf-banner', `🥞 <b>Big Breakfast!</b> <span class="bf-heal">${gained}</span>`));
+    if (result.breakfastHeal > 0) sfx.heal();
+  }
   if (rewards.relicCollected) {
     const rl = RELICS[rewards.relicCollected];
     s.appendChild(el('p', 'subtitle', `✅ ${rl.emoji} <b>${rl.name}</b> collected!`));
@@ -1607,12 +1615,40 @@ function showEvent(key) {
   const rng = makeRng(run.seed ^ run.floor * 991 ^ 0xE1E);
   const choicesWrap = el('div', 'event-choices');
   s.appendChild(choicesWrap);
+  // HP / max-HP / gold changes play out on the status strip before you leave —
+  // numbers re-render with a pulse and a combat-style floaty (James's ask)
+  let before = null;
+  const statFx = () => {
+    const strip = s.querySelector('.scene-status');
+    if (!strip || !before) return;
+    const dMax = run.maxHp - before.maxHp, dHp = run.hp - before.hp, dGold = run.gold - before.gold;
+    before = null;
+    const tick = (sel, text, cls) => {
+      const t = strip.querySelector(sel);
+      if (!t) return;
+      t.textContent = text;
+      if (cls && !REDUCED) { t.classList.remove('stat-bump', 'stat-drop'); void t.offsetWidth; t.classList.add(cls); }
+    };
+    tick('.stat-hp', `❤️ ${run.hp}/${run.maxHp}`, (dHp || dMax) ? (dHp < 0 ? 'stat-drop' : 'stat-bump') : null);
+    tick('.stat-gold', `💰 ${run.gold}`, dGold ? (dGold < 0 ? 'stat-drop' : 'stat-bump') : null);
+    // each floaty rises from its own stat, not a random spot on the strip
+    const over = (sel) => {
+      const t = strip.querySelector(sel);
+      return t ? Math.max(0, (t.offsetLeft + t.offsetWidth / 2) / strip.offsetWidth * 100 - 9) : undefined;
+    };
+    if (dMax > 0) { floaty(strip, `❤️ MAX HP +${dMax}!`, 'formshift', over('.stat-hp')); sfx.heal(); }
+    else if (dHp > 0) { floaty(strip, `❤️ +${dHp}`, 'heal', over('.stat-hp')); sfx.heal(); }
+    if (dHp < 0) { floaty(strip, `💔 ${dHp}`, 'dmg', over('.stat-hp')); sfx.hurt(); }
+    if (dGold > 0) floaty(strip, `💰 +${dGold}`, 'formshift', over('.stat-gold'));
+    else if (dGold < 0) floaty(strip, `💰 ${dGold}`, 'dmg', over('.stat-gold'));
+  };
   // the outcome replaces the choices RIGHT HERE on the event screen — the kid
   // sees what happened where it happened, then moves on (James's ask)
   const conclude = (html) => {
     saveRun();
     choicesWrap.innerHTML = '';
     choicesWrap.appendChild(el('div', 'event-result', html));
+    statFx();
     const b = el('button', 'btn', 'Onward! →');
     b.onclick = showMap;
     choicesWrap.appendChild(b);
@@ -1622,6 +1658,7 @@ function showEvent(key) {
     if (choice.can && !choice.can(run)) b.disabled = true;
     b.onclick = () => {
       sfx.tap();
+      before = { hp: run.hp, maxHp: run.maxHp, gold: run.gold };
       const result = choice.apply(run, rng);
       if (result === 'PICK_CURSE') {
         // show the kid exactly which cards are junk, and let them toss one

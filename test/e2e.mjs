@@ -370,6 +370,58 @@ async function twisterReform() {
   await browser.close();
 }
 
+// event outcomes re-render the HP/gold strip (it used to go stale after apply)
+async function eventStatTick() {
+  const browser = await chromium.launch();
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  await page.goto(BASE, { waitUntil: 'load' });
+  await page.evaluate(() => {
+    window.__RL2.dev.start('aaron');
+    window.__RL2.run.hp = 40;
+    window.__RL2.dev.enter('event', 'care_package');
+  });
+  await page.waitForSelector('.event-choices .btn');
+  ok((await page.textContent('.stat-hp')).includes('40/80'), 'event: strip shows pre-choice HP');
+  await page.locator('.event-choices .btn', { hasText: 'sandwich' }).click();
+  await page.waitForSelector('.event-result');
+  const { hp, text } = await page.evaluate(() => ({
+    hp: window.__RL2.run.hp, text: document.querySelector('.stat-hp').textContent,
+  }));
+  ok(hp === 56, `event: sandwich healed 20% (hp ${hp})`);
+  ok(text.includes('56/80'), `event: strip re-rendered to healed HP (${text.trim()})`);
+  ok(errors.length === 0, `event: zero page errors${errors.length ? ' — ' + errors[0].slice(0, 120) : ''}`);
+  await browser.close();
+}
+
+// Aaron's Big Breakfast banner on the reward screen
+async function bigBreakfastBeat() {
+  const browser = await chromium.launch();
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  await page.goto(BASE, { waitUntil: 'load' });
+  await page.evaluate(() => {
+    window.__RL2.dev.start('aaron');
+    window.__RL2.run.hp = 40;
+    window.__RL2.dev.enter('fight', ['gopher']);
+  });
+  await page.waitForSelector('.enemy');
+  await page.evaluate(() => {
+    const { C } = window.__RL2;
+    C.dealDamage(window.__RL2.combat, window.__RL2.combat.enemies[0], 999, { attacker: window.__RL2.combat.hero });
+    window.__RL2.dev.enter('refresh');
+  });
+  await page.waitForSelector('h2:has-text("Nice work")', { timeout: 8000 });
+  await page.locator('.btn').first().click();
+  await page.waitForSelector('.bf-banner');
+  const banner = await page.textContent('.bf-banner');
+  ok(banner.includes('Big Breakfast') && banner.includes('+8'), `reward: Big Breakfast banner shows the heal (${banner.trim()})`);
+  ok(errors.length === 0, `reward: zero page errors${errors.length ? ' — ' + errors[0].slice(0, 120) : ''}`);
+  await browser.close();
+}
+
 try {
   await runSuite(chromium, 'chromium');
   await runSuite(webkit, 'webkit');
@@ -378,6 +430,8 @@ try {
   await fleeExit();
   await deathScreen();
   await twisterReform();
+  await eventStatTick();
+  await bigBreakfastBeat();
   await deepRun();
 } catch (e) {
   ok(false, 'suite crashed: ' + e.message);

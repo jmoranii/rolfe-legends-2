@@ -177,9 +177,15 @@ export function applyCombatResult(run, combatState) {
   let lost = 0;
   for (const e of combatState.enemies) if (e.fled && e.stolen) lost += e.stolen;
   run.gold = Math.max(0, run.gold - lost);
-  if (run.relics.includes('big_breakfast')) run.hp = Math.min(run.maxHp, run.hp + 8);
+  // Big Breakfast: report the actual amount healed so the UI can show the
+  // pancakes doing their work (James: it should obviously trigger)
+  let breakfastHeal = null;
+  if (run.relics.includes('big_breakfast')) {
+    breakfastHeal = Math.min(8, run.maxHp - run.hp);
+    run.hp += breakfastHeal;
+  }
   run.stats.fights += 1;
-  return { goldLost: lost };
+  return { goldLost: lost, breakfastHeal };
 }
 
 // ---------- shop (Jacob's Farm Supply) ----------

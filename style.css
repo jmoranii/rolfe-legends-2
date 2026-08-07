@@ -617,8 +617,29 @@ h1, h2 { text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.25); letter-spac
 .up-after .mc-name { color: #1c7a2e; }
 
 /* scene decision-support strip (HP + gold + deck at every stop) */
-.scene-status { display: flex; gap: 10px; align-items: center; justify-content: center; margin: 2px 0 8px; flex-wrap: wrap; }
-.scene-stat { background: rgba(0,0,0,.3); color: #fff; border-radius: 10px; padding: 6px 12px; font-weight: 800; font-size: .9rem; }
+.scene-status { display: flex; gap: 10px; align-items: center; justify-content: center; margin: 2px 0 8px; flex-wrap: wrap; position: relative; }
+.scene-stat { background: rgba(0,0,0,.3); color: #fff; border-radius: 10px; padding: 6px 12px; font-weight: 800; font-size: .9rem; display: inline-block; }
+/* event outcomes tick the strip: green swell on gains, red rattle on hits */
+.scene-stat.stat-bump { animation: statbump .55s ease; }
+.scene-stat.stat-drop { animation: statdrop .55s ease; }
+@keyframes statbump { 40% { transform: scale(1.28); color: #7ae87a; } }
+@keyframes statdrop {
+  20% { transform: translateX(-4px) scale(1.12); color: #ff6b5a; }
+  45% { transform: translateX(4px) scale(1.12); color: #ff6b5a; }
+  70% { transform: translateX(-2px); color: #ff6b5a; }
+}
+@media (prefers-reduced-motion: reduce) { .scene-stat.stat-bump, .scene-stat.stat-drop { animation: none; } }
+
+/* Big Breakfast reward beat: the pancakes flip in, then the heal pops up */
+.bf-banner {
+  display: inline-block; margin: 2px auto 6px; padding: 8px 16px; border-radius: 12px;
+  background: rgba(0,0,0,.35); color: #ffe9b8; font-weight: 800; font-size: 1rem;
+  border: 2px solid #ffd23f66; animation: bfpop .6s ease;
+}
+.bf-banner .bf-heal { display: inline-block; color: #7ae87a; animation: bfheal .7s ease .4s backwards; }
+@keyframes bfpop { 0% { transform: scale(.3) rotate(-7deg); opacity: 0; } 60% { transform: scale(1.12) rotate(2deg); } }
+@keyframes bfheal { 0% { opacity: 0; transform: translateY(9px) scale(.5); } 60% { transform: translateY(-3px) scale(1.25); } }
+@media (prefers-reduced-motion: reduce) { .bf-banner, .bf-banner .bf-heal { animation: none; } }
 
 /* ---------- landscape ---------- */
 /* Phones held sideways are too short for the column layout — ask for portrait. */
