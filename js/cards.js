@@ -12,7 +12,7 @@ export const HEROES = {
     starter: ['shove', 'shove', 'shove', 'shove', 'shove', 'brace', 'brace', 'brace', 'brace', 'tornado_slam'],
   },
   wyatt: {
-    id: 'wyatt', name: 'Wyatt the Speedy', emoji: '⚡', hp: 54, // StS Silent 70; hard-mode dial (his StS-true kit overperforms vs the kid-tilted bestiary)
+    id: 'wyatt', name: 'Wyatt the Speedy', emoji: '⚡', hp: 51, // StS Silent 70; hard-mode dial (his StS-true kit overperforms vs the kid-tilted bestiary; 54→51 after full-heal + duck buffs pushed him to 39%)
     relic: 'head_start',
     tagline: 'Fastest feet in Rolfe. Blink and you miss him.',
     starter: ['kick', 'kick', 'kick', 'kick', 'kick', 'dodge', 'dodge', 'dodge', 'dodge', 'dodge', 'nutmeg', 'quick_feet'],

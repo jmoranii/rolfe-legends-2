@@ -13,6 +13,13 @@ Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 3
 - **Wide screens**: the trail canvas caps at 560px, so a blurred copy of the mural fills the side gutters (letterbox-blur) instead of bare gradient. Verified at phone + iPad-landscape.
 - unit 1390 · e2e 80/80 · sw v23.
 
+## 2026-08-06 · Wyatt HP 54 → 51 (back inside the hard band)
+
+- Fresh 500-run check (James asked for current balance): the full-heal + Duck buffs had pushed Wyatt to **39.2%** — over the 37% hard rail (`VERDICT: NEEDS TUNING`). Aaron 33.4 / Liam 34.0 were fine, so the fix is Wyatt-only.
+- **Lever: HP shave, 54 → 51** (James's pick from HP-vs-card-trim). Preserves his engine untouched; his lopsided death profile (act 1 vs the Ornery Ram, then cruising) means the shave lands exactly where he's supposed to be fragile.
+- Re-verified at 500: **Aaron 33.4 / Wyatt 35.0 / Liam 34.0 — ALL CLEAR** in the 25–35 band.
+- unit 1391 · sw v28. (More-events idea floated and skipped — James passed on the negative-event roster.)
+
 ## 2026-08-06 · Duck Friend buff + Wyatt sync confirmed deployed
 
 - **Duck Friend draws 2** (was 1), both versions — helping the duckling at the pond should be the obviously good choice (James). Unit-tested; harness rails unmoved.
