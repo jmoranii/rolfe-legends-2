@@ -13,6 +13,13 @@ Running log per GOAL.md. Newest entry first. Harness = `node test/selfplay.mjs 3
 - **Wide screens**: the trail canvas caps at 560px, so a blurred copy of the mural fills the side gutters (letterbox-blur) instead of bare gradient. Verified at phone + iPad-landscape.
 - unit 1390 · e2e 80/80 · sw v23.
 
+## 2026-08-07 · Finale karaoke opening re-stamped from the vocal stem (James's report)
+
+- The regenerated finale's LRC crammed lines 1–2 into **0.00–2.51s** and smeared "Whyatt quick and Aaron strong" across 2.66–15.97s; the in-game repair guessed lines 1–3 into 0–5.8s — all before the singing starts. James saw the first two lines light up over the intro.
+- Full mix defeated whisper on this track (as always), so this was the **first live use of the `suno stems` escalation**: split the clip (the CLI errors decoding the response but the split succeeds server-side — poll `suno info` until `audio_url` populates), whisper the clean vocal stem → complete word-level ground truth for the opening. Verse actually starts **6.24s**; duo line sung **13.98–15.40**.
+- Lines 1–3 re-stamped to measured times; line 4 + chorus verified within ~0.4s and left alone. The WYATT & AARON portrait beat now fires at 13.83s, on the sung names. Stems live in the Suno library (`20013deb` vocals / `8d7a585f` instrumental).
+- unit 1396 · e2e 86/86 · sw v32.
+
 ## 2026-08-07 · Stat changes you can SEE: event strip fx + Big Breakfast banner
 
 - **Events animate their consequences** (James's ask): the HP/gold strip on event screens used to go stale after a choice — now it re-renders with a green swell (gains) or red rattle (hits), plus a combat-style floaty rising from the exact stat that changed (❤️ +16 / 💔 -5 / ❤️ MAX HP +5! / 💰 ±N), with heal/hurt sfx. Floaties are anchored per-stat (`floaty()` grew an optional `leftPct`). Reduced-motion: numbers still re-render, animations skip.
